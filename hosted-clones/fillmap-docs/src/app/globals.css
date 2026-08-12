@@ -1,0 +1,223 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./";
+
+/* Tailwind theme: color tokens (so bg-primary/text-foreground resolve to our vars) +
+   breakpoints. @theme inline keeps the var() reference (theme-swappable at runtime). */
+@theme inline {
+  --breakpoint-vp375: 375px;
+  --breakpoint-vp768: 768px;
+  --breakpoint-vp1280: 1280px;
+  --breakpoint-vp1920: 1920px;
+  --breakpoint-md: 572px;
+  --breakpoint-lg: 1025px;
+  --breakpoint-2xl: 1601px;
+  --color-surface-2: var(--surface-2);
+  --color-clr-0: var(--clr-0);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-surface-6: var(--surface-6);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-8: var(--surface-8);
+  --color-clr-1: var(--clr-1);
+  --color-clr-2: var(--clr-2);
+  --color-border: var(--border);
+  --color-color-002: var(--color-002);
+  --color-accent: var(--accent);
+  --color-surface-12: var(--surface-12);
+  --color-color-004: var(--color-004);
+  --color-surface-11: var(--surface-11);
+  --color-surface-3: var(--surface-3);
+  --color-surface-9: var(--surface-9);
+  --color-color-013: var(--color-013);
+  --color-surface-4: var(--surface-4);
+  --color-color-009: var(--color-009);
+  --color-color-012: var(--color-012);
+  --color-surface-10: var(--surface-10);
+  --color-surface-5: var(--surface-5);
+  --color-surface-13: var(--surface-13);
+  --color-clr-3: var(--clr-3);
+  --color-color-016: var(--color-016);
+  --color-color-015: var(--color-015);
+  --color-color-014: var(--color-014);
+  --color-surface-14: var(--surface-14);
+  --color-color-007: var(--color-007);
+  --color-color-006: var(--color-006);
+  --color-surface-7: var(--surface-7);
+  --color-color-017: var(--color-017);
+  --color-color-024: var(--color-024);
+  --color-color-026: var(--color-026);
+  --color-color-028: var(--color-028);
+  --color-color-023: var(--color-023);
+  --color-color-011: var(--color-011);
+  --color-color-010: var(--color-010);
+  --color-surface-16: var(--surface-16);
+  --color-color-022: var(--color-022);
+  --color-clr-4: var(--clr-4);
+  --color-color-008: var(--color-008);
+  --color-clr-5: var(--clr-5);
+  --color-color-018: var(--color-018);
+  --color-color-027: var(--color-027);
+  --color-surface-15: var(--surface-15);
+  --color-clr-6: var(--clr-6);
+  --color-color-025: var(--color-025);
+  --color-color-005: var(--color-005);
+  --color-color-020: var(--color-020);
+  --color-color-019: var(--color-019);
+  --color-color-021: var(--color-021);
+  --color-clr-7: var(--clr-7);
+}
+
+/* Design tokens (values). */
+:root {
+  --background: rgb(247, 245, 240);
+  --foreground: rgb(22, 21, 15);
+  --primary: rgb(15, 157, 99);
+  --accent: rgb(45, 108, 223);
+  --border: rgb(223, 227, 232);
+  --surface: rgb(226, 221, 210);
+  --muted-foreground: rgb(69, 65, 58);
+  --surface-2: rgb(236, 232, 222);
+  --muted: rgb(123, 117, 106);
+  --surface-3: rgb(242, 244, 247);
+  --surface-4: rgb(246, 247, 249);
+  --surface-5: rgb(216, 222, 217);
+  --surface-6: rgb(230, 244, 236);
+  --surface-7: rgb(237, 241, 238);
+  --surface-8: rgb(255, 254, 251);
+  --surface-9: rgb(255, 255, 255);
+  --surface-10: rgb(253, 238, 236);
+  --surface-11: rgb(233, 246, 239);
+  --surface-12: rgb(234, 241, 253);
+  --surface-13: rgb(255, 253, 248);
+  --surface-14: rgb(220, 239, 231);
+  --surface-15: rgb(230, 236, 232);
+  --surface-16: rgb(225, 238, 246);
+  --color-001: rgb(27, 31, 36);
+  --color-002: rgb(91, 102, 115);
+  --color-003: rgb(23, 34, 31);
+  --color-004: rgb(31, 122, 77);
+  --color-005: rgb(36, 41, 46);
+  --color-006: rgb(27, 79, 63);
+  --color-007: rgb(64, 81, 75);
+  --color-008: rgb(168, 201, 189);
+  --color-009: rgb(180, 105, 14);
+  --color-010: rgb(35, 75, 100);
+  --color-011: rgb(246, 213, 138);
+  --color-012: rgb(253, 243, 227);
+  --color-013: rgb(192, 57, 43);
+  --color-014: rgb(93, 106, 101);
+  --color-015: rgb(49, 68, 61);
+  --color-016: rgb(18, 106, 82);
+  --color-017: rgb(224, 181, 104);
+  --color-018: rgb(143, 215, 255);
+  --color-019: rgb(3, 47, 98);
+  --color-020: rgb(111, 66, 193);
+  --color-021: rgb(106, 115, 125);
+  --color-022: rgb(212, 149, 144);
+  --color-023: rgb(158, 231, 189);
+  --color-024: rgb(247, 234, 211);
+  --color-025: rgb(0, 0, 238);
+  --color-026: rgb(16, 32, 27);
+  --color-027: rgb(111, 72, 22);
+  --color-028: rgb(139, 163, 153);
+}
+
+:root {
+  /* fonts */
+  --font-body: -apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-001: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  /* fontSizes */
+  --font-size-001: 10.5px;
+  --font-size-002: 11px;
+  --font-size-003: 13px;
+  --font-size-004: 13.5px;
+  --font-size-005: 14px;
+  --font-size-006: 16px;
+  --font-size-007: 18px;
+  /* fontWeights */
+  --font-weight-001: 400;
+  --font-weight-002: 600;
+  --font-weight-003: 650;
+  --font-weight-004: 700;
+  /* lineHeights */
+  --line-height-001: 28px;
+  --line-height-002: 19.25px;
+  --line-height-003: 22.75px;
+  --line-height-004: 31.5px;
+  --line-height-005: 24.5px;
+  --line-height-006: 18.375px;
+  --line-height-007: 23.625px;
+  /* spacing */
+  --space-001: 2px;
+  --space-002: 3px;
+  --space-003: 6px;
+  --space-004: 8px;
+  --space-005: 9px;
+  --space-006: 10px;
+  --space-007: 11px;
+  --space-008: 12px;
+  --space-009: 16px;
+  --space-010: 17px;
+  --space-011: 18px;
+  --space-012: 22px;
+  --space-013: 48px;
+  --space-014: 72px;
+  /* radii */
+  --radius-001: 12px;
+  --radius-002: 999px;
+  /* breakpoints */
+  --bp-375: 375px;
+  --bp-768: 768px;
+  --bp-1280: 1280px;
+  --bp-1920: 1920px;
+}
+
+:root {
+  --clr-0: color(srgb 0.968627 0.960784 0.941177 / 0.88);
+  --clr-1: color(srgb 0.596667 0.778824 0.671176);
+  --clr-2: color(srgb 0.968628 0.960784 0.941177 / 0.65);
+  --clr-3: rgba(29, 48, 41, 0.06);
+  --clr-4: rgb(247, 225, 223);
+  --clr-5: rgb(200, 231, 220);
+  --clr-6: rgba(0, 0, 0, 0);
+  --clr-7: rgb(0, 92, 197);
+}
+
+@layer base {
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid currentColor; }
+html { -webkit-text-size-adjust: 100%; line-height: normal; }
+body { margin: 0; }
+ul, ol, menu { list-style: none; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea, optgroup { font: inherit; color: inherit; background: transparent; border: 0; padding: 0; margin: 0; text-align: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+table { border-collapse: separate; border-spacing: 0; }
+img, picture, video, canvas, svg { display: inline-block; }
+/* Lottie runtime fit: the player re-mounts its svg/canvas into an absolute overlay that fills
+   the host's captured (per-viewport, definite) box. Force that runtime media to fit the box so
+   an aspect-mismatched viewBox (e.g. a portrait animation in a shorter, letterboxed source box)
+   can't inflate past the pinned height. Scoped to the runtime-marked host only. */
+[data-ditto-lottie] > div > svg, [data-ditto-lottie] > div > canvas { width: 100%; height: 100%; display: block; }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
+/* Neutralize UA text defaults to inherit so the generator's default-skipping is
+   correct: a property equal to its inherited value is simply not emitted. */
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+b, strong, th { font-weight: inherit; }
+em, i, cite, var, dfn, address, q { font-style: inherit; }
+small, big, sub, sup { font-size: inherit; }
+sub, sup { vertical-align: inherit; }
+code, kbd, samp, pre, tt, var { font-family: inherit; font-size: inherit; }
+mark { background-color: transparent; color: inherit; }
+abbr[title] { text-decoration: none; }
+fieldset, legend { min-width: 0; }
+
+/* fonts */
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+html, body { overflow-x: clip; }
+}

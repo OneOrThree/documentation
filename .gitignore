@@ -1,0 +1,8 @@
+# Ditto API key lives here; never commit it.
+.env
+.env.*
+
+# Working checkout of ion-design/ditto.site — its own git repo, ~1.8G with
+# node_modules and clone run artifacts. Cloned on demand, not vendored:
+#   gh repo clone ion-design/ditto.site
+ditto.site/

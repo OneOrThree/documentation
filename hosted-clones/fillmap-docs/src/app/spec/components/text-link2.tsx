@@ -1,0 +1,44 @@
+import type { TextLink2Styles } from "../_styles";
+import { cn } from "../../../lib/utils";
+export type TextLink2Data = {
+  label: string;
+  label2: string;
+  label3: string;
+  label4: string;
+};
+/** A text link. */
+export default function TextLink2({ d, cids, styles }: { d: TextLink2Data; cids: string[]; styles: TextLink2Styles }) {
+  return (
+    <a data-cid={cids[0]} className={cn("border-b border-solid border-b-surface-2 grid py-[1.0625rem] px-2 items-center gap-4 cursor-pointer grid-cols-[46px_1fr_auto] max-md:grid-cols-[34px_269px]", styles.className)} data-component="link" href="/spec/EA-B0-9C-EC-9D-B8-EB-8F-84-EA-B0-90-ED-99-94-EB-A9-B4-ED-99-95-EC-A0-95-ux-api-EC-84-A4-EA-B3-84">
+      {" "}
+      <span data-cid={cids[1]} className="block min-w-0 text-muted [font-family:ui-monospace,_SFMono-Regular,_'SF_Mono',_'JetBrains_Mono',_Menlo,_monospace] text-lg leading-[2rem]">
+        {d.label}
+      </span>
+      {" "}
+      <span data-cid={cids[2]} className={cn("block min-w-0", styles.className2)}>
+        {" "}
+        <span data-cid={cids[3]} className="inline [font-weight:650] tracking-[-0.24px]">
+          {d.label2}
+        </span>
+        {" "}
+        <span data-cid={cids[4]} className="inline mt-0.5 text-muted text-sm leading-[1.375rem]">
+          {d.label3}
+        </span>
+        {" "}
+      </span>
+      {" "}
+      <span data-cid={cids[5]} className="flex min-w-0 justify-end items-center gap-3 text-muted text-[0.8125rem] leading-[1.4375rem] whitespace-nowrap text-nowrap max-md:col-start-2">
+        {" "}
+        <span data-cid={cids[6]} className="border border-solid border-clr-1 block max-w-33 py-[0.1875rem] px-[0.5625rem] rounded-[999px] overflow-hidden text-primary [font-family:ui-monospace,_SFMono-Regular,_'SF_Mono',_'JetBrains_Mono',_Menlo,_monospace] text-[0.6875rem] leading-[1.1875rem] tracking-[0.88px] uppercase bg-surface-6">
+          유효
+        </span>
+        {" "}
+        <span data-cid={cids[7]} className="block max-w-[11.6875rem] overflow-hidden">
+          {d.label4}
+        </span>
+        {"→\n"}
+      </span>
+      {" "}
+    </a>
+  );
+}

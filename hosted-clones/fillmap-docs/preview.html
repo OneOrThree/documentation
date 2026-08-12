@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FillMap 문서</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid currentColor; }
+html { -webkit-text-size-adjust: 100%; line-height: normal; }
+body { margin: 0; }
+ul, ol, menu { list-style: none; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea, optgroup { font: inherit; color: inherit; background: transparent; border: 0; padding: 0; margin: 0; text-align: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+table { border-collapse: separate; border-spacing: 0; }
+img, picture, video, canvas, svg { display: inline-block; }
+/* Lottie runtime fit: the player re-mounts its svg/canvas into an absolute overlay that fills
+   the host's captured (per-viewport, definite) box. Force that runtime media to fit the box so
+   an aspect-mismatched viewBox (e.g. a portrait animation in a shorter, letterboxed source box)
+   can't inflate past the pinned height. Scoped to the runtime-marked host only. */
+[data-ditto-lottie] > div > svg, [data-ditto-lottie] > div > canvas { width: 100%; height: 100%; display: block; }
+h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd { margin: 0; }
+/* Neutralize UA text defaults to inherit so the generator's default-skipping is
+   correct: a property equal to its inherited value is simply not emitted. */
+h1, h2, h3, h4, h5, h6 { font-size: inherit; font-weight: inherit; }
+b, strong, th { font-weight: inherit; }
+em, i, cite, var, dfn, address, q { font-style: inherit; }
+small, big, sub, sup { font-size: inherit; }
+sub, sup { vertical-align: inherit; }
+code, kbd, samp, pre, tt, var { font-family: inherit; font-size: inherit; }
+mark { background-color: transparent; color: inherit; }
+abbr[title] { text-decoration: none; }
+fieldset, legend { min-width: 0; }
+
+/* fonts */
+
+
+/* tokens */
+:root {
+  --background: rgb(247, 245, 240);
+  --foreground: rgb(22, 21, 15);
+  --primary: rgb(15, 157, 99);
+  --accent: rgb(45, 108, 223);
+  --border: rgb(223, 227, 232);
+  --surface: rgb(226, 221, 210);
+  --muted-foreground: rgb(69, 65, 58);
+  --surface-2: rgb(236, 232, 222);
+  --muted: rgb(123, 117, 106);
+  --surface-3: rgb(242, 244, 247);
+  --surface-4: rgb(246, 247, 249);
+  --surface-5: rgb(216, 222, 217);
+  --surface-6: rgb(230, 244, 236);
+  --surface-7: rgb(237, 241, 238);
+  --surface-8: rgb(255, 254, 251);
+  --surface-9: rgb(255, 255, 255);
+  --surface-10: rgb(253, 238, 236);
+  --surface-11: rgb(233, 246, 239);
+  --surface-12: rgb(234, 241, 253);
+  --surface-13: rgb(255, 253, 248);
+  --surface-14: rgb(220, 239, 231);
+  --surface-15: rgb(230, 236, 232);
+  --surface-16: rgb(225, 238, 246);
+  --color-001: rgb(27, 31, 36);
+  --color-002: rgb(91, 102, 115);
+  --color-003: rgb(23, 34, 31);
+  --color-004: rgb(31, 122, 77);
+  --color-005: rgb(36, 41, 46);
+  --color-006: rgb(27, 79, 63);
+  --color-007: rgb(64, 81, 75);
+  --color-008: rgb(168, 201, 189);
+  --color-009: rgb(180, 105, 14);
+  --color-010: rgb(35, 75, 100);
+  --color-011: rgb(246, 213, 138);
+  --color-012: rgb(253, 243, 227);
+  --color-013: rgb(192, 57, 43);
+  --color-014: rgb(93, 106, 101);
+  --color-015: rgb(49, 68, 61);
+  --color-016: rgb(18, 106, 82);
+  --color-017: rgb(224, 181, 104);
+  --color-018: rgb(143, 215, 255);
+  --color-019: rgb(3, 47, 98);
+  --color-020: rgb(111, 66, 193);
+  --color-021: rgb(106, 115, 125);
+  --color-022: rgb(212, 149, 144);
+  --color-023: rgb(158, 231, 189);
+  --color-024: rgb(247, 234, 211);
+  --color-025: rgb(0, 0, 238);
+  --color-026: rgb(16, 32, 27);
+  --color-027: rgb(111, 72, 22);
+  --color-028: rgb(139, 163, 153);
+}
+
+:root {
+  /* fonts */
+  --font-body: -apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-001: ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  /* fontSizes */
+  --font-size-001: 10.5px;
+  --font-size-002: 11px;
+  --font-size-003: 13px;
+  --font-size-004: 13.5px;
+  --font-size-005: 14px;
+  --font-size-006: 16px;
+  --font-size-007: 18px;
+  /* fontWeights */
+  --font-weight-001: 400;
+  --font-weight-002: 600;
+  --font-weight-003: 650;
+  --font-weight-004: 700;
+  /* lineHeights */
+  --line-height-001: 28px;
+  --line-height-002: 19.25px;
+  --line-height-003: 22.75px;
+  --line-height-004: 31.5px;
+  --line-height-005: 24.5px;
+  --line-height-006: 18.375px;
+  --line-height-007: 23.625px;
+  /* spacing */
+  --space-001: 2px;
+  --space-002: 3px;
+  --space-003: 6px;
+  --space-004: 8px;
+  --space-005: 9px;
+  --space-006: 10px;
+  --space-007: 11px;
+  --space-008: 12px;
+  --space-009: 16px;
+  --space-010: 17px;
+  --space-011: 18px;
+  --space-012: 22px;
+  --space-013: 48px;
+  --space-014: 72px;
+  /* radii */
+  --radius-001: 12px;
+  --radius-002: 999px;
+  /* breakpoints */
+  --bp-375: 375px;
+  --bp-768: 768px;
+  --bp-1280: 1280px;
+  --bp-1920: 1920px;
+}
+
+:root {
+  --clr-0: color(srgb 0.968627 0.960784 0.941177 / 0.88);
+  --clr-1: color(srgb 0.596667 0.778824 0.671176);
+  --clr-2: color(srgb 0.968628 0.960784 0.941177 / 0.65);
+  --clr-3: rgba(29, 48, 41, 0.06);
+  --clr-4: rgb(247, 225, 223);
+  --clr-5: rgb(200, 231, 220);
+  --clr-6: rgba(0, 0, 0, 0);
+  --clr-7: rgb(0, 92, 197);
+}
+
+
+/* page base */
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+html, body { overflow-x: clip; }
+
+/* nodes */
+.cn0{display:block;color:var(--foreground);font-family:-apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI", "Malgun Gothic", sans-serif;font-size:16px;font-weight:400;font-style:normal;line-height:28px;letter-spacing:normal;word-spacing:0px;text-align:start;text-transform:none;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-indent:0px;text-shadow:none;font-variant-caps:normal;font-feature-settings:normal;list-style-position:outside;writing-mode:horizontal-tb;direction:ltr;background-color:var(--background)}
+.cn1{height:61px;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:block;position:sticky;top:0px;z-index:40;background-color:color(srgb 0.968627 0.960784 0.941177 / 0.88);backdrop-filter:blur(12px)}
+.cn2{height:60px;display:flex;max-width:1080px;margin-right:auto;margin-left:auto;padding-right:48px;padding-left:48px;align-items:center;row-gap:24px;column-gap:24px}
+.cn3{height:29.75px;display:flex;align-items:baseline;flex-shrink:0;row-gap:9px;column-gap:9px;font-size:17px;font-weight:800;line-height:29.75px;letter-spacing:-0.34px;cursor:pointer}
+.cn4{width:17px;height:17px;display:block;overflow-x:clip;overflow-y:clip;aspect-ratio:auto 17 / 17}
+.cn5{display:block;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10px;font-weight:500;line-height:17.5px;letter-spacing:1.8px}
+.cn6{display:flex;margin-left:107.672px;row-gap:2px;column-gap:2px;overflow-x:auto;overflow-y:auto}
+.cn7{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--primary);font-size:14px;font-weight:600;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;background-color:var(--surface-6);cursor:pointer}
+.cn8{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn9{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn10{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn11{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn12{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn13{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn14{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn15{display:block;padding-top:6px;padding-right:12px;padding-bottom:6px;padding-left:12px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--muted-foreground);font-size:14px;line-height:24.5px;white-space:nowrap;text-wrap:nowrap;cursor:pointer}
+.cn16{display:block}
+.cn17{display:block;padding-top:132px;padding-bottom:72px}
+.cn18{display:block;max-width:1080px;margin-right:auto;margin-left:auto;padding-right:48px;padding-left:48px}
+.cn19{height:21px;display:flex;margin-bottom:14px;align-items:center;row-gap:10px;column-gap:10px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:12px;line-height:21px;letter-spacing:1.92px;text-transform:uppercase}
+.cn19::before{content:"";display:block;width:7px;height:7px;background-color:rgb(15, 157, 99);border-top-left-radius:50%}
+.cn20{height:164.156px;display:block;font-size:76px;font-weight:850;line-height:82.08px;letter-spacing:-3.42px}
+.cn21{display:inline}
+.cn22{display:block;margin-top:14px;color:var(--primary);font-size:24px;font-weight:700;line-height:42px;letter-spacing:-0.72px}
+.cn23{width:100%;max-width:575.63px;display:block;margin-top:26px;color:var(--muted-foreground)}
+.cn24{display:flex;margin-top:32px;flex-wrap:wrap;row-gap:10px;column-gap:10px}
+.cn25{border-width:1px;border-style:solid;border-color:var(--foreground);display:block;padding-top:11px;padding-right:22px;padding-bottom:11px;padding-left:22px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;color:var(--background);font-size:14.5px;font-weight:600;line-height:25.375px;background-color:var(--foreground);cursor:pointer}
+.cn26{border-width:1px;border-style:solid;border-color:var(--surface);display:block;padding-top:11px;padding-right:22px;padding-bottom:11px;padding-left:22px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;font-size:14.5px;font-weight:600;line-height:25.375px;background-color:var(--surface-8);cursor:pointer}
+.cn27{display:block;max-width:1080px;margin-right:auto;margin-left:auto;padding-right:48px;padding-left:48px}
+.cn28{display:flex;margin-top:72px;margin-bottom:18px;justify-content:space-between;align-items:baseline;row-gap:16px;column-gap:16px}
+.cn29{display:block;font-size:21px;font-weight:700;line-height:36.75px;letter-spacing:-0.42px}
+.cn30{display:block;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:1.1px;text-transform:uppercase}
+.cn31{border-top-width:1px;border-top-style:solid;border-top-color:var(--surface);display:block;margin-bottom:96px}
+.cn32{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn33{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn34{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn35{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn36{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn37{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn38{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn39{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn40{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn41{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn42{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn43{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn44{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn45{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn46{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn47{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn48{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn49{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn50{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn51{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn52{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn53{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn54{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn55{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn56{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn57{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn58{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn59{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn60{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn61{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn62{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn63{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn64{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn65{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn66{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn67{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn68{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn69{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn70{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn71{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn72{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn73{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn74{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn75{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn76{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn77{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn78{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn79{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn80{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn81{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn82{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn83{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn84{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn85{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn86{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn87{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn88{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn89{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn90{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn91{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn92{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn93{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn94{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn95{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn96{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn97{border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:var(--surface-2);display:grid;padding-top:17px;padding-right:8px;padding-bottom:17px;padding-left:8px;align-items:center;row-gap:16px;column-gap:16px;grid-template-rows:31.5px;cursor:pointer;grid-template-columns:46px 1fr auto}
+.cn98{display:block;min-width:0px;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:18px;line-height:31.5px}
+.cn99{display:block;min-width:0px;font-weight:650;letter-spacing:-0.24px}
+.cn100{display:flex;min-width:0px;justify-content:flex-end;align-items:center;row-gap:12px;column-gap:12px;color:var(--muted);font-size:13px;line-height:22.75px;white-space:nowrap;text-wrap:nowrap}
+.cn101{border-width:1px;border-style:solid;border-color:var(--surface);display:block;max-width:132px;padding-top:3px;padding-right:9px;padding-bottom:3px;padding-left:9px;border-top-left-radius:999px;border-top-right-radius:999px;border-bottom-right-radius:999px;border-bottom-left-radius:999px;overflow-x:hidden;overflow-y:hidden;font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:0.88px;text-transform:uppercase}
+.cn102{height:36.75px;display:flex;margin-top:72px;margin-bottom:18px;justify-content:space-between;align-items:baseline;row-gap:16px;column-gap:16px}
+.cn103{display:block;font-size:21px;font-weight:700;line-height:36.75px;letter-spacing:-0.42px}
+.cn104{display:block;color:var(--muted);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:11px;line-height:19.25px;letter-spacing:1.1px;text-transform:uppercase}
+.cn105{display:flex;flex-wrap:wrap;row-gap:10px;column-gap:10px}
+.cn106{width:132px;border-width:1px;border-style:solid;border-color:var(--surface);display:flex;min-width:132px;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;flex-direction:column;row-gap:2px;column-gap:2px;background-color:var(--surface-8)}
+.cn107{display:block;color:var(--primary);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10.5px;font-weight:600;line-height:18.375px;letter-spacing:1.26px;text-transform:uppercase}
+.cn108{display:block;font-weight:650;letter-spacing:-0.24px}
+.cn109{width:132px;border-width:1px;border-style:solid;border-color:var(--surface);display:flex;min-width:132px;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;flex-direction:column;row-gap:2px;column-gap:2px;background-color:var(--surface-8)}
+.cn110{display:block;color:var(--primary);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10.5px;font-weight:600;line-height:18.375px;letter-spacing:1.26px;text-transform:uppercase}
+.cn111{display:block;font-weight:650;letter-spacing:-0.24px}
+.cn112{width:132px;border-width:1px;border-style:solid;border-color:var(--surface);display:flex;min-width:132px;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;flex-direction:column;row-gap:2px;column-gap:2px;background-color:var(--surface-8)}
+.cn113{display:block;color:var(--primary);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10.5px;font-weight:600;line-height:18.375px;letter-spacing:1.26px;text-transform:uppercase}
+.cn114{display:block;font-weight:650;letter-spacing:-0.24px}
+.cn115{width:132px;border-width:1px;border-style:solid;border-color:var(--surface);display:flex;min-width:132px;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;flex-direction:column;row-gap:2px;column-gap:2px;background-color:var(--surface-8)}
+.cn116{display:block;color:var(--primary);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10.5px;font-weight:600;line-height:18.375px;letter-spacing:1.26px;text-transform:uppercase}
+.cn117{display:block;font-weight:650;letter-spacing:-0.24px}
+.cn118{width:132px;border-width:1px;border-style:solid;border-color:var(--surface);display:flex;min-width:132px;padding-top:12px;padding-right:18px;padding-bottom:12px;padding-left:18px;border-top-left-radius:12px;border-top-right-radius:12px;border-bottom-right-radius:12px;border-bottom-left-radius:12px;flex-direction:column;row-gap:2px;column-gap:2px;background-color:var(--surface-8)}
+.cn119{display:block;color:var(--primary);font-family:ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;font-size:10.5px;font-weight:600;line-height:18.375px;letter-spacing:1.26px;text-transform:uppercase}
+.cn120{display:block;font-weight:650;letter-spacing:-0.24px}
+.cn121{width:100%;max-width:554.03px;display:block;margin-top:18px;margin-bottom:96px;color:var(--muted);font-size:14px;line-height:24.5px}
+.cn122{border-top-width:1px;border-top-style:solid;border-top-color:var(--surface-2);display:block;padding-top:34px;padding-bottom:56px;color:var(--muted);font-size:13.5px;line-height:23.625px}
+.cn123{height:47.25px;display:block;max-width:1080px;margin-right:auto;margin-left:auto;padding-right:48px;padding-left:48px}
+.cn124{display:inline;color:var(--muted-foreground);font-weight:700}
+
+@media (max-width: 571px) {
+.cn2{padding-right:20px;padding-left:20px}
+.cn6{margin-left:0}
+.cn17{padding-top:56px;padding-bottom:40px}
+.cn18{padding-right:20px;padding-left:20px}
+.cn20{height:123.094px;font-size:38px;line-height:41.04px;letter-spacing:-1.71px}
+.cn22{font-size:17px;line-height:29.75px;letter-spacing:-0.51px}
+.cn27{padding-right:20px;padding-left:20px}
+.cn28{margin-top:40px}
+.cn31{margin-bottom:56px}
+.cn32{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn35{grid-column-start:2}
+.cn37{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn40{grid-column-start:2}
+.cn42{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn45{grid-column-start:2}
+.cn47{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn50{grid-column-start:2}
+.cn52{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn55{grid-column-start:2}
+.cn57{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn60{grid-column-start:2}
+.cn62{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn65{grid-column-start:2}
+.cn67{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn70{grid-column-start:2}
+.cn72{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn75{grid-column-start:2}
+.cn77{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn80{grid-column-start:2}
+.cn82{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn85{grid-column-start:2}
+.cn87{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn90{grid-column-start:2}
+.cn92{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn95{grid-column-start:2}
+.cn97{grid-template-columns:34px 269px;grid-template-rows:31.5px 27.25px}
+.cn100{grid-column-start:2}
+.cn102{margin-top:40px}
+.cn121{margin-bottom:56px}
+.cn123{height:94.5px;padding-right:20px;padding-left:20px}
+}
+
+@media (min-width: 572px) and (max-width: 1024px) {
+.cn2{padding-right:38.4px;padding-left:38.4px}
+.cn6{margin-left:0}
+.cn17{padding-top:92.16px;padding-bottom:53.76px}
+.cn18{padding-right:38.4px;padding-left:38.4px}
+.cn20{height:126.062px;font-size:58.368px;line-height:63.0374px;letter-spacing:-2.62656px}
+.cn22{font-size:18.432px;line-height:32.256px;letter-spacing:-0.55296px}
+.cn27{padding-right:38.4px;padding-left:38.4px}
+.cn28{margin-top:46.08px}
+.cn31{margin-bottom:69.12px}
+.cn102{margin-top:46.08px}
+.cn121{margin-bottom:69.12px}
+.cn123{padding-right:38.4px;padding-left:38.4px}
+}
+
+</style>
+</head>
+<body class="cn0" data-cid="n0">
+    <header class="cn1" data-cid="n1">
+      <div class="cn2" data-cid="n2">
+        <a class="cn3" data-cid="n3" href="https://fillmap-docs.vercel.app/">
+           
+          <img class="cn4" data-cid="n4" alt="" height="17" src="public/assets/cloned/svg/1247e2bc3750.svg" width="17" />
+           FillMap 
+          <small class="cn5" data-cid="n5">
+            DOCS
+          </small>
+           
+        </a>
+         
+        <nav class="cn6" data-cid="n6">
+          <a class="cn7" data-cid="n7" aria-current="page" href="https://fillmap-docs.vercel.app/">
+             개요 
+          </a>
+          <a class="cn8" data-cid="n8" href="https://fillmap-docs.vercel.app/diagrams/0">
+             다이어그램 
+          </a>
+          <a class="cn9" data-cid="n9" href="https://fillmap-docs.vercel.app/spec">
+             설계 · 명세 
+          </a>
+          <a class="cn10" data-cid="n10" href="https://fillmap-docs.vercel.app/prd">
+             PRD 
+          </a>
+          <a class="cn11" data-cid="n11" href="https://fillmap-docs.vercel.app/adr">
+             설계 결정 
+          </a>
+          <a class="cn12" data-cid="n12" href="https://fillmap-docs.vercel.app/dataflow">
+             데이터플로우 
+          </a>
+          <a class="cn13" data-cid="n13" href="https://fillmap-docs.vercel.app/research">
+             연구노트 
+          </a>
+          <a class="cn14" data-cid="n14" href="https://fillmap-docs.vercel.app/roles">
+             역할분담 
+          </a>
+          <a class="cn15" data-cid="n15" href="https://fillmap-docs.vercel.app/status">
+             구현 현황 
+          </a>
+           
+        </nav>
+         
+      </div>
+       
+    </header>
+     
+    <main class="cn16" data-cid="n16">
+      <section class="cn17" data-cid="n17">
+        <div class="cn18" data-cid="n18">
+          <p class="cn19" data-cid="n19">
+            FILLMAP · DESIGN &amp; DECISIONS
+          </p>
+           
+          <h1 class="cn20" data-cid="n20">
+            다녀온 자리가,
+            <br class="cn21" data-cid="n21" />
+            지도 위 한 칸이 된다.
+          </h1>
+           
+          <p class="cn22" data-cid="n22">
+            100미터마다, 한 칸씩.
+          </p>
+           
+          <p class="cn23" data-cid="n23">
+             30초 이하 영상을 올리면 그 자리의 100×100m 격자가 내 색으로 채워집니다. 좌표를 격자로 바꾸는 산술, 지도를 끌 때마다 쏟아지는 뷰포트 조회, 48시간 창으로 접히는 핫구역 집계, 그리고 그 결과를 알리는 발송까지. 그 백엔드를 어떻게 짜기로 했고 왜 그렇게 정했는지가 이 사이트에 있습니다. 
+          </p>
+           
+          <p class="cn24" data-cid="n24">
+            <a class="cn25" data-cid="n25" href="https://fillmap-docs.vercel.app/diagrams/0">
+              다이어그램 보기
+            </a>
+             
+            <a class="cn26" data-cid="n26" href="https://fillmap-docs.vercel.app/adr">
+              설계 결정 읽기
+            </a>
+             
+          </p>
+           
+        </div>
+         
+      </section>
+       
+      <div class="cn27" data-cid="n27">
+        <div class="cn28" data-cid="n28">
+          <h2 class="cn29" data-cid="n29">
+            산출물 인덱스
+          </h2>
+           
+          <span class="cn30" data-cid="n30">
+            NUMBERING 0–13 · 원본은 저장소와 팀 위키
+          </span>
+           
+        </div>
+         
+        <div class="cn31" data-cid="n31">
+          <a class="cn32" data-cid="n32" href="https://fillmap-docs.vercel.app/diagrams/0">
+             
+            <span class="cn33" data-cid="n33">
+              0
+            </span>
+             
+            <span class="cn34" data-cid="n34">
+              유스케이스
+            </span>
+             
+            <span class="cn35" data-cid="n35">
+               
+              <span class="cn36" data-cid="n36">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn37" data-cid="n37" href="https://fillmap-docs.vercel.app/diagrams/1">
+             
+            <span class="cn38" data-cid="n38">
+              1
+            </span>
+             
+            <span class="cn39" data-cid="n39">
+              IA · 정보 구조
+            </span>
+             
+            <span class="cn40" data-cid="n40">
+               
+              <span class="cn41" data-cid="n41">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn42" data-cid="n42" href="https://fillmap-docs.vercel.app/diagrams/2">
+             
+            <span class="cn43" data-cid="n43">
+              2
+            </span>
+             
+            <span class="cn44" data-cid="n44">
+              유저 저니
+            </span>
+             
+            <span class="cn45" data-cid="n45">
+               
+              <span class="cn46" data-cid="n46">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn47" data-cid="n47" href="https://fillmap-docs.vercel.app/diagrams/3">
+             
+            <span class="cn48" data-cid="n48">
+              3
+            </span>
+             
+            <span class="cn49" data-cid="n49">
+              서비스 아키텍처
+            </span>
+             
+            <span class="cn50" data-cid="n50">
+               
+              <span class="cn51" data-cid="n51">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn52" data-cid="n52" href="https://fillmap-docs.vercel.app/diagrams/4">
+             
+            <span class="cn53" data-cid="n53">
+              4
+            </span>
+             
+            <span class="cn54" data-cid="n54">
+              시스템 아키텍처
+            </span>
+             
+            <span class="cn55" data-cid="n55">
+               
+              <span class="cn56" data-cid="n56">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn57" data-cid="n57" href="https://fillmap-docs.vercel.app/diagrams/5">
+             
+            <span class="cn58" data-cid="n58">
+              5
+            </span>
+             
+            <span class="cn59" data-cid="n59">
+              클라우드 아키텍처 · AWS
+            </span>
+             
+            <span class="cn60" data-cid="n60">
+               
+              <span class="cn61" data-cid="n61">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn62" data-cid="n62" href="https://fillmap-docs.vercel.app/diagrams/6">
+             
+            <span class="cn63" data-cid="n63">
+              6
+            </span>
+             
+            <span class="cn64" data-cid="n64">
+              AI 파이프라인
+            </span>
+             
+            <span class="cn65" data-cid="n65">
+               
+              <span class="cn66" data-cid="n66">
+                다이어그램
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn67" data-cid="n67" href="https://fillmap-docs.vercel.app/prd">
+             
+            <span class="cn68" data-cid="n68">
+              7
+            </span>
+             
+            <span class="cn69" data-cid="n69">
+              제품 요구사항 PRD 20건
+            </span>
+             
+            <span class="cn70" data-cid="n70">
+               
+              <span class="cn71" data-cid="n71">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn72" data-cid="n72" href="https://fillmap-docs.vercel.app/adr">
+             
+            <span class="cn73" data-cid="n73">
+              8
+            </span>
+             
+            <span class="cn74" data-cid="n74">
+              설계 결정 기록 13건
+            </span>
+             
+            <span class="cn75" data-cid="n75">
+               
+              <span class="cn76" data-cid="n76">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn77" data-cid="n77" href="https://fillmap-docs.vercel.app/spec">
+             
+            <span class="cn78" data-cid="n78">
+              9
+            </span>
+             
+            <span class="cn79" data-cid="n79">
+              설계와 명세 21건
+            </span>
+             
+            <span class="cn80" data-cid="n80">
+               
+              <span class="cn81" data-cid="n81">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn82" data-cid="n82" href="https://fillmap-docs.vercel.app/dataflow">
+             
+            <span class="cn83" data-cid="n83">
+              10
+            </span>
+             
+            <span class="cn84" data-cid="n84">
+              데이터 플로우
+            </span>
+             
+            <span class="cn85" data-cid="n85">
+               
+              <span class="cn86" data-cid="n86">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn87" data-cid="n87" href="https://fillmap-docs.vercel.app/research">
+             
+            <span class="cn88" data-cid="n88">
+              11
+            </span>
+             
+            <span class="cn89" data-cid="n89">
+              연구 노트 14건
+            </span>
+             
+            <span class="cn90" data-cid="n90">
+               
+              <span class="cn91" data-cid="n91">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn92" data-cid="n92" href="https://fillmap-docs.vercel.app/roles">
+             
+            <span class="cn93" data-cid="n93">
+              12
+            </span>
+             
+            <span class="cn94" data-cid="n94">
+              역할 분담 · 인터페이스 계약
+            </span>
+             
+            <span class="cn95" data-cid="n95">
+               
+              <span class="cn96" data-cid="n96">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+          <a class="cn97" data-cid="n97" href="https://fillmap-docs.vercel.app/status">
+             
+            <span class="cn98" data-cid="n98">
+              13
+            </span>
+             
+            <span class="cn99" data-cid="n99">
+              구현 현황
+            </span>
+             
+            <span class="cn100" data-cid="n100">
+               
+              <span class="cn101" data-cid="n101">
+                문서
+              </span>
+              → 
+            </span>
+             
+          </a>
+           
+        </div>
+         
+        <div class="cn102" data-cid="n102">
+          <h2 class="cn103" data-cid="n103">
+            무엇으로 만들었나
+          </h2>
+           
+          <span class="cn104" data-cid="n104">
+            상세는 4 SysA · 5 CA
+          </span>
+           
+        </div>
+         
+        <div class="cn105" data-cid="n105">
+          <div class="cn106" data-cid="n106">
+            <b class="cn107" data-cid="n107">
+              Java 21
+            </b>
+             
+            <span class="cn108" data-cid="n108">
+              Spring Boot
+            </span>
+             
+          </div>
+          <div class="cn109" data-cid="n109">
+            <b class="cn110" data-cid="n110">
+              PostGIS
+            </b>
+             
+            <span class="cn111" data-cid="n111">
+              PostgreSQL
+            </span>
+             
+          </div>
+          <div class="cn112" data-cid="n112">
+            <b class="cn113" data-cid="n113">
+              Sorted Set
+            </b>
+             
+            <span class="cn114" data-cid="n114">
+              Redis
+            </span>
+             
+          </div>
+          <div class="cn115" data-cid="n115">
+            <b class="cn116" data-cid="n116">
+              presigned
+            </b>
+             
+            <span class="cn117" data-cid="n117">
+              S3
+            </span>
+             
+          </div>
+          <div class="cn118" data-cid="n118">
+            <b class="cn119" data-cid="n119">
+              Flyway
+            </b>
+             
+            <span class="cn120" data-cid="n120">
+              스키마 이관
+            </span>
+             
+          </div>
+           
+        </div>
+         
+        <p class="cn121" data-cid="n121">
+           배포는 AWS 서울 리전. 개발과 운영 환경은 DB까지 분리해 두었고, 스키마 변경은 전부 Flyway 이관 파일로만 들어갑니다. 
+        </p>
+         
+      </div>
+       
+    </main>
+     
+    <footer class="cn122" data-cid="n122">
+      <div class="cn123" data-cid="n123">
+        <strong class="cn124" data-cid="n124">
+          FillMap
+        </strong>
+        은 방문한 장소를 짧은 영상으로 남기고 지도 위 100×100m 격자를 채우는 서비스입니다. 이 사이트는 그 설계 산출물을 모아 발행합니다. 지금 실린 것은 백엔드 문서입니다. 
+      </div>
+       
+    </footer>
+     
+</body>
+</html>

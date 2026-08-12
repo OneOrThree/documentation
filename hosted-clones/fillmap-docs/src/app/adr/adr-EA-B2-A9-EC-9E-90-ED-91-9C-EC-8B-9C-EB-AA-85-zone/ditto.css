@@ -1,0 +1,18 @@
+.cn0{display:block;color:var(--foreground);font-family:-apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI", "Malgun Gothic", sans-serif;font-size:16px;font-weight:400;font-style:normal;line-height:28px;letter-spacing:normal;word-spacing:0px;text-align:start;text-transform:none;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-indent:0px;text-shadow:none;font-variant-caps:normal;font-feature-settings:normal;list-style-position:outside;writing-mode:horizontal-tb;direction:ltr;background-color:var(--background)}
+
+/* Stage 4 — interaction states (hover/focus + eased transitions) */
+[data-cid="n3"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n7"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n8"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n9"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n10"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n12"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n13"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n14"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n15"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n19"]:hover{border-bottom-color:rgb(15, 157, 99);border-left-color:rgb(15, 157, 99);border-right-color:rgb(15, 157, 99);border-top-color:rgb(15, 157, 99);color:rgb(15, 157, 99);outline-color:rgb(15, 157, 99);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n33"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n36"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n37"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n38"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n57"]:hover{text-decoration-color:rgb(15, 157, 99)}

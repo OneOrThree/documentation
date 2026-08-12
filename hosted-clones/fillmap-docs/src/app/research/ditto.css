@@ -1,0 +1,40 @@
+.cn0{display:block;color:var(--foreground);font-family:-apple-system, BlinkMacSystemFont, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI", "Malgun Gothic", sans-serif;font-size:16px;font-weight:400;font-style:normal;line-height:28px;letter-spacing:normal;word-spacing:0px;text-align:start;text-transform:none;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;text-indent:0px;text-shadow:none;font-variant-caps:normal;font-feature-settings:normal;list-style-position:outside;writing-mode:horizontal-tb;direction:ltr;background-color:var(--background)}
+
+/* Stage 4 — interaction states (hover/focus + eased transitions) */
+[data-cid="n106"]{transition:background 0.14s}
+[data-cid="n114"]{transition:background 0.14s}
+[data-cid="n122"]{transition:background 0.14s}
+[data-cid="n130"]{transition:background 0.14s}
+[data-cid="n26"]{transition:background 0.14s}
+[data-cid="n33"]{transition:background 0.14s}
+[data-cid="n40"]{transition:background 0.14s}
+[data-cid="n47"]{transition:background 0.14s}
+[data-cid="n58"]{transition:background 0.14s}
+[data-cid="n66"]{transition:background 0.14s}
+[data-cid="n74"]{transition:background 0.14s}
+[data-cid="n82"]{transition:background 0.14s}
+[data-cid="n90"]{transition:background 0.14s}
+[data-cid="n98"]{transition:background 0.14s}
+[data-cid="n3"]:hover{text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n7"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n8"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n9"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n10"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n11"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n12"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n14"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n15"]:hover{background-color:rgb(236, 232, 222)}
+[data-cid="n26"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n33"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n40"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n47"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n58"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n66"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n74"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n82"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n90"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n98"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n106"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n114"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n122"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
+[data-cid="n130"]:hover{background-color:rgb(255, 254, 251);text-decoration-color:rgb(15, 157, 99)}
