@@ -58,14 +58,20 @@ const failures = [];
 for (const url of urls) {
   let status;
   try {
+    // Manual redirect handling so an unintended redirect is visible rather than
+    // silently followed — /diagrams redirecting to the first diagram is the one
+    // we expect, and it should read as a redirect in the output.
     status = (await fetch(`${BASE}${url}`, { redirect: "manual" })).status;
   } catch (cause) {
     status = `ERR ${cause.message}`;
   }
-  const ok = status === 200;
+  const redirected = status === 307 || status === 308;
+  const ok = status === 200 || redirected;
   if (!ok) failures.push({ url, status });
-  console.log(`${ok ? "  ok" : "FAIL"}  ${String(status).padEnd(5)} ${url}`);
+  console.log(
+    `${ok ? (redirected ? "  ->" : "  ok") : "FAIL"}  ${String(status).padEnd(5)} ${url}`,
+  );
 }
 
-console.log(`\n${urls.length - failures.length}/${urls.length} → 200  (${BASE})`);
+console.log(`\n${urls.length - failures.length}/${urls.length} ok  (${BASE})`);
 if (failures.length > 0) process.exit(1);

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { DiagramGraph } from "@/lib/diagrams";
+
 /**
  * Interactive draw.io diagram.
  *
@@ -18,22 +20,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * to — which an <img> would not.
  */
 
-interface Graph {
-  id: string;
-  nodes: { id: string; label: string }[];
-  edges: { id: string; label: string; source: string | null; target: string | null }[];
-  adjacency: Record<string, { nodes: string[]; edges: string[] }>;
-}
-
 const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3] as const;
 const DEFAULT_ZOOM_INDEX = 3;
 
-export function DiagramViewer({ id, title }: { id: string; title: string }) {
+export function DiagramViewer({
+  id,
+  title,
+  graph,
+}: {
+  id: string;
+  title: string;
+  // Read at build time and passed down, so only the artwork is fetched here.
+  graph: DiagramGraph;
+}) {
   const frameRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
 
   const [svg, setSvg] = useState<string | null>(null);
-  const [graph, setGraph] = useState<Graph | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [zoomIndex, setZoomIndex] = useState<number>(DEFAULT_ZOOM_INDEX);
@@ -47,20 +50,11 @@ export function DiagramViewer({ id, title }: { id: string; title: string }) {
 
     (async () => {
       try {
-        const [svgRes, graphRes] = await Promise.all([
-          fetch(`/diagrams/${id}.svg`),
-          fetch(`/diagrams/${id}.graph.json`),
-        ]);
-        if (!svgRes.ok || !graphRes.ok) {
-          throw new Error(`HTTP ${svgRes.status}/${graphRes.status}`);
-        }
-        const [svgText, graphJson] = await Promise.all([
-          svgRes.text(),
-          graphRes.json() as Promise<Graph>,
-        ]);
+        const res = await fetch(`/diagrams/${id}.svg`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const svgText = await res.text();
         if (cancelled) return;
         setSvg(svgText);
-        setGraph(graphJson);
       } catch (cause) {
         if (!cancelled) {
           setError(cause instanceof Error ? cause.message : String(cause));
@@ -77,7 +71,7 @@ export function DiagramViewer({ id, title }: { id: string; title: string }) {
   // styles so the transition lives in CSS with the rest of the design.
   useEffect(() => {
     const root = hostRef.current?.querySelector("svg");
-    if (!root || !graph) return;
+    if (!root) return;
 
     const cells = root.querySelectorAll<SVGElement>(".dg-cell");
 
@@ -148,8 +142,8 @@ export function DiagramViewer({ id, title }: { id: string; title: string }) {
     [toggle],
   );
 
-  const focused = focusId ? graph?.nodes.find((n) => n.id === focusId) : undefined;
-  const linkCount = focusId ? (graph?.adjacency[focusId]?.nodes.length ?? 0) : 0;
+  const focused = focusId ? graph.nodes.find((n) => n.id === focusId) : undefined;
+  const linkCount = focusId ? (graph.adjacency[focusId]?.nodes.length ?? 0) : 0;
 
   async function toggleFullscreen() {
     if (document.fullscreenElement) await document.exitFullscreen();

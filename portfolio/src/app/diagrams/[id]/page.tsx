@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { findSection } from "@root/site.config";
-import { getDiagram, getDiagrams } from "@/lib/diagrams";
-import { DiagramViewer } from "@/components/diagram/diagram-viewer";
+import { getDiagram, getDiagramGraph, getDiagrams } from "@/lib/diagrams";
+import { DiagramPanel } from "@/components/diagram/diagram-panel";
+import { DiagramTextView } from "@/components/diagram/diagram-text-view";
 import { Kicker } from "@/components/kicker";
 
 const section = findSection("diagrams")!;
@@ -26,6 +27,14 @@ export async function generateMetadata({
   return { title: diagram.title, description: diagram.summary };
 }
 
+/**
+ * Diagram page.
+ *
+ * Follows the shape both cloned sites used: the section heading stays put, a
+ * numbered selector switches between diagrams in place, and a segmented
+ * control swaps the artwork for the same content as text. There is no list
+ * index in between — the nav lands on a diagram.
+ */
 export default async function DiagramPage({
   params,
 }: {
@@ -33,81 +42,98 @@ export default async function DiagramPage({
 }) {
   const { id } = await params;
   const diagram = getDiagram(id);
-  if (!diagram) notFound();
+  const graph = getDiagramGraph(id);
+  if (!diagram || !graph) notFound();
 
   const all = getDiagrams();
   const index = all.findIndex((d) => d.id === id);
 
+  const selector = (
+    <nav aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-1.5">
+      {all.map((d, i) => {
+        const active = d.id === id;
+        return (
+          <Link
+            key={d.id}
+            href={`/diagrams/${d.id}`}
+            aria-current={active ? "page" : undefined}
+            className={`flex items-baseline gap-1.5 rounded-pill px-3 py-1.5 text-[0.8125rem] no-underline transition-colors ${
+              active
+                ? "bg-surface-3 font-semibold text-primary"
+                : "border border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="font-mono tabular-nums">{i}</span>
+            <span>{d.title}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-14">
-      <Kicker>{section.kicker}</Kicker>
-
-      <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="text-[1.9rem] font-bold leading-tight tracking-[-0.02em]">
-          {diagram.title}
+      <header className="mb-8 max-w-3xl">
+        <Kicker>
+          {section.kicker} 0–{all.length - 1}
+        </Kicker>
+        <h1 className="mt-4 text-[2rem] font-bold leading-tight tracking-[-0.02em]">
+          {section.title}
         </h1>
-        <p className="font-mono text-[0.6875rem] tabular-nums text-muted">
-          요소 {diagram.nodeCount} · 연결 {diagram.edgeCount}
+        <p className="mt-4 leading-relaxed text-muted-foreground">
+          {section.description}
         </p>
-      </div>
+      </header>
 
-      {diagram.summary && (
-        <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
-          {diagram.summary}
-        </p>
-      )}
+      <DiagramPanel
+        id={diagram.id}
+        title={diagram.title}
+        graph={graph}
+        selector={selector}
+        textView={<DiagramTextView graph={graph} />}
+      />
+
+      <section aria-label={`${diagram.title} 설명`} className="mt-6">
+        <h2 className="flex items-baseline gap-2.5 font-bold">
+          <span aria-hidden className="font-mono text-[1.625rem] leading-none text-primary">
+            {index}
+          </span>
+          <span className="text-[1.375rem] tracking-[-0.015em]">{diagram.title}</span>
+          <span className="font-mono text-[0.6875rem] tabular-nums text-muted">
+            요소 {diagram.nodeCount} · 연결 {diagram.edgeCount}
+          </span>
+        </h2>
+        {diagram.summary && (
+          <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">
+            {diagram.summary}
+          </p>
+        )}
+      </section>
 
       {all.length > 1 && (
-        <nav aria-label="다이어그램 목록" className="mt-6">
-          <ul className="flex flex-wrap gap-1.5">
-            {all.map((d, i) => {
-              const active = d.id === id;
-              return (
-                <li key={d.id}>
-                  <Link
-                    href={`/diagrams/${d.id}`}
-                    aria-current={active ? "page" : undefined}
-                    className={`block rounded-pill px-3 py-1 font-mono text-[0.75rem] tabular-nums no-underline transition-colors ${
-                      active
-                        ? "bg-surface-3 font-semibold text-primary"
-                        : "border border-border text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {String(i).padStart(2, "0")}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+        <nav aria-label="다이어그램 이동" className="mt-10 flex justify-between gap-3">
+          {index > 0 ? (
+            <Link
+              href={`/diagrams/${all[index - 1]!.id}`}
+              rel="prev"
+              className="text-sm text-primary no-underline hover:underline"
+            >
+              ← {all[index - 1]!.title}
+            </Link>
+          ) : (
+            <span />
+          )}
+          {index < all.length - 1 && (
+            <Link
+              href={`/diagrams/${all[index + 1]!.id}`}
+              rel="next"
+              className="text-right text-sm text-primary no-underline hover:underline"
+            >
+              {all[index + 1]!.title} →
+            </Link>
+          )}
         </nav>
       )}
-
-      <div className="mt-6">
-        <DiagramViewer id={diagram.id} title={diagram.title} />
-      </div>
-
-      <nav aria-label="다이어그램 이동" className="mt-10 flex justify-between gap-3">
-        {index > 0 ? (
-          <Link
-            href={`/diagrams/${all[index - 1]!.id}`}
-            rel="prev"
-            className="text-sm text-primary no-underline hover:underline"
-          >
-            ← {all[index - 1]!.title}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {index < all.length - 1 && (
-          <Link
-            href={`/diagrams/${all[index + 1]!.id}`}
-            rel="next"
-            className="text-right text-sm text-primary no-underline hover:underline"
-          >
-            {all[index + 1]!.title} →
-          </Link>
-        )}
-      </nav>
     </div>
   );
 }

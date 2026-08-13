@@ -31,3 +31,21 @@ export function getDiagrams(): DiagramEntry[] {
 export function getDiagram(id: string): DiagramEntry | undefined {
   return getDiagrams().find((d) => d.id === id);
 }
+
+export interface DiagramGraph {
+  id: string;
+  nodes: { id: string; label: string }[];
+  edges: { id: string; label: string; source: string | null; target: string | null }[];
+  adjacency: Record<string, { nodes: string[]; edges: string[] }>;
+}
+
+/**
+ * Read the compiled graph at build time so both views get it as a prop — the
+ * text view then renders on the server and works without JavaScript, which is
+ * the point of offering it.
+ */
+export function getDiagramGraph(id: string): DiagramGraph | undefined {
+  const file = path.join(process.cwd(), "public", "diagrams", `${id}.graph.json`);
+  if (!fs.existsSync(file)) return undefined;
+  return JSON.parse(fs.readFileSync(file, "utf8")) as DiagramGraph;
+}
