@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="880px" height="460px" viewBox="0 0 880 460" style="background-color: rgb(255, 255, 255);">
+<defs>
+<marker id="dg-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3.4" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M 1 1 L 8 3.4 L 1 5.8 z" fill="#8a8a93" stroke="none"/>
+</marker>
+</defs>
+<g font-family="Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif">
+<g data-cell-id="0">
+<g data-cell-id="1">
+<g data-cell-id="e-client-api">
+<g><path d="M 190 220 L 235 220 L 235 220 L 280 220" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+<g><text x="235" y="213" text-anchor="middle" font-size="11" fill="#6b6b74">HTTPS</text></g>
+</g>
+<g data-cell-id="e-api-db">
+<g><path d="M 365 190 L 365 153 L 365 153 L 365 116" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-api-cache">
+<g><path d="M 365 250 L 365 290 L 365 290 L 365 330" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-api-worker">
+<g><path d="M 450 220 L 495 220 L 495 220 L 540 220" fill="none" stroke="#8a8a93" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+<g><text x="495" y="213" text-anchor="middle" font-size="11" fill="#6b6b74">큐</text></g>
+</g>
+<g data-cell-id="e-api-storage">
+<g><path d="M 450 220 L 495 220 L 495 358 L 540 358" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+<g><rect x="458.5" y="281" width="73" height="16" fill="#ffffff" stroke="none"/><text x="495" y="293" text-anchor="middle" font-size="11" fill="#6b6b74">presigned</text></g>
+</g>
+<g data-cell-id="e-worker-storage">
+<g><path d="M 625 250 L 625 290 L 625 290 L 625 330" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-worker-db">
+<g><path d="M 625 190 L 625 153 L 365 153 L 365 116" fill="none" stroke="#8a8a93" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="client">
+<g><rect x="40" y="190" width="150" height="60" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="115" y="225" text-anchor="middle" font-size="13" fill="#1b1b20">모바일 앱</text></g>
+</g>
+<g data-cell-id="api">
+<g><rect x="280" y="190" width="170" height="60" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="365" y="217" text-anchor="middle" font-size="13" fill="#1b1b20">API 서버</text><text x="365" y="235" text-anchor="middle" font-size="11" fill="#6b6b74">Spring Boot</text></g>
+</g>
+<g data-cell-id="worker">
+<g><rect x="540" y="190" width="170" height="60" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="625" y="225" text-anchor="middle" font-size="13" fill="#1b1b20">인코딩 워커</text></g>
+</g>
+<g data-cell-id="db">
+<g><rect x="280" y="60" width="170" height="56" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="365" y="93" text-anchor="middle" font-size="13" fill="#1b1b20">PostgreSQL</text></g>
+</g>
+<g data-cell-id="cache">
+<g><rect x="280" y="330" width="170" height="56" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="365" y="363" text-anchor="middle" font-size="13" fill="#1b1b20">Redis</text></g>
+</g>
+<g data-cell-id="storage">
+<g><rect x="540" y="330" width="170" height="56" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="625" y="363" text-anchor="middle" font-size="13" fill="#1b1b20">S3</text></g>
+</g>
+</g>
+</g>
+</g>
+</svg>

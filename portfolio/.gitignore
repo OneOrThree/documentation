@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.vercel
+
+# Built by scripts/build-diagrams.mjs from diagrams/. The sources are the
+# .drawio.xml and .svg pair under diagrams/ — those are committed.
+/public/diagrams/

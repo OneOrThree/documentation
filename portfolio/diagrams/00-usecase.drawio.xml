@@ -1,0 +1,52 @@
+<mxfile host="app.diagrams.net" agent="portfolio-placeholder" version="24.7.17">
+  <diagram id="00-usecase" name="유스케이스">
+    <mxGraphModel dx="1100" dy="700" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="520" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="actor-user" value="사용자" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="210" width="150" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-auth" value="회원가입 · 로그인" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="60" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-upload" value="영상 업로드" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="150" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-map" value="지도 조회" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="240" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-notify" value="알림 수신" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="330" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="uc-review" value="콘텐츠 검수" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="310" y="420" width="230" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="actor-admin" value="관리자" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="420" width="150" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="ext-oauth" value="Google OAuth" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="60" width="150" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u-auth" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="actor-user" target="uc-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u-upload" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="actor-user" target="uc-upload">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u-map" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="actor-user" target="uc-map">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-u-notify" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="actor-user" target="uc-notify">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-admin-review" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="actor-admin" target="uc-review">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-auth-oauth" value="위임" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="uc-auth" target="ext-oauth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

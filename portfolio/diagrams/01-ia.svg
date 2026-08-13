@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="880px" height="500px" viewBox="0 0 880 500" style="background-color: rgb(255, 255, 255);">
+<defs>
+<marker id="dg-arrow" markerWidth="10" markerHeight="10" refX="8" refY="3.4" orient="auto" markerUnits="userSpaceOnUse">
+<path d="M 1 1 L 8 3.4 L 1 5.8 z" fill="#8a8a93" stroke="none"/>
+</marker>
+</defs>
+<g font-family="Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif">
+<g data-cell-id="0">
+<g data-cell-id="1">
+<g data-cell-id="e-home-map">
+<g><path d="M 445 92 L 445 136 L 135 136 L 135 180" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-home-book">
+<g><path d="M 445 92 L 445 136 L 325 136 L 325 180" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-home-mission">
+<g><path d="M 445 92 L 445 136 L 515 136 L 515 180" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-home-mypage">
+<g><path d="M 445 92 L 445 136 L 715 136 L 715 180" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-map-cell">
+<g><path d="M 135 232 L 135 276 L 115 276 L 115 320" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-book-stat">
+<g><path d="M 325 232 L 325 276 L 305 276 L 305 320" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-mission-course">
+<g><path d="M 515 232 L 515 276 L 495 276 L 495 320" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-my-settings">
+<g><path d="M 715 232 L 715 276 L 715 276 L 715 320" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="e-my-inbox">
+<g><path d="M 715 232 L 715 316 L 715 316 L 715 400" fill="none" stroke="#8a8a93" stroke-width="1.4" marker-end="url(#dg-arrow)" pointer-events="stroke"/></g>
+</g>
+<g data-cell-id="home">
+<g><rect x="370" y="40" width="150" height="52" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="445" y="71" text-anchor="middle" font-size="13" fill="#1b1b20">홈</text></g>
+</g>
+<g data-cell-id="map">
+<g><rect x="60" y="180" width="150" height="52" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="135" y="211" text-anchor="middle" font-size="13" fill="#1b1b20">지도</text></g>
+</g>
+<g data-cell-id="book">
+<g><rect x="250" y="180" width="150" height="52" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="325" y="211" text-anchor="middle" font-size="13" fill="#1b1b20">도감</text></g>
+</g>
+<g data-cell-id="mission">
+<g><rect x="440" y="180" width="150" height="52" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="515" y="211" text-anchor="middle" font-size="13" fill="#1b1b20">미션</text></g>
+</g>
+<g data-cell-id="mypage">
+<g><rect x="630" y="180" width="170" height="52" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="715" y="211" text-anchor="middle" font-size="13" fill="#1b1b20">마이페이지</text></g>
+</g>
+<g data-cell-id="map-cell">
+<g><rect x="40" y="320" width="150" height="48" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="115" y="349" text-anchor="middle" font-size="13" fill="#1b1b20">격자 상세</text></g>
+</g>
+<g data-cell-id="book-stat">
+<g><rect x="230" y="320" width="150" height="48" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="305" y="349" text-anchor="middle" font-size="13" fill="#1b1b20">수집 현황</text></g>
+</g>
+<g data-cell-id="mission-course">
+<g><rect x="420" y="320" width="150" height="48" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="495" y="349" text-anchor="middle" font-size="13" fill="#1b1b20">코스 상세</text></g>
+</g>
+<g data-cell-id="my-settings">
+<g><rect x="630" y="320" width="170" height="48" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="715" y="349" text-anchor="middle" font-size="13" fill="#1b1b20">설정</text></g>
+</g>
+<g data-cell-id="my-inbox">
+<g><rect x="630" y="400" width="170" height="48" rx="9" ry="9" fill="#ffffff" stroke="#4a4a52" stroke-width="1.4" pointer-events="all"/></g>
+<g><text x="715" y="429" text-anchor="middle" font-size="13" fill="#1b1b20">알림함</text></g>
+</g>
+</g>
+</g>
+</g>
+</svg>

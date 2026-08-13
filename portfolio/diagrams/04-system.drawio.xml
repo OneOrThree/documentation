@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net" agent="portfolio-placeholder" version="24.7.17">
+  <diagram id="04-system" name="시스템 아키텍처">
+    <mxGraphModel dx="1100" dy="700" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="app" value="모바일 앱" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="80" y="50" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="dash" value="웹 대시보드" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="50" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="gw" value="API Gateway" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="190" y="180" width="200" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-auth" value="인증 서비스" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-core" value="코어 API" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="310" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="svc-media" value="미디어 워커" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="460" y="310" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cache" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="260" y="450" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="obj" value="S3" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="450" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="e-app-gw" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="app" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-dash-gw" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="dash" target="gw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-gw-auth" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="gw" target="svc-auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-gw-core" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="gw" target="svc-core">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-core-media" value="큐" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" edge="1" parent="1" source="svc-core" target="svc-media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-auth-db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="svc-auth" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-core-cache" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="svc-core" target="cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-media-obj" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="svc-media" target="obj">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

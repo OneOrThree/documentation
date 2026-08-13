@@ -1,0 +1,344 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/* Bridge the semantic tokens onto Tailwind utilities — `bg-surface-2`,
+ * `text-muted-foreground`, `border-border`. Same pattern both clones used;
+ * `inline` keeps the var reference instead of resolving it, which is what lets
+ * one `data-theme` flip repaint the whole site. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-on: var(--primary-on);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-ring: var(--primary-ring);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+}
+
+/* The theme script resolves "system" to a literal data-theme before paint, so
+ * `dark:` only ever needs to look at the attribute. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Lets the diagram frame restyle itself while it owns the screen. */
+@custom-variant fullscreen (&:where(:fullscreen, :fullscreen *));
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    /* Hangul breaks on word boundaries, not syllables; `anywhere` keeps long
+     * Latin identifiers (region_stats, ZREVRANGE) from overflowing anyway. */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--primary-ring);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+/* A scroll container that still scrolls, without the bar taking up layout.
+ * Used by the header nav, which overflows on narrow screens — the visible bar
+ * added a second row's worth of height to a 3.8rem header. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Document prose
+ *
+ * The rule-topped <h2> is the strongest shared rhythm across both clones —
+ * every section of every document is separated by a hairline with generous
+ * space above it. Reproduced here once instead of as inline classes repeated
+ * per page.
+ * ------------------------------------------------------------------------ */
+
+.doc-prose {
+  font-size: 1rem;
+  line-height: 1.78;
+  color: var(--foreground);
+}
+
+.doc-prose > * + * {
+  margin-top: 1.1em;
+}
+
+.doc-prose h2 {
+  margin-top: 3.4rem;
+  padding-top: 1.9rem;
+  border-top: 1px solid var(--border);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.doc-prose h3 {
+  margin-top: 2.2rem;
+  font-size: 1.0625rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.doc-prose h4 {
+  margin-top: 1.8rem;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+}
+
+/* rehype-autolink-headings wraps the text; keep the anchor invisible until the
+ * heading is hovered or the link itself is focused. */
+.doc-prose :is(h2, h3, h4) .heading-anchor {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.doc-prose :is(h2, h3, h4):hover .heading-anchor,
+.doc-prose .heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.doc-prose a:not(.heading-anchor) {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.doc-prose a:not(.heading-anchor):hover {
+  color: var(--primary-hover);
+}
+
+.doc-prose strong {
+  font-weight: 650;
+}
+
+.doc-prose :is(ul, ol) {
+  padding-left: 1.15rem;
+}
+
+.doc-prose ul {
+  list-style: disc;
+}
+
+.doc-prose ol {
+  list-style: decimal;
+}
+
+.doc-prose li + li {
+  margin-top: 0.4rem;
+}
+
+.doc-prose li::marker {
+  color: var(--muted);
+}
+
+.doc-prose blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding-left: 1rem;
+  color: var(--muted-foreground);
+}
+
+.doc-prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-block: 2.5rem;
+}
+
+/* Inline code — the bordered mono chip both sites use for identifiers. */
+.doc-prose :not(pre) > code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.1em 0.36em;
+  border-radius: 5px;
+  background-color: var(--surface-2);
+  border: 1px solid var(--border);
+  word-break: break-all;
+}
+
+/* Tables scroll inside their own card rather than widening the page. */
+.doc-prose .table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background-color: var(--surface-1);
+}
+
+.doc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.doc-prose thead {
+  background-color: var(--surface-2);
+}
+
+.doc-prose :is(th, td) {
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-prose th {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.doc-prose tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Code blocks (rehype-pretty-code + Shiki, highlighted at build time)
+ * ------------------------------------------------------------------------ */
+
+.doc-prose figure[data-rehype-pretty-code-figure] {
+  margin-top: 1.4rem;
+}
+
+.doc-prose figure[data-rehype-pretty-code-figure] pre {
+  overflow-x: auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background-color: var(--surface-1);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+.doc-prose figure[data-rehype-pretty-code-figure] code {
+  font-family: var(--font-mono);
+  display: grid;
+  word-break: normal;
+}
+
+.doc-prose [data-rehype-pretty-code-title] {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background-color: var(--surface-2);
+}
+
+.doc-prose [data-rehype-pretty-code-title] + pre {
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+
+.doc-prose [data-line] {
+  padding-inline: 0.1rem;
+}
+
+/* Shiki emits both palettes as inline custom properties; pick one per theme so
+ * code follows the toggle instead of freezing in light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])
+    figure[data-rehype-pretty-code-figure]
+    :is(pre, code, span) {
+    color: var(--shiki-dark);
+    background-color: var(--shiki-dark-bg);
+  }
+}
+
+:root[data-theme="dark"]
+  figure[data-rehype-pretty-code-figure]
+  :is(pre, code, span) {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+/* ---------------------------------------------------------------------------
+ * Diagram focus interaction
+ *
+ * The clones shipped the zoom buttons and the "click a box to highlight what it
+ * connects to" caption, but no behaviour — `Runtime utilities emitted: none`.
+ * These two classes are what DiagramViewer toggles to make it real.
+ * ------------------------------------------------------------------------ */
+
+.dg-cell {
+  transition:
+    opacity 0.18s ease,
+    filter 0.18s ease;
+}
+
+.dg-cell[data-cell-kind="vertex"] {
+  cursor: pointer;
+}
+
+svg[data-focus] .dg-cell {
+  opacity: 0.14;
+  filter: saturate(0.25);
+}
+
+svg[data-focus] .dg-cell.dg-hot {
+  opacity: 1;
+  filter: none;
+}
+
+svg[data-focus] .dg-cell.dg-hot[data-cell-kind="vertex"] {
+  filter: drop-shadow(0 0 3px var(--primary-ring));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-cell {
+    transition: none;
+  }
+}

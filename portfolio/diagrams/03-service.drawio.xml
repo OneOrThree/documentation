@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" agent="portfolio-placeholder" version="24.7.17">
+  <diagram id="03-service" name="서비스 아키텍처">
+    <mxGraphModel dx="1100" dy="700" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="460" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="client" value="모바일 앱" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="190" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="api" value="API 서버&lt;br&gt;Spring Boot" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="190" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="worker" value="인코딩 워커" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="190" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="60" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cache" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="330" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="storage" value="S3" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="540" y="330" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="e-client-api" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="client" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-api-db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="api" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-api-cache" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="api" target="cache">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-api-worker" value="큐" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" edge="1" parent="1" source="api" target="worker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-api-storage" value="presigned" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="api" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-worker-storage" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="worker" target="storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-worker-db" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" edge="1" parent="1" source="worker" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

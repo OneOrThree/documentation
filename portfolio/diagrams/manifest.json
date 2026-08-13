@@ -1,0 +1,38 @@
+[
+  {
+    "id": "00-usecase",
+    "title": "유스케이스",
+    "titleEn": "Use Case",
+    "summary": "누가 이 서비스로 무엇을 하는지. 사용자와 관리자의 행위, 그리고 외부에 위임하는 것."
+  },
+  {
+    "id": "01-ia",
+    "title": "IA · 정보 구조",
+    "titleEn": "Information Architecture",
+    "summary": "화면이 어떤 계층으로 묶이는지. 홈에서 두 번 안에 닿을 수 있는 범위를 기준으로 나눴습니다."
+  },
+  {
+    "id": "02-journey",
+    "title": "유저 저니",
+    "titleEn": "User Journey",
+    "summary": "설치부터 알림까지 한 바퀴. 비동기로 넘어가는 지점이 어디인지가 이 그림의 핵심입니다."
+  },
+  {
+    "id": "03-service",
+    "title": "서비스 아키텍처",
+    "titleEn": "Service Architecture",
+    "summary": "요청이 앱에서 출발해 API를 거쳐 저장소와 워커로 갈라지는 경로."
+  },
+  {
+    "id": "04-system",
+    "title": "시스템 아키텍처",
+    "titleEn": "System Architecture",
+    "summary": "클라이언트 · 게이트웨이 · 서비스 · 데이터 네 계층. 계층을 건너뛰는 화살표가 없는지 보는 용도."
+  },
+  {
+    "id": "05-cloud",
+    "title": "클라우드 아키텍처 · AWS",
+    "titleEn": "Cloud Architecture",
+    "summary": "서울 리전 기준 실제 배치. 어떤 것이 관리형이고 어떤 것을 우리가 운영하는지 구분합니다."
+  }
+]
