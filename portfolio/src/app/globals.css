@@ -74,6 +74,18 @@
   }
 }
 
+/* A scroll container that still scrolls, without the bar taking up layout.
+ * Used by the header nav, which overflows on narrow screens — the visible bar
+ * added a second row's worth of height to a 3.8rem header. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ---------------------------------------------------------------------------
  * Document prose
  *

@@ -1,9 +1,10 @@
 import Link from "next/link";
 
-import { sections, site } from "@root/site.config";
-import { getDocs } from "@/lib/content";
+import { findSection, sections, site } from "@root/site.config";
+import { getAllDocs, getDocs } from "@/lib/content";
 import { getDiagrams } from "@/lib/diagrams";
 import { Kicker } from "@/components/kicker";
+import { StatusPill } from "@/components/status-pill";
 
 /**
  * Landing page. Structure is the one both clones converged on — hero, then a
@@ -14,6 +15,13 @@ import { Kicker } from "@/components/kicker";
 export default function HomePage() {
   const diagrams = getDiagrams();
 
+  // Fills the right half of the hero with something true rather than
+  // decorative: what the team actually touched last, straight from content/.
+  const recent = getAllDocs()
+    .filter((doc) => doc.date)
+    .sort((a, b) => b.date!.localeCompare(a.date!))
+    .slice(0, 3);
+
   const index = sections.map((section) => ({
     ...section,
     count:
@@ -23,8 +31,9 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6">
-      <section className="border-b border-border py-20 sm:py-28">
-        <Kicker>{site.hero.kicker}</Kicker>
+      <section className="grid gap-12 border-b border-border py-20 sm:py-28 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start lg:gap-16">
+        <div>
+          <Kicker>{site.hero.kicker}</Kicker>
 
         <h1 className="mt-6 text-[clamp(2.25rem,6vw,4rem)] font-extrabold leading-[1.12] tracking-[-0.03em]">
           {site.hero.headline.map((line) => (
@@ -54,7 +63,46 @@ export default function HomePage() {
               {action.label}
             </Link>
           ))}
+          </div>
         </div>
+
+        {recent.length > 0 && (
+          <aside
+            aria-label="최근 갱신 문서"
+            className="rounded-card border border-border bg-surface-1 px-5 py-5 lg:mt-3"
+          >
+            <p className="font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.13em] text-muted">
+              최근 갱신
+            </p>
+            <ul className="mt-4 space-y-4">
+              {recent.map((doc) => (
+                <li key={doc.href}>
+                  <Link href={doc.href} className="group block no-underline">
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className="font-mono text-[0.6875rem] uppercase tracking-[0.08em] text-muted-foreground">
+                        {findSection(doc.section)?.label ?? doc.section}
+                      </span>
+                      <time
+                        dateTime={doc.date}
+                        className="font-mono text-[0.6875rem] tabular-nums text-muted"
+                      >
+                        {doc.date}
+                      </time>
+                    </span>
+                    <span className="mt-1 block text-sm font-semibold leading-snug text-foreground group-hover:text-primary">
+                      {doc.title}
+                    </span>
+                    {doc.status && (
+                      <span className="mt-1.5 block">
+                        <StatusPill status={doc.status} />
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        )}
       </section>
 
       <section className="py-16">

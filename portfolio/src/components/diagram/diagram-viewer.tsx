@@ -239,8 +239,12 @@ export function DiagramViewer({
               ref={hostRef}
               onClick={onPointerDown}
               onKeyDown={onKeyDown}
-              style={{ width: `${zoom * 100}%` }}
-              className="mx-auto min-w-0 transition-[width] duration-150"
+              // min-width, not just a percentage: letting the artwork shrink to
+              // the viewport made every label illegible on a phone. Below this
+              // the frame scrolls horizontally instead, and 문서 보기 is there
+              // for anyone who would rather read it than pan it.
+              style={{ width: `${zoom * 100}%`, minWidth: "34rem" }}
+              className="mx-auto transition-[width] duration-150"
               // Build output, and `scripts/build-diagrams.mjs` strips <script>,
               // on* handlers and javascript: URLs from the export before it is
               // written — a .drawio file from Drive can carry arbitrary label

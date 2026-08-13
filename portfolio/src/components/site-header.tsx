@@ -43,7 +43,10 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav aria-label="주요 메뉴" className="min-w-0 flex-1 overflow-x-auto">
+        <nav
+          aria-label="주요 메뉴"
+          className="no-scrollbar min-w-0 flex-1 overflow-x-auto"
+        >
           <ul className="flex items-center gap-1">
             {NAV.map((item) => {
               const active = isActive(pathname, item.href);
