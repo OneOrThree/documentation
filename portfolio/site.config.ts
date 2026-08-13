@@ -21,6 +21,11 @@ export interface SectionConfig {
   /** One paragraph under the index heading, explaining what belongs here. */
   description: string;
   kind: SectionKind;
+  /**
+   * Put a search box on this section's index. Worth it where documents
+   * accumulate; noise on a section that holds one or two.
+   */
+  search?: boolean;
 }
 
 export const sections: SectionConfig[] = [
@@ -41,6 +46,7 @@ export const sections: SectionConfig[] = [
     description:
       "무엇을 만드는지 확정한 문서입니다. 위키나 옛 메모와 어긋나면 이 문서가 이깁니다.",
     kind: "docs",
+    search: true,
   },
   {
     slug: "adr",
@@ -50,6 +56,7 @@ export const sections: SectionConfig[] = [
     description:
       "무엇을 정했는지가 아니라, 왜 그렇게 정했고 무엇을 기각했는지를 남깁니다. 뒤집힌 결정도 지우지 않고 대체됨으로 표시합니다.",
     kind: "docs",
+    search: true,
   },
   {
     slug: "research",
@@ -59,6 +66,7 @@ export const sections: SectionConfig[] = [
     description:
       "측정하고 부딪히며 알아낸 것들. 결론뿐 아니라 재현 방법과 숫자를 함께 남깁니다.",
     kind: "docs",
+    search: true,
   },
   {
     slug: "team",
@@ -71,6 +79,8 @@ export const sections: SectionConfig[] = [
 ];
 
 export const docSections = sections.filter((s) => s.kind === "docs");
+
+export const searchableSections = sections.filter((s) => s.search === true);
 
 export function findSection(slug: string): SectionConfig | undefined {
   return sections.find((s) => s.slug === slug);

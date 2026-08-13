@@ -18,17 +18,27 @@ import path from "node:path";
 const ROOT = path.join(import.meta.dirname, "..");
 const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 
-function readSectionSlugs() {
+function readConfig() {
   const config = fs.readFileSync(path.join(ROOT, "site.config.ts"), "utf8");
   const slugs = [...config.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => m[1]);
   if (slugs.length === 0) throw new Error("No sections found in site.config.ts");
-  return slugs;
+
+  // Sections carrying `search: true` also publish a static index route; the
+  // search box is dead without it, and nothing else would catch that.
+  const searchable = [...config.matchAll(/slug:\s*"([^"]+)"[\s\S]*?(?=\n  \{|\n\];)/g)]
+    .filter((m) => /search:\s*true/.test(m[0]))
+    .map((m) => m[1]);
+
+  return { slugs, searchable };
 }
 
 function collectUrls() {
   const urls = ["/", "/llms.txt", "/sitemap.xml", "/robots.txt"];
+  const { slugs, searchable } = readConfig();
 
-  for (const section of readSectionSlugs()) {
+  for (const section of searchable) urls.push(`/search/${section}`);
+
+  for (const section of slugs) {
     urls.push(`/${section}`);
     const dir = path.join(ROOT, "content", section);
     if (!fs.existsSync(dir)) continue;

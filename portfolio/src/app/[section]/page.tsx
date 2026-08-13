@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { docSections, findSection } from "@root/site.config";
 import { getDocs } from "@/lib/content";
+import { DocSearch } from "@/components/doc-search";
 import { Kicker } from "@/components/kicker";
 import { NumberedIndex } from "@/components/numbered-index";
 
@@ -47,7 +48,16 @@ export default async function SectionIndexPage({
       </p>
 
       <div className="mt-10">
-        <NumberedIndex docs={docs} />
+        {section.search ? (
+          <DocSearch
+            section={section.slug}
+            sectionTitle={section.title}
+            total={docs.length}
+            fallback={<NumberedIndex docs={docs} />}
+          />
+        ) : (
+          <NumberedIndex docs={docs} />
+        )}
       </div>
     </div>
   );
