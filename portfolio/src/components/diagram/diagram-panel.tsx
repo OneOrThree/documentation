@@ -9,18 +9,26 @@ import { DiagramViewer } from "@/components/diagram/diagram-viewer";
  * The "다이어그램 / 문서 보기" segmented control both cloned sites showed above
  * their diagrams, with the second half actually implemented.
  *
+ * Selector and toggle share one wrapping row, exactly as the source did: with
+ * six diagrams the pills fill the line and the toggle drops to the next one,
+ * left-aligned.
+ *
  * The selector and the text view arrive as props so they stay server-rendered —
  * only the switch itself needs to be a client component.
  */
 export function DiagramPanel({
   id,
+  index,
   title,
+  titleEn,
   graph,
   selector,
   textView,
 }: {
   id: string;
+  index: number;
   title: string;
+  titleEn?: string;
   graph: DiagramGraph;
   selector?: React.ReactNode;
   textView: React.ReactNode;
@@ -29,8 +37,8 @@ export function DiagramPanel({
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        {selector ?? <span />}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        {selector}
 
         <div
           role="group"
@@ -47,7 +55,13 @@ export function DiagramPanel({
       </div>
 
       {view === "diagram" ? (
-        <DiagramViewer id={id} title={title} graph={graph} />
+        <DiagramViewer
+          id={id}
+          index={index}
+          title={title}
+          titleEn={titleEn}
+          graph={graph}
+        />
       ) : (
         textView
       )}

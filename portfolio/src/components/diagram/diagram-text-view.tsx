@@ -1,4 +1,5 @@
 import type { DiagramGraph } from "@/lib/diagrams";
+import { DiagramHeading } from "@/components/diagram/diagram-heading";
 
 /**
  * The same diagram as responsive text.
@@ -12,11 +13,26 @@ import type { DiagramGraph } from "@/lib/diagrams";
  * Server-rendered, so it also works with JavaScript off and is readable by
  * search engines and screen readers that would get nothing from the SVG.
  */
-export function DiagramTextView({ graph }: { graph: DiagramGraph }) {
+export function DiagramTextView({
+  graph,
+  index,
+  title,
+  titleEn,
+}: {
+  graph: DiagramGraph;
+  index: number;
+  title: string;
+  titleEn?: string;
+}) {
   const labelOf = new Map(graph.nodes.map((n) => [n.id, n.label || n.id]));
 
   return (
-    <ol className="overflow-hidden rounded-card border border-border bg-surface-1">
+    <>
+      <div className="mb-2.5">
+        <DiagramHeading index={index} title={title} titleEn={titleEn} />
+      </div>
+
+      <ol className="overflow-hidden rounded-card border border-border bg-surface-1">
       {graph.nodes.map((node, i) => {
         const out = graph.edges.filter((e) => e.source === node.id);
         const inc = graph.edges.filter((e) => e.target === node.id);
@@ -46,9 +62,10 @@ export function DiagramTextView({ graph }: { graph: DiagramGraph }) {
               </dl>
             )}
           </li>
-        );
-      })}
-    </ol>
+          );
+        })}
+      </ol>
+    </>
   );
 }
 

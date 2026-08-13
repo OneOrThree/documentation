@@ -49,7 +49,7 @@ export default async function DiagramPage({
   const index = all.findIndex((d) => d.id === id);
 
   const selector = (
-    <nav aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-1.5">
+    <nav aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-2">
       {all.map((d, i) => {
         const active = d.id === id;
         return (
@@ -57,14 +57,20 @@ export default async function DiagramPage({
             key={d.id}
             href={`/diagrams/${d.id}`}
             aria-current={active ? "page" : undefined}
-            className={`flex items-baseline gap-1.5 rounded-pill px-3 py-1.5 text-[0.8125rem] no-underline transition-colors ${
+            className={`flex items-center gap-[0.55rem] rounded-pill border py-[0.4rem] pl-2 pr-[0.95rem] text-sm no-underline transition-colors ${
               active
-                ? "bg-surface-3 font-semibold text-primary"
-                : "border border-border text-muted-foreground hover:text-foreground"
+                ? "border-foreground bg-foreground font-semibold text-background"
+                : "border-border bg-surface-1 text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span className="font-mono tabular-nums">{i}</span>
-            <span>{d.title}</span>
+            <span
+              className={`grid size-[1.65rem] place-items-center rounded-pill font-mono text-[0.8125rem] font-bold ${
+                active ? "bg-background text-foreground" : "bg-surface-2 text-foreground"
+              }`}
+            >
+              {i}
+            </span>
+            {d.title}
           </Link>
         );
       })}
@@ -73,7 +79,7 @@ export default async function DiagramPage({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-14">
-      <header className="mb-8 max-w-3xl">
+      <header className="mb-7 max-w-3xl">
         <Kicker>
           {section.kicker} 0–{all.length - 1}
         </Kicker>
@@ -87,53 +93,49 @@ export default async function DiagramPage({
 
       <DiagramPanel
         id={diagram.id}
+        index={index}
         title={diagram.title}
+        titleEn={diagram.titleEn}
         graph={graph}
         selector={selector}
-        textView={<DiagramTextView graph={graph} />}
+        textView={
+          <DiagramTextView
+            graph={graph}
+            index={index}
+            title={diagram.title}
+            titleEn={diagram.titleEn}
+          />
+        }
       />
 
-      <section aria-label={`${diagram.title} 설명`} className="mt-6">
-        <h2 className="flex items-baseline gap-2.5 font-bold">
-          <span aria-hidden className="font-mono text-[1.625rem] leading-none text-primary">
-            {index}
-          </span>
-          <span className="text-[1.375rem] tracking-[-0.015em]">{diagram.title}</span>
-          <span className="font-mono text-[0.6875rem] tabular-nums text-muted">
-            요소 {diagram.nodeCount} · 연결 {diagram.edgeCount}
-          </span>
-        </h2>
-        {diagram.summary && (
-          <p className="mt-2 max-w-2xl leading-relaxed text-muted-foreground">
-            {diagram.summary}
-          </p>
-        )}
-      </section>
-
-      {all.length > 1 && (
-        <nav aria-label="다이어그램 이동" className="mt-10 flex justify-between gap-3">
-          {index > 0 ? (
-            <Link
-              href={`/diagrams/${all[index - 1]!.id}`}
-              rel="prev"
-              className="text-sm text-primary no-underline hover:underline"
-            >
-              ← {all[index - 1]!.title}
-            </Link>
-          ) : (
-            <span />
-          )}
-          {index < all.length - 1 && (
-            <Link
-              href={`/diagrams/${all[index + 1]!.id}`}
-              rel="next"
-              className="text-right text-sm text-primary no-underline hover:underline"
-            >
-              {all[index + 1]!.title} →
-            </Link>
-          )}
-        </nav>
+      {diagram.summary && (
+        <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
+          {diagram.summary}
+        </p>
       )}
+
+      <nav aria-label="다이어그램 이동" className="mt-12 flex justify-between gap-3">
+        {index > 0 ? (
+          <Link
+            href={`/diagrams/${all[index - 1]!.id}`}
+            rel="prev"
+            className="text-sm text-primary no-underline hover:underline"
+          >
+            ← {all[index - 1]!.title}
+          </Link>
+        ) : (
+          <span />
+        )}
+        {index < all.length - 1 && (
+          <Link
+            href={`/diagrams/${all[index + 1]!.id}`}
+            rel="next"
+            className="text-right text-sm text-primary no-underline hover:underline"
+          >
+            {all[index + 1]!.title} →
+          </Link>
+        )}
+      </nav>
     </div>
   );
 }

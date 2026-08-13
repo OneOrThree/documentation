@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { DiagramGraph } from "@/lib/diagrams";
+import { DiagramHeading } from "@/components/diagram/diagram-heading";
 
 /**
  * Interactive draw.io diagram.
  *
- * Both cloned sites shipped this control strip — zoom buttons, a fullscreen
- * button, and a caption promising that clicking a box highlights what it
- * connects to — with no behaviour behind any of it (`Runtime utilities emitted
- * for this clone: none`). The markup looked right in a screenshot and did
- * nothing in a browser. This component is that promise, honoured.
+ * Both cloned sites shipped this control strip — zoom, fullscreen, and a
+ * caption promising that clicking a box highlights what it connects to — with
+ * no behaviour behind any of it (`Runtime utilities emitted for this clone:
+ * none`). The markup looked right in a screenshot and did nothing in a browser.
+ * This component is that promise, honoured.
  *
  * The SVG is fetched rather than inlined into the page: the clones' diagram
  * routes were 180–335 KB of HTML each because the artwork was pasted into JSX.
@@ -25,11 +26,15 @@ const DEFAULT_ZOOM_INDEX = 3;
 
 export function DiagramViewer({
   id,
+  index,
   title,
+  titleEn,
   graph,
 }: {
   id: string;
+  index: number;
   title: string;
+  titleEn?: string;
   // Read at build time and passed down, so only the artwork is fetched here.
   graph: DiagramGraph;
 }) {
@@ -67,6 +72,9 @@ export function DiagramViewer({
     };
   }, [id]);
 
+  // Switching diagrams must not carry the previous selection over.
+  useEffect(() => setFocusId(null), [id]);
+
   // Paint the focus state onto the injected SVG. Classes rather than inline
   // styles so the transition lives in CSS with the rest of the design.
   useEffect(() => {
@@ -101,22 +109,11 @@ export function DiagramViewer({
   }, [focusId, graph, svg]);
 
   useEffect(() => {
-    const onChange = () => setIsFullscreen(document.fullscreenElement === frameRef.current);
+    const onChange = () =>
+      setIsFullscreen(document.fullscreenElement === frameRef.current);
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
-
-  const toggle = useCallback((cellId: string | null) => {
-    setFocusId((prev) => (prev === cellId ? null : cellId));
-  }, []);
-
-  const onPointerDown = useCallback(
-    (event: React.MouseEvent) => {
-      const cell = (event.target as Element).closest?.('[data-cell-kind="vertex"]');
-      toggle(cell?.getAttribute("data-cell-id") ?? null);
-    },
-    [toggle],
-  );
 
   // Escape is bound on the document, not the container: clicking an SVG <g>
   // does not move focus in Chrome (activeElement stays BODY), so a keydown
@@ -130,6 +127,18 @@ export function DiagramViewer({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [focusId]);
+
+  const toggle = useCallback((cellId: string | null) => {
+    setFocusId((prev) => (prev === cellId ? null : cellId));
+  }, []);
+
+  const onPointerDown = useCallback(
+    (event: React.MouseEvent) => {
+      const cell = (event.target as Element).closest?.('[data-cell-kind="vertex"]');
+      toggle(cell?.getAttribute("data-cell-id") ?? null);
+    },
+    [toggle],
+  );
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -152,73 +161,78 @@ export function DiagramViewer({
 
   return (
     <figure className="m-0">
-      <div
-        ref={frameRef}
-        className="overflow-hidden rounded-card border border-border bg-surface-1 fullscreen:rounded-none fullscreen:border-0"
-      >
-        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface-2 px-3 py-2">
-          <div role="group" aria-label="확대·축소" className="flex items-center gap-1">
-            <ControlButton
+      <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+        <DiagramHeading index={index} title={title} titleEn={titleEn} />
+
+        <div className="flex items-center gap-3.5 text-[0.8125rem]">
+          <div
+            role="group"
+            aria-label="확대·축소"
+            className="flex items-center gap-0.5"
+          >
+            <ZoomButton
               label="축소"
               onClick={() => setZoomIndex((i) => Math.max(0, i - 1))}
               disabled={zoomIndex === 0}
             >
               −
-            </ControlButton>
+            </ZoomButton>
             <button
               type="button"
               onClick={() => setZoomIndex(DEFAULT_ZOOM_INDEX)}
-              className="min-w-14 rounded-pill px-2 py-1 font-mono text-[0.6875rem] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+              className="min-w-11 rounded-pill px-1 py-0.5 font-mono text-[0.6875rem] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
               aria-live="polite"
             >
               {Math.round(zoom * 100)}%
             </button>
-            <ControlButton
+            <ZoomButton
               label="확대"
-              onClick={() => setZoomIndex((i) => Math.min(ZOOM_STEPS.length - 1, i + 1))}
+              onClick={() =>
+                setZoomIndex((i) => Math.min(ZOOM_STEPS.length - 1, i + 1))
+              }
               disabled={zoomIndex === ZOOM_STEPS.length - 1}
             >
               +
-            </ControlButton>
+            </ZoomButton>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
-            {focusId && (
-              <button
-                type="button"
-                onClick={() => setFocusId(null)}
-                className="rounded-pill border border-border px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-foreground"
-              >
-                선택 해제 (Esc)
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              className="rounded-pill border border-border px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.08em] text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {isFullscreen ? "나가기" : "전체화면"}
-            </button>
-            <a
-              href={`/diagrams/${id}.drawio.xml`}
-              download={`${id}.drawio.xml`}
-              className="rounded-pill border border-border px-2.5 py-1 font-mono text-[0.6875rem] uppercase tracking-[0.08em] text-muted-foreground no-underline transition-colors hover:text-foreground"
-            >
-              원본 .drawio ↓
-            </a>
-          </div>
+          {focusId && (
+            <TextControl onClick={() => setFocusId(null)}>선택 해제 (Esc)</TextControl>
+          )}
+          <TextControl onClick={toggleFullscreen}>
+            {isFullscreen ? "전체화면 나가기" : "전체화면"}
+          </TextControl>
+          <a
+            href={`/diagrams/${id}.drawio.xml`}
+            download={`${id}.drawio.xml`}
+            className="border-b border-border pb-px text-muted-foreground no-underline transition-colors hover:text-foreground"
+          >
+            원본 .drawio ↓
+          </a>
         </div>
+      </div>
 
+      <div
+        ref={frameRef}
+        className="overflow-hidden rounded-card border border-border fullscreen:rounded-none fullscreen:border-0"
+      >
         {/* The diagram keeps a light canvas in every theme: a draw.io export
             carries baked-in fills like #f1f2f4, so recolouring the page around
             it would leave the artwork stranded. */}
         <div
-          className="overflow-auto p-4 fullscreen:h-[calc(100dvh-3rem)]"
-          style={{ backgroundColor: "var(--diagram-canvas)" }}
+          className="overflow-auto p-4 fullscreen:h-dvh"
+          style={{
+            backgroundColor: "var(--diagram-canvas)",
+            backgroundImage:
+              "radial-gradient(circle, var(--diagram-grid) 1px, transparent 1px)",
+            backgroundSize: "18px 18px",
+          }}
         >
           {error ? (
             <p className="px-2 py-10 text-center text-sm text-danger">
-              다이어그램을 불러오지 못했습니다 ({error}). <code className="font-mono">npm run build</code> 로 <code className="font-mono">public/diagrams/</code> 가 생성됐는지 확인해 주세요.
+              다이어그램을 불러오지 못했습니다 ({error}).{" "}
+              <code className="font-mono">npm run build</code> 로{" "}
+              <code className="font-mono">public/diagrams/</code> 가 생성됐는지 확인해 주세요.
             </p>
           ) : svg ? (
             <div
@@ -254,7 +268,9 @@ export function DiagramViewer({
       >
         {focused ? (
           <>
-            <strong className="font-semibold text-foreground">{focused.label || focused.id}</strong>
+            <strong className="font-semibold text-foreground">
+              {focused.label || focused.id}
+            </strong>
             {" 기준 직접 연결 "}
             <span className="font-mono tabular-nums">{linkCount}</span>
             개. 다시 클릭하거나 Esc로 해제합니다.
@@ -267,7 +283,7 @@ export function DiagramViewer({
   );
 }
 
-function ControlButton({
+function ZoomButton({
   label,
   onClick,
   disabled,
@@ -284,7 +300,25 @@ function ControlButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex size-7 items-center justify-center rounded-pill border border-border text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground"
+      className="flex size-6 items-center justify-center rounded-pill border border-border text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground"
+    >
+      {children}
+    </button>
+  );
+}
+
+function TextControl({
+  onClick,
+  children,
+}: {
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="border-b border-border pb-px text-muted-foreground transition-colors hover:text-foreground"
     >
       {children}
     </button>

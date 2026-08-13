@@ -41,8 +41,12 @@
   --danger: oklch(0.52 0.18 25);
   --info: oklch(0.52 0.13 245);
 
-  /* Diagrams keep a light canvas in every theme (see DiagramViewer). */
+  /* Diagrams keep a light canvas in every theme (see DiagramViewer), so the
+   * grid dots are pinned too — deriving them from --foreground painted white
+   * dots on a white canvas as soon as the page went dark. Neither token is
+   * redefined in the dark blocks; that is deliberate. */
   --diagram-canvas: oklch(0.985 0.004 85);
+  --diagram-grid: oklch(0.24 0.014 70 / 0.17);
 }
 
 /* System preference. Guarded so an explicit light choice still wins, per the

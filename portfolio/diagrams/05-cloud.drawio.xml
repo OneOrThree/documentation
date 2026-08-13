@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net" agent="portfolio-placeholder" version="24.7.17">
+  <diagram id="05-cloud" name="클라우드 아키텍처 · AWS">
+    <mxGraphModel dx="1100" dy="700" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="560" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cf" value="CloudFront" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="alb" value="ALB" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="50" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="ecs-api" value="ECS Fargate&lt;br&gt;API" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="190" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs" value="SQS" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="190" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ecs-worker" value="ECS Fargate&lt;br&gt;Worker" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="330" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rds" value="RDS&lt;br&gt;PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="330" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="ec" value="ElastiCache&lt;br&gt;Redis" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="330" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="S3" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="460" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cw" value="CloudWatch" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="530" y="460" width="170" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cf-alb" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="cf" target="alb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-alb-ecs" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="alb" target="ecs-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ecs-sqs" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" edge="1" parent="1" source="ecs-api" target="sqs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-sqs-worker" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" edge="1" parent="1" source="sqs" target="ecs-worker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ecs-rds" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ecs-api" target="rds">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-ecs-ec" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ecs-api" target="ec">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-worker-s3" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ecs-worker" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-worker-cw" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="ecs-worker" target="cw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

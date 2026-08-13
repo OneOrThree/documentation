@@ -11,6 +11,8 @@ import path from "node:path";
 export interface DiagramEntry {
   id: string;
   title: string;
+  /** Monospace uppercase label beside the Korean title, as both clones had. */
+  titleEn?: string;
   summary?: string;
   nodeCount: number;
   edgeCount: number;

@@ -52,7 +52,9 @@ related:
 
 1. draw.io에서 **File → Export as → SVG** — "Include a copy of my diagram" **해제** → `diagrams/<id>.svg`
 2. draw.io에서 **File → Save as → .drawio (XML)** → `diagrams/<id>.drawio.xml`
-3. `diagrams/manifest.json` 에 `{ "id", "title", "summary" }` 추가
+3. `diagrams/manifest.json` 에 `{ "id", "title", "titleEn", "summary" }` 추가
+
+> 현재 `diagrams/` 의 6개는 **자리표시**다. `scripts/make-placeholder-diagrams.mjs` 가 만든 것이고, Drive의 진짜 원본이 오면 파일을 덮어쓰고 이 스크립트는 지우면 된다.
 
 `npm run build` 가 `scripts/build-diagrams.mjs` 를 돌려 `public/diagrams/` 에 셋을 만든다: 주석이 주입된 SVG, 연결 그래프 JSON, 다운로드용 원본 XML.
 

@@ -1,0 +1,67 @@
+<mxfile host="app.diagrams.net" agent="portfolio-placeholder" version="24.7.17">
+  <diagram id="01-ia" name="IA · 정보 구조">
+    <mxGraphModel dx="1100" dy="700" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="home" value="홈" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="370" y="40" width="150" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="map" value="지도" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="180" width="150" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="book" value="도감" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="180" width="150" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="mission" value="미션" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="180" width="150" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="mypage" value="마이페이지" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="180" width="170" height="52" as="geometry" />
+        </mxCell>
+        <mxCell id="map-cell" value="격자 상세" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="150" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="book-stat" value="수집 현황" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="320" width="150" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="mission-course" value="코스 상세" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="320" width="150" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="my-settings" value="설정" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="320" width="170" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="my-inbox" value="알림함" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="630" y="400" width="170" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="e-home-map" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="home" target="map">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-home-book" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="home" target="book">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-home-mission" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="home" target="mission">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-home-mypage" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="home" target="mypage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-map-cell" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="map" target="map-cell">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-book-stat" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="book" target="book-stat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-mission-course" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="mission" target="mission-course">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-my-settings" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="mypage" target="my-settings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-my-inbox" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="1" source="mypage" target="my-inbox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
