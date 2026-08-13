@@ -1,0 +1,122 @@
+/* Design tokens.
+ *
+ * Structure borrowed from both cloned sites — a warm off-white "paper" base
+ * carrying a single saturated accent, with every piece of metadata set in
+ * monospace. Values are new: PokeClip's red and FillMap's green both belong to
+ * their own products, so the accent here is a deep indigo that reads as neither.
+ *
+ * Only these variables change between themes. Components never name a colour
+ * directly, so adding dark mode cost nothing beyond this file — which is the
+ * whole reason the clones (single light theme, ~54 anonymous captured colours
+ * like `--color-037`) could not grow one.
+ *
+ * To rebrand: change `--primary`. Everything derived from it follows.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces — warm neutral, low chroma, walking away from the background. */
+  --background: oklch(0.977 0.006 85);
+  --surface-1: oklch(1 0 0);
+  --surface-2: oklch(0.953 0.007 85);
+  --surface-3: oklch(0.921 0.009 85);
+
+  /* Ink */
+  --foreground: oklch(0.24 0.014 70);
+  --muted-foreground: oklch(0.455 0.012 70);
+  --muted: oklch(0.6 0.01 70);
+
+  --border: oklch(0.884 0.008 85);
+  --border-strong: oklch(0.82 0.01 85);
+
+  /* Accent */
+  --primary: oklch(0.47 0.16 275);
+  --primary-hover: oklch(0.4 0.16 275);
+  --primary-on: oklch(0.99 0.004 275);
+
+  /* Status hues — used by StatusPill only. */
+  --ok: oklch(0.5 0.13 155);
+  --warn: oklch(0.55 0.13 75);
+  --danger: oklch(0.52 0.18 25);
+  --info: oklch(0.52 0.13 245);
+
+  /* Diagrams keep a light canvas in every theme (see DiagramViewer). */
+  --diagram-canvas: oklch(0.985 0.004 85);
+}
+
+/* System preference. Guarded so an explicit light choice still wins, per the
+ * three-state rule: [data-theme] set → that wins; nothing set → follow the OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: oklch(0.19 0.008 75);
+    --surface-1: oklch(0.232 0.009 75);
+    --surface-2: oklch(0.265 0.01 75);
+    --surface-3: oklch(0.312 0.011 75);
+
+    --foreground: oklch(0.94 0.005 85);
+    --muted-foreground: oklch(0.735 0.008 85);
+    --muted: oklch(0.6 0.008 85);
+
+    --border: oklch(0.335 0.01 75);
+    --border-strong: oklch(0.42 0.012 75);
+
+    --primary: oklch(0.74 0.13 275);
+    --primary-hover: oklch(0.82 0.11 275);
+    --primary-on: oklch(0.18 0.02 275);
+
+    --ok: oklch(0.72 0.13 155);
+    --warn: oklch(0.78 0.12 75);
+    --danger: oklch(0.7 0.15 25);
+    --info: oklch(0.72 0.12 245);
+  }
+}
+
+/* Explicit dark choice — repeated so the toggle wins in both directions
+ * (a user on a light OS can still pick dark). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: oklch(0.19 0.008 75);
+  --surface-1: oklch(0.232 0.009 75);
+  --surface-2: oklch(0.265 0.01 75);
+  --surface-3: oklch(0.312 0.011 75);
+
+  --foreground: oklch(0.94 0.005 85);
+  --muted-foreground: oklch(0.735 0.008 85);
+  --muted: oklch(0.6 0.008 85);
+
+  --border: oklch(0.335 0.01 75);
+  --border-strong: oklch(0.42 0.012 75);
+
+  --primary: oklch(0.74 0.13 275);
+  --primary-hover: oklch(0.82 0.11 275);
+  --primary-on: oklch(0.18 0.02 275);
+
+  --ok: oklch(0.72 0.13 155);
+  --warn: oklch(0.78 0.12 75);
+  --danger: oklch(0.7 0.15 25);
+  --info: oklch(0.72 0.12 245);
+}
+
+/* Derived from --primary, so a rebrand stays a one-line change. */
+:root {
+  --primary-subtle: color-mix(in oklab, var(--primary) 11%, var(--background));
+  --primary-ring: color-mix(in oklab, var(--primary) 40%, transparent);
+
+  /* Typography. The Korean-aware body rule is FillMap's — it is the single
+   * most useful thing either clone did for Hangul line breaking. Fonts stay a
+   * system stack rather than PokeClip's 92 self-hosted Pretendard subsets. */
+  --font-body:
+    -apple-system, BlinkMacSystemFont, "Pretendard Variable", Pretendard,
+    "Apple SD Gothic Neo", "Noto Sans KR", system-ui, "Segoe UI",
+    "Malgun Gothic", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", "JetBrains Mono", Menlo, monospace;
+
+  /* Two radii only, as FillMap had: card and pill. */
+  --radius-card: 12px;
+  --radius-pill: 999px;
+}
