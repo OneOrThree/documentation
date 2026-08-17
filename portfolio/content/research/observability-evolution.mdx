@@ -1,0 +1,151 @@
+---
+title: "헬스체크 하나뿐이던 관측이 APM까지 — pull에서 push로 갈아엎은 기록"
+summary: "관측을 네 단계에 걸쳐 갈아엎었습니다. 결론부터: `/health`가 `\"test\"`를 반환하던 상태에서 Datadog APM까지 왔고, 진짜 시간을 먹은 건 도구 선택이 아니라 기동 지연 45초·docker 응답 6.08초 같은 배선의 실측이었습니다."
+status: "완료"
+date: "2026-07-16"
+order: 15
+keywords:
+  - 관측성
+  - Datadog
+  - APM
+  - Prometheus
+  - 분산 트레이싱
+related:
+  - label: "로깅이 비즈니스를 깨뜨리다"
+    href: "/research/logging-traps"
+  - label: "성공률 0%의 만성 원인은 60초였다"
+    href: "/research/cicd-infra"
+  - label: "부하테스트 하네스 구축기"
+    href: "/research/loadtest-harness"
+---
+
+관측을 네 번 갈아엎었습니다. 각 단계는 유행을 따라간 게 아니라 앞 단계의 한계에 대한 응답이었고, 실제로 시간을 먹은 건 "무엇을 도입할까"가 아니라 "도입한 게 왜 안 붙는가"였습니다.
+
+| 단계 | 방식 | 얻은 것 | 한계 → 다음 동기 |
+| --- | --- | --- | --- |
+| 1 | 커스텀 `/health` → `"test"` | 기동 여부 | 그 외 전부 깜깜이 |
+| 2 | logback 파일 로그 + grep | 사후 추적 | 집계·알람·원격 조회 없음 |
+| 3 | Prometheus + Grafana + Loki (pull) | 한 화면 관측 + 알람 | 운영 부담·트레이싱 부재·셀프호스트 맹점 |
+| 4 | Datadog Agent (push) + APM | 운영 통합 + 트레이싱이라는 새 축 | 볼륨당 과금·벤더 종속 |
+
+## 1~2단계: "관측이 없다"가 무슨 상태인지 몸으로 알았습니다
+
+백엔드는 서버 한 대 위 docker-compose로 도는 Spring Boot 앱입니다. 처음에 관측이라 부를 만한 건 `/health`가 `"test"` 문자열을 뱉는 커스텀 컨트롤러 하나뿐이었고, 배포 파이프라인(`cd.yml`)이 `curl :8080/health`로 프로세스 생존만 확인했습니다. 에러율이 튀는지, 어느 API가 느린지, 커넥션 풀이 마르는지는 전부 보이지 않았고 장애를 제보로 알게 되는 구조였습니다.
+
+그래서 최소한 로그라도 남기자며 logback 파일 로깅(app.log, user-activity.log)을 붙였습니다. 사후 추적은 됐지만, 같은 예외가 몇 번째인지·어느 릴리즈부터인지는 집계할 수 없었고 무엇보다 알람이 없었습니다. 여전히 "터지고 나서 찾아보는" 도구였습니다.
+
+수집층부터 표준화하는 게 순서였습니다. Actuator와 micrometer를 넣는 작은 PR을 546(모니터링)·548(부하테스트) 공통 선행으로 분리했습니다. 여기서 첫 배선 함정을 만났습니다.
+
+- `JwtFilter`가 `addUrlPatterns("/api/*")`로 `/api/*`만 필터하므로 `/actuator/*`는 무인증입니다. dev의 8080은 공개 포트라 그대로 두면 내부 지표가 공개로 샙니다. dev 프로파일에만 `management.server.port: 9091`을 두고 호스트에 미공개해 격리했습니다. 관리 컨텍스트가 메인 서블릿과 분리되니 화이트리스트 자체가 불필요해집니다.
+- base `application.yml`이 gitignore 대상이라, 여기에 넣은 histogram·common tag 설정은 로컬에서만 먹고 배포 이미지에는 들어가지 않습니다. 추적되는 `application-dev.yml`로 옮겼습니다. 로컬 게이트가 green인 것과 배포에 반영된 것은 다른 문제입니다.
+
+## 3단계: pull 스택은 잘 돌았고, 정확히 세 가지가 남았습니다
+
+Actuator가 `/actuator/prometheus`를 열자 나머지는 조립이었습니다. Prometheus가 `app:9091`을 5초마다 스크레이프하고, promtail이 컨테이너 stdout을 tail해 Loki로 보내고, Grafana 한 화면에 트래픽 RED·HikariCP 풀·postgres 지표·리소스를 올렸습니다. 셀프호스트의 맹점(VM이 죽으면 Grafana도 같이 죽는다)은 외부 관리형 uptime check로 보완했습니다. 기존 dev compose 위에 관측 스택을 overlay로 얹고, 앱 배포와 분리된 별도 워크플로우로 토글했습니다.
+
+운영하면서 배운 건 스택 자체보다 기동 경로였습니다. `cd.yml`은 `app`만 올리므로 관측 overlay는 따로 띄워야 하는데, 서버에서 직접 `docker compose`를 실행하면 사용자 셸에 OIDC 자격증명이 없어 DB 시크릿이 전부 blank가 되고, 그 상태로 dev 파일의 `app`·`db`까지 함께 잡히면 돌고 있는 서버가 재생성될 수 있었습니다. 우연히 docker 소켓 권한 오류가 이걸 막아줬습니다. 이후 관측 기동을 `cd.yml`과 같은 러너·같은 시크릿 경로를 쓰는 `workflow_dispatch` 워크플로우로 표준화했습니다.
+
+한 화면 관측과 알람은 달성했는데 세 가지가 남았습니다.
+
+1. Prometheus·Loki·promtail·exporter·cAdvisor까지 컨테이너 5~6개를 직접 굴립니다.
+2. 분산 트레이싱이 없습니다. 메트릭은 "5xx율이 튄다"까지만 말해주고, "어느 요청의 어느 SQL이 느린가"는 알려주지 않습니다.
+3. 관측 스택이 관측 대상과 같은 VM에 삽니다.
+
+## 4단계: 방향을 반전하면 실패 감지 모델도 바뀝니다
+
+Datadog으로 넘어간 건 세 가지 반전입니다. 셀프호스트 3스택을 Agent 컨테이너 하나로, 없던 축인 분산 트레이싱을 `dd-java-agent`로, 그리고 Prometheus가 앱을 pull하던 방향을 Agent가 SaaS로 push하는 방향으로.
+
+`datadog-agent` 컨테이너가 `docker.sock`과 cgroup을 읽어 인프라 메트릭을, 컨테이너 stdout을 tail해 로그를 HTTPS로 보냅니다. 앱은 `-javaagent:/opt/datadog/dd-java-agent.jar`로 뜨면 클래스 로드 시 Spring MVC·JDBC·JPA가 바이트코드 계측돼 span을 만들고 `datadog-agent:8126`으로 보냅니다. 소스는 한 줄도 건드리지 않습니다. 기존 `/actuator/prometheus` 자산은 버리지 않고 Agent의 OpenMetrics 체크로 스크레이프해 `gromo.*`로 보냈습니다. 덕분에 pull과 push를 한 곳에서 대조할 수 있었습니다.
+
+| | pull (Prometheus) | push (Datadog Agent) |
+| --- | --- | --- |
+| 방향 | 중앙이 타겟을 스크레이프 | 호스트 Agent가 SaaS로 아웃바운드 |
+| 실패 감지 | 스크레이프 실패 자체가 신호 | Agent가 죽으면 no-data 모니터를 따로 걸어야 함 |
+| 비용 | 컨테이너 비용뿐 | 커스텀 메트릭·로그·트레이스가 볼륨당 과금 |
+| 운영 | 저장소·HA를 직접 | 벤더가 대신, 대신 종속 |
+| 트레이싱 | 없음 | dd-java-agent APM |
+
+한 번에 갈아타지 않고 OSS 스택 옆에 토글 overlay로 얹어 평가하는 쪽을 골랐습니다. `-javaagent`는 overlay를 켤 때만 붙으므로 jar가 이미지에 있어도 평소 배포에는 로드되지 않아 런타임 영향이 0이고, 되돌리기가 워크플로우 `down` 한 번입니다. 과금이 볼륨당이라는 걸 알고 있었으니 최소비용 레버도 미리 박았습니다. APM 샘플링 `0.2`, OpenMetrics는 `.*` 금지하고 대시보드에 쓰는 메트릭만 큐레이트, `DD_CONTAINER_EXCLUDE`로 기존 OSS 관측 컨테이너를 제외해 이중과금 방지, 안 볼 땐 `down`.
+
+## 트러블슈팅 — 하루 동안 실제로 막힌 네 가지
+
+### 워크플로우는 빨간 X인데 배포는 성공했습니다
+
+`up`을 돌렸더니 `Process completed with exit code 1`이 났습니다. 로그를 뜯어보니 Agent는 정상 기동했고 앱도 `-javaagent`로 재생성돼 트레이서가 `agent_error:false`로 로드된 상태였습니다. 실패한 건 마지막 "상태 확인" 스텝이었습니다. `/health`를 `seq 1 12`, 즉 60초 폴링하다 `exit 1`. 타임라인을 보니 컨테이너 생성부터 Spring이 `"Starting"`을 찍기까지만 약 45초가 걸렸습니다. dd-java-agent가 클래스 로드 시점에 바이트코드를 계측하느라 기동이 크게 느려진 것이고, 60초 예산으로는 Spring Boot + JPA 풀부팅이 끝나지 않습니다. 앱은 죽은 게 아니라 아직 부팅 중이었고 컨테이너도 내려가지 않았습니다.
+
+헬스체크 루프를 180초(`seq 1 36`)로 늘렸습니다. 실제로 healthy가 되는 시점은 90~120초였습니다. 배운 건 APM 계측이 startup latency를 늘린다는 것, 그래서 헬스게이트 예산을 계측 없는 기준으로 잡아두면 배포가 성공해도 워크플로우가 빨간 X를 뱉는 false-negative가 난다는 것입니다. "실패했다"는 신호를 그대로 믿지 않고 컨테이너 상태와 앱 로그로 실제 상태를 확인하는 습관이 여기서 값을 했습니다.
+
+### 온보딩이 시키는 host-install 스크립트를 돌리면 안 됐습니다
+
+APM › Services에 서비스가 안 떠서 온보딩 화면을 보니 `DD_APM_INSTRUMENTATION_ENABLED=host`로 설치 스크립트를 돌리라고 안내했습니다. 안 돌려서 안 뜨는 건가 싶었지만, 그 스크립트는 호스트에 에이전트를 직접 설치하고 호스트 레벨 자동계측을 켜는 플로우입니다. 우리는 이미 컨테이너 에이전트 + 앱 이미지에 내장한 `dd-java-agent` 조합으로 구성한 상태였습니다. 돌렸다면 호스트에 두 번째 에이전트가 깔려 중복·충돌·이중과금이 났을 겁니다.
+
+돌리지 않았고, 서비스가 안 뜬 진짜 이유는 다음 항목이었습니다. SaaS 온보딩 화면은 "표준 설치"와 "에이전트 미탐지"를 가정한 generic 안내입니다. 컨테이너·사이드카로 이미 구성한 경우, 안내를 그대로 따르면 구성을 깨뜨립니다.
+
+### `/health`를 수십 번 때려도 postgres가 안 뜹니다
+
+트래픽을 만들려고 `/health`를 반복 호출했는데 Software Catalog의 Datastores·Inferred services에 postgres가 나타나지 않았습니다. `/health`는 `"test"`만 반환하는 no-op 컨트롤러라 DB를 건드리지 않습니다. dd-java-agent가 JDBC를 계측하긴 하지만 SQL을 실행하는 트레이스가 0이면 postgres가 downstream으로 추론될 리가 없습니다.
+
+실제로 DB를 조회하는 `/api/*` 엔드포인트로 트래픽을 만들자 postgres가 inferred datastore로 뜨고 플레임그래프에 SQL 구간이 나타났습니다. APM에서 안 보이는 건 "계측이 안 됐다"보다 "그 경로를 지나는 트래픽이 없다"인 경우가 많습니다. 검증용 트래픽은 관측하려는 코드 경로를 실제로 지나야 합니다. 헬스체크로는 헬스체크만 보입니다. 부하테스트 하네스로 트래픽을 부으면 APM을 통째로 채울 수 있다는 연결고리도 여기서 얻었습니다.
+
+Catalog의 다른 탭이 빈 것은 정상이었습니다. Queues는 메시지큐가 없고, Frontend apps는 RUM 범위 밖이고, Repositories는 소스 연동을 하지 않았습니다. 채워져야 하는 곳은 Services와 Datastores뿐이었습니다.
+
+### 플래그를 켠 것과 그 플래그가 로그 포맷과 맞물리는 것은 다른 문제입니다
+
+설계 문서에는 `DD_LOGS_INJECTION=true`를 켜면 트레이스와 로그가 자동으로 엮인다고 적어뒀는데 실제로는 안 걸렸습니다. 이 플래그는 `dd.trace_id`와 `dd.span_id`를 MDC에 넣어줍니다. 그런데 `logback-spring.xml`에서 dev 프로파일이 쓰는 CONSOLE appender는 텍스트 패턴이고, 찍는 것도 앱 자체 MDC 키인 `[%X{trace_id}]`뿐입니다. Datadog이 상관에 쓰는 `dd.trace_id`가 stdout에 구조화되어 담기지 않으니 Agent가 tail한 로그에서 트레이스를 엮을 방법이 없었습니다.
+
+설계 문서는 JSON 로그를 가정했지만 실제 dev stdout은 텍스트였습니다. 가정과 현실의 격차입니다. 해결은 두 갈래로 남겼습니다. `datadog` 전용 springProfile에서 `dd.trace_id`를 포함한 JSON 콘솔 encoder로 출력하거나, Datadog 로그 파이프라인의 서버측 파서로 텍스트를 파싱해 `trace_id`를 예약 속성으로 remap하는 것입니다.
+
+여기까지가 Phase 1+2입니다. 인프라·메트릭(OpenMetrics 716 samples)·APM·로그·DB까지 네 축이 전부 유입되는 걸 확인했습니다.
+
+## 배포가 매 회 Datadog 배선을 벗겨내고 있었습니다
+
+며칠 뒤 dev에 트레이스가 전혀 없고, 로그 service 태그가 `gromo-back-dev`가 아니라 컨테이너명 `phone-app`으로 들어오는 걸 발견했습니다. 원인은 두 파일의 비대칭이었습니다. 토글 워크플로우는 overlay 2장으로 app을 재생성해 APM을 붙이는데, `cd.yml`은 main 푸시마다 dev 파일 단독으로 `up -d app`을 합니다. overlay의 app override(`-javaagent`, `DD_*` env, 통합 서비스 태그 라벨)가 통째로 소멸합니다.
+
+Agent는 `restart: unless-stopped`라 살아남아 로그만 계속 보냅니다. 그래서 증상이 "로그는 오는데 트레이스만 끊기고 service 태그가 폴백된" 애매한 형태로 나타났습니다. 호스트 실측이 이걸 확정해줬습니다.
+
+| 확인 항목 | 실측 |
+| --- | --- |
+| Agent 로그 수집 | `LogsSent: 200962`, `phone-app` tailer `Status: OK` |
+| 컨테이너 라벨 | `com.datadoghq.tags.*` 없음 |
+| 컨테이너 env | `DD_*` 없음 |
+| `JAVA_OPTS` | `-javaagent` 없음 |
+| 컨테이너 나이 | agent = Up 2 weeks / `phone-app` = Up 3 hours |
+
+에이전트는 2주째 떠 있는데 앱은 3시간짜리입니다. 배포가 앱만 갈아치웠다는 증거였습니다.
+
+수정은 배포 전에 Agent 기동 여부를 감지해, 켜져 있으면 overlay를 함께 물리는 것입니다. 설계에서 두 가지를 의도적으로 정했습니다. 배포가 Datadog을 강제로 켜지는 않습니다 — 켜져 있던 상태만 보존해 수동 토글의 의미를 유지합니다. 그리고 `DD_API_KEY`가 비면 overlay를 포기합니다. compose가 `DD_API_KEY:?`로 fail-fast하는 탓에 키가 없으면 파싱 단계에서 배포 전체가 죽는데, 관측 배선이 배포를 막는 건 방향이 거꾸로입니다. 경고만 남기고 dev 단독으로 진행합니다.
+
+같은 PR에서 토글 워크플로우의 헬스체크 60초도 180초로 늘렸습니다. 실행 이력 두 건이 모두 failure였지만 로그에는 트레이서가 정상 기동한 기록이 남아 있었습니다.
+
+```text
+DATADOG TRACER CONFIGURATION {"service":"gromo-back-dev",
+  "agent_url":"http://datadog-agent:8126","agent_error":false, ...}
+```
+
+`cd.yml`은 같은 이유로 이미 150초로 늘려둔 상태였습니다. 같은 원인이 두 워크플로우에 따로 있었고, 한쪽만 고쳐두면 다른 쪽에서 다시 오독을 부릅니다. 덧붙여 compose 파일 헤더에 "`cd.yml`은 dev 파일만 쓰므로 이 overlay와 간섭 없음"이라고 적힌 주석이 사실과 정반대였습니다. 주석이 틀린 방향으로 안심시키고 있었던 셈입니다.
+
+## dev와 prod의 비대칭은 호스트 실측으로 잡았습니다
+
+prod에는 APM을 별도로 승격했습니다. prod에는 이미 인프라·로그를 보내는 Agent가 인라인으로 있었고 빠진 트레이스 축만 app `-javaagent`로 켜면 되는 상태였습니다. dev가 2파일 토글 overlay인 것과 달리 prod는 상시 활성이라 토글이 불필요해서 단일 compose에 병합했습니다. 여기서도 배운 것들이 있습니다.
+
+- **JVM opts 채널이 두 개 공존합니다.** compose `environment`의 `JAVA_OPTS`가 `env_file`의 동명 키를 덮어 힙 설정을 날릴 위험이 있었습니다. 실측해보니 힙은 `JAVA_TOOL_OPTIONS`에, `JAVA_OPTS`에는 다른 옵션 하나뿐이었습니다. JVM은 두 채널을 모두 적용하므로 `-javaagent`를 얹어도 안전했습니다. 무엇이 어느 채널인지 실측한 뒤 주입해야 합니다.
+- **관측 사이드카에 hard `depends_on`을 걸지 않습니다.** app에 `depends_on: datadog-agent`를 넣었더니 리뷰에서 지적을 받았습니다. Compose `depends_on`은 `required: false`가 없으면 필수라, agent가 못 뜨면 app도 안 뜹니다. 부가 기능이 핵심의 기동을 막는 커플링입니다. 트레이서는 agent 미연결 시 트레이스만 드롭하고 앱은 정상이므로 제거했습니다.
+- **"파일에 정의됨"이 "뜬다"를 의미하지 않습니다.** prod에 Datadog이 안 떴다는 인식이 있었는데 `docker ps`로 보니 3일째 healthy였습니다. 실제 `up` 서비스 목록이 compose가 아니라 별도 레포의 배포 문서에 박제돼 있어서, 레포의 compose만 봐서는 무엇이 뜨는지 알 수 없었습니다. 배포 오케스트레이션이 레포 밖이면 런타임부터 봐야 합니다.
+
+그리고 남은 비대칭을 정리한 게 GROMO-1489입니다. dev에서 컨테이너 단위 관측이 안 붙는다는 관찰로 시작해 호스트를 직접 실측하고 증상을 수치로 고정했습니다. container 체크의 Metric Samples 0건, docker 체크의 timeout 에러, 2일간 로그 0건, Process Agent Not running.
+
+근본 원인은 타임아웃 한 줄이었습니다. dev 호스트에서 `docker images -q` 응답이 6.08초 걸리는데, Datadog docker/container 체크의 기본 타임아웃은 5초입니다. 체크가 매번 타임아웃되면 workloadmeta가 컨테이너 목록을 채우지 못하고, 컨테이너 목록이 비면 컨테이너 메트릭도 로그 tailer 대상도 만들어지지 않습니다. "컨테이너 관측이 안 붙는다"는 표면 증상 뒤에 1초 차이의 인과 사슬이 있었습니다.
+
+같은 티켓에서 dev와 prod 설정을 표로 나란히 놓고 `DD_LOGS_INJECTION`·OpenMetrics 브리지처럼 한쪽에만 켜져 있던 항목을 양쪽으로 맞췄습니다. 그리고 상태 확인 워크플로가 `|| true`로 실패를 조용히 삼키고 있었다는 것도 같이 잡았습니다. 관측 배선이 깨진 걸 오래 몰랐던 이유의 절반은 여기 있었습니다. 관측을 검증하는 단계가 실패를 삼키면, 관측이 죽은 것을 관측할 수 없습니다.
+
+## 배운 것과 남은 과제
+
+- **pull에서 push로 가는 건 방향 전환만이 아니라 실패 감지 모델의 교체입니다.** pull은 스크레이프 실패가 곧 신호지만, push는 Agent가 죽으면 아무 데이터도 안 오는 상태를 별도 no-data 모니터로 잡아야 합니다.
+- **APM은 메트릭·로그가 못 메우던 축을 채웁니다.** "5xx율이 튄다"에서 "이 요청의 이 SQL이 느리다"로 해상도가 내려갑니다. 자체 OSS 스택에는 이게 통째로 없었습니다.
+- **관측 도구의 문제는 대부분 도구가 아니라 배선입니다.** 이 노트의 사건 여섯 건 중 도구 선택이 원인인 건 하나도 없습니다. 헬스게이트 예산, 두 compose 파일의 비대칭, appender 패턴, 5초 타임아웃, 삼켜진 실패. 전부 이미 있던 자산과 새 도구가 맞물리는 지점이었습니다.
+- **관리형이 무조건 정답은 아닙니다.** 그래서 Prometheus를 곧장 걷어내지 않고 토글 overlay로 나란히 두고 평가했습니다. 비용과 효용을 실측한 뒤 폐기 여부를 결정하는 편이 "새 도구가 좋아 보여서 갈아탔다"보다 정직한 판단이라고 봅니다.
+- 남은 과제는 셋입니다. 로그와 트레이스 상관 완성(JSON 콘솔 프로파일 또는 서버측 파서), 며칠 굽고 비용을 실측한 뒤 OSS 스택 폐기·상시화 결정, 그리고 k6 트래픽으로 APM을 실부하 하에서 채워 병목 관측까지 잇는 것입니다.
+
+### 관련 기록
+
+PR #113 · GROMO-588 (Actuator·micrometer 수집층, 관리 포트 격리) · PR #264 (Datadog dev 토글 overlay, Phase 1+2) · PR #519 · GROMO-1233 (배포가 APM overlay를 벗기던 문제, 헬스게이트 180초) · GROMO-546 / GROMO-589 (관측 스택·알람) · GROMO-891 (prod APM 승격) · GROMO-1068 (`cd.yml` 헬스 예산) · GROMO-1489 (dev·prod 배선 정합, 컨테이너 수집 복구)

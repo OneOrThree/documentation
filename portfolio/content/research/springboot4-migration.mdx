@@ -1,0 +1,187 @@
+---
+title: "Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트"
+summary: "Boot 4를 조기 채택하면서 'import가 안 잡힌다'를 세 번 만났고, 세 번 모두 원인은 의존성 누락이 아니라 패키지 이동이었습니다. Jackson 2→3 전환, 테스트 슬라이스 4종의 모듈별 재편, boolean is-프리픽스 직렬화까지 정리합니다."
+status: "정리됨"
+date: "2026-08-17"
+order: 61
+keywords:
+  - Spring Boot 4
+  - Jackson 3
+  - 테스트 슬라이스
+  - 모듈형 오토컨피그
+  - 마이그레이션
+related:
+  - label: "flyway-core를 넣었는데 왜 안 켜질까"
+    href: "/research/flyway-adoption"
+  - label: "WebSocket은 왜 혼자 확장이 안 될까"
+    href: "/research/chat-fanout"
+  - label: "커버리지의 착시"
+    href: "/research/testing-notes"
+---
+
+## 결론부터
+
+우리 팀은 백엔드를 Spring Boot 4 계열로 시작했습니다. 새 버전을 먼저 쓰는 대가는 성능이나 안정성이 아니라 **정보의 부재**로 돌아왔습니다. 구체적으로는 같은 모양의 사고를 세 번 겪었습니다.
+
+| 증상 | 처음 의심한 것 | 실제 원인 |
+| --- | --- | --- |
+| `Cannot resolve symbol 'DataJpaTest'` | 테스트 의존성 누락 | Boot 4가 테스트 슬라이스를 모듈별 패키지로 재편 |
+| `package com.fasterxml.jackson.datatype.jsr310 does not exist` | Jackson 모듈 의존성 누락 | Boot 4 = Jackson 3, 패키지 좌표가 `tools.jackson.*`로 이동 |
+| Flyway 마이그레이션이 로그 한 줄 없이 미적용 | 설정값 오타 | 오토컨피그가 기술별 모듈로 분리돼 `flyway-core`만으론 부족 |
+
+세 사고의 교훈이 하나로 수렴합니다. **메이저 버전을 올린 직후에 "import가 안 잡힌다"를 보면, 의존성 누락으로 단정하기 전에 좌표 이동을 먼저 의심해야 합니다.** 빌드 스크립트를 다시 들여다보는 시간이 가장 아깝게 버려졌습니다. Flyway 사례는 원인 구조가 같지만 서사가 길어서 [flyway-core를 넣었는데 왜 안 켜질까](/research/flyway-adoption) 노트로 따로 뺐습니다.
+
+## Jackson 2 → 3 — "package does not exist"의 진짜 원인
+
+채팅 서버의 STOMP 통합 테스트를 쓰다가 두 가지에 막혔습니다. 하나는 `MappingJackson2MessageConverter`가 제거 예정(deprecated) 경고를 뿜는 것, 다른 하나는 `JavaTimeModule` import가 아예 잡히지 않는 것이었습니다.
+
+Boot의 메이저 업그레이드에 Jackson의 메이저 업그레이드가 딸려 옵니다.
+
+| 항목 | Jackson 2 (Boot 3) | Jackson 3 (Boot 4) |
+| --- | --- | --- |
+| 패키지 | `com.fasterxml.jackson.databind` | `tools.jackson.databind` |
+| groupId | `com.fasterxml.jackson.core` | `tools.jackson.core` |
+| 매퍼 | `com.fasterxml...ObjectMapper` | `tools.jackson...JsonMapper` 등 |
+| java.time | 별도 모듈 `jackson-datatype-jsr310` 수동 등록 | 코어에 통합, 수동 등록 불필요 |
+
+그래서 `com.fasterxml.jackson.datatype.jsr310.JavaTimeModule`은 Boot 4 클래스패스에 **존재하지 않습니다.** 의존성을 추가해서 해결할 문제가 아니라, 애초에 등록할 필요가 없어진 것이었습니다. 이 부분은 마이그레이션 중에 드물게 기분 좋은 쪽이었습니다. 우리가 직접 등록해온 모듈 한 줄이 그냥 사라졌습니다.
+
+메시지 컨버터는 클래스 이름 규칙 자체가 바뀝니다.
+
+| 용도 | Boot 3 (Jackson 2) | Boot 4 (Jackson 3) |
+| --- | --- | --- |
+| STOMP·메시지 JSON 변환 | `MappingJackson2MessageConverter` | `JacksonJsonMessageConverter` |
+| 웹 MVC HTTP 변환 | `MappingJackson2HttpMessageConverter` | `JacksonJsonHttpMessageConverter` |
+
+`MappingJackson2*`에서 숫자 2가 떨어지고 `Jackson*`이 됩니다. 검색으로 일괄 치환할 수 있는 형태이긴 하지만, 이름에 붙어 있던 버전 숫자가 사라지면서 "이게 어느 세대 클래스인지"를 이름만으로 판별할 수 없게 됐습니다.
+
+### 조용히 수신 실패하던 테스트
+
+가장 오래 붙잡고 있었던 건 이 조합입니다.
+
+- 서버는 Boot 4 기본 컨버터(Jackson 3)로 `Instant`가 포함된 브로드캐스트 페이로드를 직렬화했습니다. java.time이 코어에 들어와 있으니 **에러가 없었습니다.**
+- 테스트 STOMP 클라이언트는 옛 코드를 그대로 물려받아 `MappingJackson2MessageConverter`(Jackson 2)를 쓰고 있었습니다.
+- 결과: 컨버터 불일치와 `Instant` 역직렬화 실패가 겹쳐 **테스트가 메시지를 조용히 수신하지 못했습니다.** 예외도, 실패 로그도 아니고 그냥 아무것도 안 왔습니다.
+
+수정은 클라이언트 쪽도 Jackson 3 컨버터로 맞추는 것이었습니다.
+
+```java
+// 테스트 STOMP 클라이언트: Boot 4 세대 컨버터로 통일
+client.setMessageConverter(new JacksonJsonMessageConverter());
+```
+
+그래도 타입 역직렬화 이슈가 남아서, 테스트에서는 페이로드를 `Map`으로 받아 키 단위로 검증하는 쪽으로 우회했습니다. 실제 클라이언트(React Native)는 JSON을 직접 파싱하므로 서버 계약에는 영향이 없다고 판단했습니다. 다만 이건 우회지 해결이 아니고, 테스트가 클라이언트와 다른 경로로 역직렬화한다는 사실 자체가 리스크로 남아 있습니다.
+
+## 테스트 슬라이스 — jar를 grep해서 찾았다
+
+채팅 서비스(Boot 4.0.6) 리포지토리 테스트를 쓰다가 컴파일이 안 됐습니다.
+
+```text
+Cannot resolve symbol 'DataJpaTest'
+Cannot resolve symbol 'AutoConfigureTestDatabase'
+package org.springframework.boot.test.autoconfigure.orm.jpa does not exist
+```
+
+빌드 스크립트에 테스트 오토컨피그 의존성이 분명히 선언돼 있었습니다. 여기서 한참을 의존성 트리와 씨름했는데, 원인은 Boot 4가 **테스트 슬라이스를 기능 모듈별 jar와 패키지로 쪼갠 것**이었습니다.
+
+Boot 3.x는 슬라이스 어노테이션을 `spring-boot-test-autoconfigure` 한 모듈 아래 영역별 패키지에 모아뒀습니다. Boot 4는 이를 모듈별로 분리하고, 패키지 이름도 그 구조를 따라갑니다.
+
+```text
+org.springframework.boot.MODULE.test.autoconfigure.ANNOTATION
+```
+
+4.0.6 기준으로 우리가 직접 확인한 좌표입니다.
+
+| 어노테이션 | Boot 4 패키지 | jar |
+| --- | --- | --- |
+| `@SpringBootTest` | `org.springframework.boot.test.context` (그대로) | `spring-boot-test` |
+| `@DataJpaTest` | `org.springframework.boot.data.jpa.test.autoconfigure` | `spring-boot-data-jpa-test` |
+| `@AutoConfigureTestDatabase` | `org.springframework.boot.jdbc.test.autoconfigure` | `spring-boot-jdbc-test` |
+| `@AutoConfigureMockMvc`, `@WebMvcTest` | `org.springframework.boot.webmvc.test.autoconfigure` | `spring-boot-webmvc-test` |
+
+혼란의 절반은 `@SpringBootTest`가 **안 움직였다는 데서** 왔습니다. 통합 테스트는 그대로 컴파일되는데 슬라이스 테스트만 깨지니, 어노테이션 위치 문제라는 가설이 늦게 떠올랐습니다.
+
+### 재현: 문서보다 jar가 빠르다
+
+"의존성은 있는데 Cannot resolve symbol"일 때 가장 확실한 확인 방법은 릴리스 노트를 찾아 헤매는 게 아니라 jar 안의 클래스 경로를 직접 뒤지는 것이었습니다.
+
+```bash
+JAR=$(find ~/.gradle/caches -name 'spring-boot-data-jpa-test-4.0.6.jar' | head -1)
+jar tf "$JAR" | grep -i 'DataJpaTest.class'
+# → org/springframework/boot/data/jpa/test/autoconfigure/DataJpaTest.class
+```
+
+조기 채택자에게 이건 일반화할 수 있는 절차입니다. **새 버전에서는 검색 결과가 구 버전 정보로 오염돼 있고, 클래스패스는 거짓말을 하지 않습니다.** 이후로는 "패키지가 안 잡힌다"를 만나면 30초짜리 jar grep을 먼저 돌립니다.
+
+곁가지로 같이 밟은 것도 남깁니다. 다른 패키지의 테스트에서 `@TestConfiguration` 클래스를 `@Import`하려면 그 클래스가 public이어야 합니다. package-private이면 "not public" 컴파일 에러가 납니다.
+
+## boolean is-프리픽스 — 컴파일과 테스트를 모두 통과하는 계약 위반
+
+Boot 4 이슈는 아니지만, Jackson을 파고들다 같은 흐름에서 잡힌 함정입니다. 리뷰에서 지적받은 코드는 이렇게 생겼습니다.
+
+```java
+@Getter
+public class PinnedFriendResponse {
+    private boolean isFocusing;   // Lombok이 만드는 getter: isFocusing()
+}
+```
+
+세 규칙이 겹쳐서 계약이 어긋납니다.
+
+1. Lombok은 `boolean isFocusing` 필드에 `isFocusing()` getter를 만듭니다. 이미 `is`로 시작하니 접두어를 중복해 붙이지 않습니다.
+2. Jackson은 getter `isXxx()`에서 **`is`를 떼고** 프로퍼티 이름을 `xxx`로 봅니다.
+3. 따라서 JSON 키는 `"isFocusing"`이 아니라 `"focusing"`으로 나갑니다.
+
+클라이언트가 `isFocusing`을 기대하면 그 필드를 못 읽습니다. 그런데 **컴파일도 통과하고 테스트도 통과합니다.** 우리 컨트롤러 테스트는 사용자 식별자와 집중 시간 필드만 검증하고 있었기 때문에, 문제가 되는 키는 아무도 보고 있지 않았습니다. 같은 패턴이 코드베이스에 이미 하나 더 있었습니다. 친구 응답의 `isPinned` 필드도 JSON에서는 `"pinned"`로 나갑니다.
+
+대응은 두 갈래고, 중요한 건 어느 쪽을 고르느냐가 아니라 **프로젝트 차원에서 한 번 정하고 통일하는 것**이었습니다.
+
+```java
+// 방법 1: 직렬화 키를 명시적으로 고정한다
+@JsonProperty("isFocusing")
+private boolean isFocusing;
+```
+
+```java
+// 방법 2: 필드 네이밍에서 is를 빼고, 계약을 focusing으로 통일한다
+private boolean focusing;
+```
+
+그리고 재발 방지는 테스트 쪽에 있었습니다. 응답 DTO의 필드 이름을 믿지 말고 **실제 JSON 키를 검증**해야 합니다.
+
+```java
+mockMvc.perform(get("/api/friends/pinned"))
+    .andExpect(jsonPath("$.isFocusing").value(true));  // 키 자체가 검증 대상
+```
+
+남겨둔 확인 항목도 있습니다. 응답뿐 아니라 **요청 역직렬화**도 같은 키 규칙을 타는지, 그리고 박싱 타입(`Boolean`)으로 바꿔도 이 규칙이 그대로인지입니다. 박싱한다고 자동으로 해결되지 않는다는 것까지는 확인했습니다.
+
+## 모듈형 오토컨피그와 버전 고정
+
+Boot 4의 큰 방향은 "하나의 거대한 오토컨피그"를 **기술별 모듈로 쪼갠 것**입니다. 테스트 슬라이스 분리도, Flyway가 조용히 안 켜진 것도 같은 설계 변경의 다른 얼굴입니다. 좋은 방향이라고 생각하지만, 전환기에는 두 가지 비용을 냅니다.
+
+- **필요 의존성이 늘어난다.** 예전엔 코어 라이브러리 하나면 오토컨피그까지 따라왔는데, 이제는 연결용 모듈을 명시적으로 넣어야 합니다.
+- **스타터 이름이 겹친다.** 리뷰에서 우리 빌드 스크립트에 `starter-web`과 `starter-webmvc`가 동시에 선언돼 있는 게 잡혔습니다. Boot 4 네이밍 전환기에 양쪽 이름을 다 넣어버린 흔적입니다. 여기에 사용 코드가 0건인 WebSocket 스타터도 남아 있었습니다. 스타터는 클래스패스에 존재하는 것만으로 오토컨피그 조건을 성립시켜 빈과 엔드포인트를 켜므로, 미사용 스타터는 무해하지 않습니다. 무엇이 켜졌는지는 `--debug` 기동 시 출력되는 조건 평가 리포트로 확인합니다.
+
+버전 고정에서도 한 번 데였습니다. 채팅 서비스를 더 최신 조합(Boot 4.1.0 + Testcontainers 2.0.5)으로 올리려다 Testcontainers 모듈 좌표가 맞지 않아 의존성 해결 자체가 실패했습니다. 결국 **메인 백엔드와 동일한 Boot 4.0.6 + Testcontainers 1.20.1로 통일**해 회피했습니다.
+
+여기서 배운 건 조기 채택의 범위 관리입니다. 프레임워크를 앞서 쓰는 건 감당할 수 있었는데, **앞서 쓰는 것들끼리 조합하는 순간 비용이 곱해집니다.** 새 프레임워크와 새 테스트 인프라를 동시에 최신으로 밀지 않고, 서비스 간에 하나의 조합으로 고정하는 쪽이 훨씬 저렴했습니다.
+
+## 조기 채택 체크리스트
+
+같은 선택을 다시 한다 해도 Boot 4로 갔을 것입니다. 대신 다음 순서로 시작하겠습니다.
+
+| 상황 | 첫 행동 |
+| --- | --- |
+| "import가 안 잡힌다" | 의존성 트리 보기 전에 jar 내부 클래스 경로 grep |
+| 라이브러리 클래스 이름이 낯설다 | 메이저 버전에 딸려 온 라이브러리 세대 교체 여부 확인 |
+| 기능이 조용히 안 켜진다 | 오토컨피그 모듈이 분리됐는지 확인, `--debug` 조건 리포트 |
+| 통합 테스트가 아무것도 못 받는다 | 서버와 테스트 클라이언트의 직렬화 세대가 같은지 확인 |
+| DTO 필드를 클라이언트가 못 읽는다 | 필드 이름 대신 실제 JSON 키를 테스트로 못 박기 |
+| 새 조합을 올리고 싶다 | 프레임워크와 테스트 인프라를 동시에 올리지 않기 |
+
+가장 크게 남은 건 마지막 습관입니다. 새 버전 환경에서는 검색으로 얻은 정보가 대부분 이전 세대의 것이고, 그걸 믿고 움직이면 해결이 아니라 시간을 씁니다. 클래스패스와 조건 평가 리포트처럼 **런타임이 직접 말해주는 근거**를 먼저 보는 편이 언제나 빨랐습니다.
+
+### 관련 기록
+
+PR #63 · GROMO-454

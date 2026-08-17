@@ -1,0 +1,182 @@
+---
+title: "flyway-core를 넣었는데 왜 안 켜질까 — Spring Boot 4 모듈형 오토컨피그"
+summary: "`flyway-core`만 넣으면 Spring Boot 4에서 Flyway는 로그 한 줄 없이 조용히 미적용됩니다. 오토컨피그 모듈까지 의존성 3종을 갖춘 뒤, 33개 테이블 스냅샷을 V1 베이스라인으로 찍어 기존 dev/prod를 무중단 전환했습니다."
+status: "완료"
+date: "2026-07-10"
+order: 20
+keywords:
+  - Flyway
+  - Spring Boot 4
+  - baseline
+  - 마이그레이션
+  - 낙관적 락
+related:
+  - label: "Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트"
+    href: "/research/springboot4-migration"
+  - label: "실패한 배포도 DB는 이미 바꿔놨다"
+    href: "/research/migration-incidents"
+  - label: "낙관적 락은 있는데 작동하지 않는다"
+    href: "/research/concurrency-defense"
+---
+
+결론부터 씁니다. 이 작업에서 얻은 것은 세 가지입니다.
+
+1. 이미 데이터가 찬 DB에 Flyway를 뒤늦게 붙이는 것은 `baseline` 문제이고, 같은 설정 한 벌이 **기존 DB에서는 마킹만, 빈 DB에서는 실제 실행**이라는 두 갈래로 동작해야 합니다.
+2. Spring Boot 4는 오토컨피그를 기술별 모듈로 쪼갰습니다. `flyway-core`(엔진)만으로는 Flyway가 **에러도 로그도 없이 미적용**됩니다. 필요한 의존성은 3종입니다.
+3. dbml에 없다고 지운 컬럼 하나가 낙관적 락이었습니다. 이걸 잡아준 건 스키마 문서가 아니라 동시성 테스트였습니다.
+
+## 셸 스크립트 v15~v30이 남긴 문제
+
+전환 전 우리 팀의 DB 스키마 변경 수단은 로컬 전용 셸 스크립트였습니다. `docker exec` 로 `psql` 히어독을 밀어넣는 방식입니다.
+
+```bash
+# run-migration-v30.sh — 로컬 전용, gitignore 대상
+docker exec -i phone-db psql -U <user> -d dev <<'EOF'
+ALTER TABLE focus_sessions ADD COLUMN IF NOT EXISTS local_date date;
+EOF
+```
+
+`run-migration-v15.sh` 부터 `v30.sh` 까지 쌓였고, 문제는 뚜렷했습니다.
+
+| 문제 | 구체적으로 무슨 일이 생기나 |
+| --- | --- |
+| 버전 관리 밖 | 스크립트가 로컬 전용이라 "지금 dev/prod DB가 몇 번까지 적용됐는지" 아무도 모릅니다 |
+| 수동 실행 | 배포마다 사람이 `psql` 을 손으로 때려야 하고, 빠뜨리면 앱이 죽습니다 |
+| 드리프트 | `ddl-auto: update`(Hibernate 자동 변경)와 수동 스크립트가 섞여, 스키마 문서(dbml)와 실 DB가 조금씩 어긋납니다 |
+
+스키마 변경 관리의 계보를 되짚으면 이 다음 칸이 정해져 있습니다. 손으로 `ALTER` → `ddl-auto: update` → 수동 SQL 스크립트 → **버전 넘버링된 마이그레이션을 툴이 순서대로, 한 번만, 자동으로 적용하고 이력을 남기는 단계**. `ddl-auto: update` 는 컬럼 삭제·리네임을 못 하고 무엇이 바뀌었는지 추적도 안 되니, 세 번째 칸까지 온 시점에서 남은 선택은 하나였습니다.
+
+핵심 전환 문장은 이것입니다. **스키마 변경 이력은 코드로, 적용은 앱 기동 시 자동으로.**
+
+## baseline — 이미 찬 DB에 뒤늦게 붙이기
+
+Flyway의 기본 전제는 "빈 DB에서 V1, V2, V3를 순서대로 다 실행하면 현재 스키마가 완성된다"입니다. 스키마의 전 역사를 Flyway가 처음부터 쌓아 올린다는 가정이죠. 그런데 우리 dev/prod는 이미 손으로 v30까지 적용된 상태입니다. 여기에 Flyway를 그냥 켜면 이렇게 판단합니다.
+
+> 테이블이 잔뜩 있는데 내 이력 테이블(`flyway_schema_history`)은 비어 있다 → 내가 관리하지 않은 스키마다 → 위험하니 기동 거부.
+
+이 충돌을 푸는 게 `baseline` 입니다. `git init` 을 뒤늦게 하면서 "지금 상태를 최초 커밋으로 찍는" 것과 같습니다.
+
+```yaml
+# application-dev.yml
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true   # 비어있지 않은 DB면 baseline부터
+    baseline-version: 1         # V1을 '기준선'으로 마킹(재실행 안 함)
+```
+
+설정은 한 벌인데 동작이 두 갈래로 갈립니다. 이 이중 동작이 설계의 핵심입니다.
+
+| 대상 DB | baseline 동작 | `V1__baseline.sql` |
+| --- | --- | --- |
+| 기존 dev/prod (스키마 있음) | V1을 "적용됨"으로 마킹만 | 실행 안 됨 (무중단) |
+| 빈 DB (신규 환경·CI) | 마킹 불필요 | V1부터 전부 실행 |
+
+그래서 `V1__baseline.sql` 은 반드시 **현재 실 DB의 스냅샷**(`pg_dump --schema-only`)이어야 합니다. 기존 DB에서는 안 돌지만, 새 환경에서는 이 V1이 실제로 돌아 지금과 똑같은 스키마를 재현해야 하니까요. 우리 베이스라인은 33개 테이블 + `pg_trgm` 확장 + 닉네임 trgm GIN 인덱스로 떨어졌습니다. 이 파일이 그 순간부터 "우리 스키마의 공식 출발점" 문서가 됩니다.
+
+프로필별로는 이렇게 나눴습니다.
+
+| 프로필 | Flyway | `ddl-auto` | 의도 |
+| --- | --- | --- | --- |
+| `local` | OFF | `update` | 현행 동작 불변 — 로컬 실험을 막지 않는다 |
+| `ci` | OFF | `create-drop` | 테스트는 매번 빈 스키마에서 시작 |
+| `dev`·`staging` | ON + baseline | `validate` 검증 경로 | 배포 경로를 먼저 여기서 확인 |
+| `prod` | ON + baseline | `update` → `validate` | 드리프트를 기동 시 조기 탐지 |
+
+prod의 `ddl-auto` 를 `validate` 로 올린 건 의도된 위험 감수였습니다. 그간 `update` 로 운영돼 엔티티와 실 DB가 어긋나 있을 수 있고, 그러면 기동이 실패합니다. 그래서 dev/staging에서 validate 기동을 먼저 통과시키고, 드리프트가 나오면 후속 마이그레이션으로 해소한 뒤 prod에 올리는 순서를 못박았습니다. 그리고 베이스라인 파일은 한 번 배포되면 **수정 금지**입니다 — Flyway가 체크섬으로 검증하므로, 오류는 다음 버전으로 보정해야 합니다.
+
+## Flyway 로그가 한 줄도 없었다
+
+설정을 다 넣고 빈 컨테이너로 배포 경로를 검증했습니다. `V1 + V2` 를 Flyway로 적용하고 `ddl-auto: validate` 로 앱을 띄우는 시나리오입니다.
+
+증상은 기동 거부였습니다.
+
+```text
+ERROR o.s.o.j.LocalContainerEntityManagerFactoryBean - Failed to initialize JPA EntityManagerFactory:
+  ... SchemaManagementException: Schema validation: missing table [character_equipment]
+```
+
+Hibernate가 빈 스키마를 보고 "테이블이 없다"며 validate에 실패했습니다. 즉 **Flyway가 마이그레이션을 적용하지 않았다**는 뜻입니다.
+
+이상한 건 그다음이었습니다. 로그에 Flyway 관련 줄이 단 한 줄도 없었습니다. `flyway_schema_history` 테이블도 생기지 않았습니다. Flyway가 돌면 보통 `Migrating schema "public" to version ...` 같은 로그가 찍히는데, 그게 아예 없다는 건 실패가 아니라 **오토컨피그 빈 자체가 생성되지 않았다**는 신호입니다. 체크리스트를 돌려도 걸리는 게 없었습니다.
+
+- `flyway-core` 는 클래스패스에 있다 — 확인.
+- `spring.flyway.enabled=true`, 오토컨피그 제외 설정 없음 — 확인.
+- 그런데도 Flyway가 뜨지 않는다.
+
+결정적 단서는 **엉뚱한 로그의 패키지 이름**이었습니다. Hibernate 설정 클래스가 `org.springframework.boot.hibernate.autoconfigure.HibernateJpaConfiguration` 로 찍혀 있었습니다. Boot 3.x에서 익숙한 `org.springframework.boot.autoconfigure.orm.jpa...` 가 아니라 `org.springframework.boot.hibernate.autoconfigure` — 기술별로 오토컨피그가 별도 모듈로 쪼개졌다는 뜻입니다. 그 눈으로 클래스패스를 다시 보니 답이 나왔습니다.
+
+```text
+org.springframework.boot:spring-boot-hibernate    있음
+org.springframework.boot:spring-boot-jpa          있음
+org.springframework.boot:spring-boot-jdbc         있음
+org.springframework.boot:spring-boot-flyway       없음   ← 여기
+```
+
+Spring Boot 4는 거대한 `spring-boot-autoconfigure` 하나에 몰려 있던 오토컨피그를 기술별 모듈로 분리했고, Flyway 오토컨피그는 `spring-boot-flyway` 에 들어 있습니다. 그리고 **엔진인 `flyway-core` 는 이 모듈을 전이 의존성으로 끌어오지 않습니다.** 엔진은 있는데 그것을 부팅에 연결하는 배선이 없으니 아무 일도 일어나지 않은 것입니다. "flyway-core만 추가하면 알아서 켜지던" Boot 3.x의 경험이 그대로 통하지 않습니다.
+
+해결은 의존성 3종 세트였습니다.
+
+```gradle
+// build.gradle
+implementation 'org.springframework.boot:spring-boot-flyway'   // Boot 4: 오토컨피그 — 이게 핵심
+implementation 'org.flywaydb:flyway-core'                      // 엔진
+runtimeOnly    'org.flywaydb:flyway-database-postgresql'        // Flyway 10+: DB별 지원 분리
+```
+
+세 번째 줄도 같은 종류의 함정입니다. Flyway 10부터 PostgreSQL 지원마저 별도 모듈로 갈라져서, 이게 없으면 기동 시 `No database found to handle jdbc:postgresql://...` 로 죽습니다. 즉 이 문제는 **프레임워크 쪽 모듈 분리와 라이브러리 쪽 모듈 분리가 같은 시기에 겹친** 자리였습니다.
+
+`spring-boot-flyway` 를 넣고 다시 띄우니 그제서야 로그가 나왔습니다.
+
+```text
+INFO FlywayExecutor - Database: jdbc:postgresql://.../<db> (PostgreSQL 16.14)
+INFO DbMigrate - Migrating schema "public" to version "1 - baseline"
+INFO DbMigrate - Successfully applied 1 migration to schema "public", now at version v1
+INFO PhoneApplication - Started PhoneApplication in 2.7 seconds
+```
+
+**재현·판정 방법으로 남길 것**: 어떤 오토컨피그가 "실패"하는 게 아니라 **로그에 아예 없다면**, `enabled` 값을 의심하기 전에 그 오토컨피그 모듈이 클래스패스에 있는지부터 봅니다. 메이저 버전 업에서 "왜 되던 게 안 되지"는 대개 이런 구조 변화이고, 단서는 로그에 찍히는 새 패키지 이름(`org.springframework.boot.<기술>.autoconfigure`)에 있습니다.
+
+## dbml에 없던 컬럼을 지웠더니 동시성 테스트가 깨졌다
+
+Flyway를 켠 직후, 이어서 스키마 문서(dbml)를 권위로 삼아 공통 테이블을 정합하는 작업을 했습니다. 공통 27개 테이블 중 컬럼 차이가 있던 20개를 리네임·추가·의미변경·기능제거로 맞추고, 그 결과를 `V2__align_common_columns.sql`(147줄)로 내려 빈 PostgreSQL 16에 `V1 + V2` 를 적용한 뒤 validate 기동으로 검증하는 흐름이었습니다.
+
+이때 dbml에 없는 컬럼 하나가 걸렸습니다. `user_wallets.version`. "안 쓰는 낙관락 컬럼인가 보다" 하고 드롭 목록에 넣었습니다. 그러자 동시성 테스트가 깨졌습니다.
+
+```text
+InGameCurrencyConcurrencyTest > 잔액 100에서 80 차감을 동시에 2회 → 1건만 성공
+  expected: 1  but was: 2
+```
+
+`version` 은 JPA `@Version` 이 붙은 낙관적 락 컬럼이었습니다. 두 요청이 동시에 잔액 100을 읽고 각각 80을 차감하려 할 때, 낙관락이 없으면 둘 다 성공해 **이중 차감**이 됩니다. `@Version` 이 있으면 나중 커밋이 "버전이 바뀌었다"며 튕기고, 전역 예외 핸들러에도 그 예외 처리가 이미 있었습니다.
+
+즉 dbml에 `version` 이 없던 건 "필요 없어서"가 아니라 **스키마 문서가 이 안전장치를 빠뜨린 것**이었습니다. 문서를 맹목적으로 따르면 멀쩡한 동시성 방어를 제거하는 실제 버그가 됩니다. 결정은 유지였습니다 — 대체 동시성 전략(비관락 등)이 정해지기 전까지 `user_wallets.version` 과 `groups.version` 은 드롭하지 않고, 근거를 코드에 남겼습니다.
+
+```java
+// GROMO-671: dbml 은 version 을 누락했으나 낙관락(동시성)이 필요해 유지.
+@Version
+@Builder.Default
+private Long version = 0L;
+```
+
+이 정합 PR은 CI 게이트(Checkstyle + SpotBugs + 테스트 606건)까지 그린으로 통과했지만, 그 그린을 만들어준 건 문서 대조가 아니라 **동시성 테스트 한 건**이었습니다. 스키마 "정리"에서 컬럼을 지울 때는 그것이 단순 데이터인지, 아니면 락·인덱스·제약처럼 **동작을 지탱하는 것**인지 봐야 합니다. 문서가 아니라 테스트가 진실입니다.
+
+## 최종 배선 — 실행할 명령이 없다
+
+전환을 마치고 가장 많이 받은 질문은 "그래서 Flyway 적용 명령을 어디서 실행하나"였습니다. 답은 **실행할 명령이 없다**입니다. Flyway는 앱에 내장돼 기동 시 JPA 초기화 직전에 자동 적용됩니다. 알아야 할 건 파일 위치뿐입니다.
+
+| 파일 | 역할 |
+| --- | --- |
+| `build.gradle` | 의존성 3종 (오토컨피그 + 엔진 + PostgreSQL) |
+| `application-dev.yml` 등 프로필 설정 | `spring.flyway.enabled` · `baseline-on-migrate` · `baseline-version` — 여기서 켜고 끈다 |
+| `application.yml`(base)·`application-ci.yml` | `flyway.enabled: false` — local/CI 미개입 |
+| `src/main/resources/db/migration/` | `V1__baseline.sql`, `V2__align_common_columns.sql` … 실제 SQL |
+| 실행 코드 | 없음. 프레임워크의 Flyway 오토컨피그가 기동 중에 돌린다 |
+
+그래서 흐름은 **머지 = 배포 = Flyway 자동 적용**이고, 사람이 할 일은 배포 로그에서 `Successfully applied N migration` 한 줄을 확인하는 것뿐입니다. 새 스키마 변경은 `V<N>__<설명>.sql` 을 추가하는 것으로 끝나고, 이력은 `flyway_schema_history` 에 남습니다. 레거시 `run-migration-v*.sh` 는 아카이브했습니다.
+
+남은 리스크는 정직하게 적어둡니다. 하나는 배포 환경의 설정 파일 일부가 저장소에 없어서(gitignore) Flyway 설정 주입을 환경 쪽에서 따로 확인해야 한다는 점, 다른 하나는 Flyway가 rollback을 자동 지원하지 않는다는 점입니다. 후자에 대해서는 마이그레이션과 짝이 되는 되돌리기 SQL을 함께 준비해 두는 방식을 검토했습니다. 그리고 실제로 이후에 순서·체크섬 쪽 사고를 겪었는데, 그건 별도 기록으로 남깁니다.
+
+### 관련 기록
+
+PR #166 · GROMO-670 (Flyway 도입 + V1 베이스라인) · PR #167 · GROMO-671 (dbml 공통 컬럼 정합 V2)

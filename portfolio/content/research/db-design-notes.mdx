@@ -1,0 +1,243 @@
+---
+title: "부딪히며 정리한 DB 설계 노트 — 인덱스·유니크·soft delete"
+summary: "구현 중 막혀서 그때그때 정리한 PostgreSQL 노트 6편을 묶었습니다. 결론부터: 이 여섯 개는 모두 '애플리케이션의 논리적 의도'와 'DB의 물리적 제약'이 어긋나는 같은 종류의 사고였습니다."
+status: "정리됨"
+date: "2026-08-17"
+order: 22
+keywords:
+  - PostgreSQL
+  - 복합 인덱스
+  - 유니크 제약
+  - soft delete
+  - pg_trgm
+  - 커서 페이지네이션
+related:
+  - label: "유니크 제약은 예외 계약의 변경이다"
+    href: "/research/auth-hardening"
+  - label: "낙관적 락은 있는데 작동하지 않는다"
+    href: "/research/concurrency-defense"
+  - label: "WebSocket은 왜 혼자 확장이 안 될까"
+    href: "/research/chat-fanout"
+---
+
+기능을 구현하다 막히면 그 자리에서 노트를 하나 만들었습니다. 여섯 편이 쌓이고 나서 다시 읽어 보니 소재는 다 다른데 실패의 모양이 같았습니다. 애플리케이션 쪽에서는 "이건 없는 셈", "이건 하나뿐인 셈", "이건 순서대로인 셈"이라고 가정하는데, DB는 그 셈을 모릅니다. 아래 여섯 개는 그 어긋남이 각각 500, 풀스캔, 중복 행으로 드러난 기록입니다.
+
+## 인덱스는 컬럼 순서까지가 계약이다
+
+탈퇴 처리(GROMO-801, PR #361)에서 "이 유저가 낀 친구 관계 전부"를 찾는 쿼리를 새로 만들었습니다.
+
+```sql
+SELECT * FROM friendships
+WHERE deleted_at IS NULL
+  AND (from_user_id = :userId OR to_user_id = :userId)
+```
+
+리뷰에서 `to_user_id` 브랜치가 인덱스를 못 탄다는 지적을 받았습니다. `friendships`에 있는 인덱스는 PK와 `UNIQUE(from_user_id, to_user_id)` 둘뿐이었습니다. 그 유니크 인덱스가 받쳐주는 조건은 이렇습니다.
+
+| 조건 | 인덱스 사용 |
+| --- | --- |
+| `from_user_id = ?` | 가능 (선두 컬럼) |
+| `from_user_id = ? AND to_user_id = ?` | 가능 (완전 일치) |
+| `to_user_id = ?` | 불가 — 선두 컬럼을 건너뜀 |
+
+B-tree가 `(from, to)` 사전순으로 정렬돼 있기 때문입니다. `from`을 모르면 `to`가 같은 행들이 인덱스 전체에 흩어져 있어 범위 탐색이 성립하지 않습니다. 전화번호부에서 성을 모른 채 이름만으로 찾는 것과 같습니다. 이걸 leftmost prefix 규칙이라고 부릅니다.
+
+여기에 두 가지가 겹쳐 실제 문제가 됐습니다.
+
+1. **PostgreSQL은 FK 컬럼에 인덱스를 자동으로 만들지 않습니다.** PK와 UNIQUE 제약은 인덱스를 만들지만 FOREIGN KEY는 안 만듭니다(MySQL InnoDB는 만듭니다 — DB마다 다릅니다). 그래서 `to_user_id`가 FK인데도 인덱스가 없는 상태가 아무 경고 없이 자연스럽게 생깁니다.
+2. **`OR`는 양쪽 브랜치가 각각 인덱스를 타야 합니다.** 옵티마이저가 `A OR B`를 두 스캔 + BitmapOr로 처리할 수는 있지만, 한쪽에 인덱스가 없으면 통째로 순차 스캔하는 편이 낫다고 판단합니다. `from_user_id` 인덱스가 있어도 소용이 없습니다.
+
+읽기 경로였다면 느린 조회로 끝났을 겁니다. 문제는 이 스캔이 **탈퇴 트랜잭션 안에서** 돈다는 점이었습니다. 탈퇴 한 번마다 테이블 전체를 훑으면서 그동안 트랜잭션과 락을 붙잡고 있습니다. 부하테스트 규모에서 `friendships`가 약 200만 행이었으니 무시할 수 없었습니다.
+
+해결은 역방향 컬럼에 부분 인덱스를 추가하는 것이었습니다.
+
+```sql
+-- 살아있는 관계만 조회하므로 부분 인덱스로 크기를 줄인다
+CREATE INDEX idx_friendships_to_user_active
+    ON friendships (to_user_id)
+    WHERE deleted_at IS NULL;
+```
+
+조회 조건에 항상 `deleted_at IS NULL`이 들어가므로 삭제된 행은 인덱스에서 아예 뺄 수 있습니다. 인덱스 크기와 쓰기 비용이 함께 줄어듭니다.
+
+우리 결론은 두 줄입니다. **양방향 관계를 방향 있는 한 행으로 저장하면**(`from`/`to`, `user`/`pinned_user`) "이 유저가 낀 것 전부" 조회가 반드시 OR가 되고, 그러면 역방향 컬럼 인덱스는 선택이 아니라 필수입니다. 테이블 설계 시점에 같이 결정해야 합니다. 그리고 이 갭은 이번 PR이 만든 게 아니라 기존 조회들이 이미 갖고 있던 것이었습니다. **새 경로가 생기면서 조용히 있던 문제가 드러난 것**입니다. 실제로 부하테스트 표적 조사에서 `focus_sessions`는 PK 외 인덱스가 0개인 상태로 발견됐습니다.
+
+## exists 다음의 save는 거의 항상 레이스다
+
+친구 핀 API(GROMO-454, PR #63)의 첫 구현은 이랬습니다. 멱등하게 처리하려는 의도였습니다.
+
+```java
+// 멱등 처리 의도 — 실제로는 check-then-act
+if (pinnedFriendRepository.existsByUserAndFriendUser(meUser, friendUser)) {
+    return;                                  // ① 있으면 skip
+}
+pinnedFriendRepository.save(PinnedFriend.builder()...build());  // ② 없으면 insert
+```
+
+리뷰에서 Critical로 잡혔습니다. ①과 ②는 별개 쿼리이므로, 같은 `(user, friend)`로 두 요청이 거의 동시에 들어오면 둘 다 ①에서 `false`를 받고 둘 다 ②를 시도합니다. 테이블의 `UNIQUE(user_id, friend_user_id)`가 두 번째 INSERT를 막아주기는 하지만, 그 형태가 `DataIntegrityViolationException`이라서 결과는 500입니다. 버튼 연타나 네트워크 재시도만으로 재현되는 경로였습니다.
+
+핵심은 **check-then-act가 단일 스레드 가정**이라는 것입니다. 동시성 하에서는 조회와 쓰기 사이에 다른 트랜잭션이 끼어듭니다(TOCTOU). DB 유니크 제약이 최종 방어선인 건 맞지만, 그걸 **예외로 받을지 미리 흡수할지**를 설계하지 않으면 500이 납니다. 선택지는 두 개였습니다.
+
+```java
+// ① 제약 위반을 "이미 있음 = 멱등 성공"으로 흡수
+try {
+    pinnedFriendRepository.save(...);
+} catch (DataIntegrityViolationException ignored) {
+    // 동시 INSERT 충돌 → 이미 핀된 상태이므로 204로 취급
+}
+```
+
+```sql
+-- ② DB 차원 upsert — race 자체를 없앤다
+INSERT INTO pinned_friend (...) VALUES (...) ON CONFLICT DO NOTHING;
+```
+
+우리 결론은 **`existsBy` + `save` 조합은 멱등 API에서 금지**로 두는 것입니다. 멱등성이 필요하면 DB 제약을 진짜 방어선으로 삼고 예외를 흡수합니다. 다만 두 가지를 함께 적었습니다. 같은 트랜잭션 안에서 잡으면 이미 롤백 마킹된 상태라 후속 쿼리가 실패할 수 있으니 트랜잭션 경계를 봐야 하고, 예외를 그냥 삼키면 다른 컬럼의 진짜 무결성 오류까지 숨기므로 제약명을 확인하는 편이 안전합니다. 인증 쪽에서는 실제로 이 패턴을 트랜잭션 밖에서 잡아 1회 재시도하는 형태로 굳혔습니다(PR #111).
+
+낙관적 락과는 다른 문제라는 점도 구분해 뒀습니다. 이건 **INSERT 중복**이고, 낙관적 락이 막는 건 **UPDATE 분실 갱신**입니다.
+
+## soft delete는 유니크 키를 계속 점유한다
+
+소셜 연동 해제(GROMO-527, PR #91)를 soft delete(`deletedAt = now()`)로 구현하기로 했습니다. `social_accounts`에는 `UNIQUE(provider, provider_id)`가 있습니다. 스펙 작성 단계에서 시나리오를 굴려보다 함정을 발견했습니다.
+
+1. 유저가 카카오 연동을 해제 → 행은 남고 `deletedAt`만 세팅됩니다.
+2. 나중에 같은 카카오 계정으로 다시 로그인합니다.
+3. 로그인 조회가 "활성 계정만" 찾도록 `...AndDeletedAtIsNull`로 되어 있으면 행을 못 찾습니다 → 신규 연동으로 판단 → INSERT → soft delete된 행이 이미 `(provider, provider_id)`를 점유 중 → 유니크 제약 위반 → 500.
+
+"삭제된 건 없는 셈 치자"는 soft delete의 직관이 유니크 제약과 만나는 지점에서 깨집니다. **DB의 유니크는 `deleted_at`을 모릅니다.** soft delete는 애플리케이션 레벨의 논리이고 유니크 제약은 DB 레벨의 물리입니다. 삭제된 행이 키를 계속 점유하므로, 같은 키로 다시 만들어야 하는 흐름(재연동, 재가입, 닉네임 재사용)은 전부 이 충돌을 만납니다.
+
+세 안을 비교했습니다.
+
+| 방안 | 내용 | 평가 |
+| --- | --- | --- |
+| 재활성화 (채택) | 로그인 조회를 `deletedAt` 필터 없이 하고, 찾은 행이 삭제 상태면 `deletedAt`을 null로 복원 | INSERT 자체가 없으니 충돌 원천 차단. `createdAt` 이력 보존. 코드 몇 줄 |
+| partial unique index | `CREATE UNIQUE INDEX ... WHERE deleted_at IS NULL` — 활성 행만 유니크 | 깔끔하지만 해제-재연동마다 행이 계속 쌓임. 네이티브 DDL이라 JPA 스키마 관리 밖 |
+| 하드 딜리트 | 그냥 지운다 | 충돌은 없지만 감사 추적·연동 이력 상실. 요구와 불일치 |
+
+채택안의 형태는 이렇습니다.
+
+```java
+// 로그인 조회 — 의도적으로 deletedAt 필터 없음 (soft-deleted row도 찾아야 재활성화가 가능)
+SocialAccount socialAccount = socialAccountRepository
+        .findByProviderAndProviderId(provider, providerId)
+        .map(existing -> {
+            if (existing.getDeletedAt() != null) {
+                existing.reactivate();   // deletedAt = null 복원 — 재연동 처리
+            }
+            return existing;
+        })
+        .orElseGet(() -> createSocialAccount(...));  // 진짜 신규만 INSERT
+```
+
+핵심은 **"로그인 쿼리에는 `AndDeletedAtIsNull`을 절대 붙이면 안 된다"는 역설**입니다. 필터를 붙이는 순간 3번 경로가 열립니다. 반대로 설정 화면의 연동 목록 조회에는 필터가 필수입니다 — 해제한 연동이 보이면 안 되니까요. 같은 엔티티인데도 쿼리마다 soft delete 필터 적용 여부가 달라야 한다는 뜻이고, 그래서 `@Where(clause = "deleted_at is null")` 같은 엔티티 전역 필터는 쓸 수 없습니다. 박아버리면 재활성화 경로가 아예 불가능해집니다.
+
+검증은 "해제된 계정으로 재로그인 → `deletedAt`이 null로 복원 + `save()` 미호출 verify"로 했습니다. 신규 행이 생기지 않았다는 증거를 테스트가 직접 들고 있어야 회귀를 막을 수 있다고 봤습니다.
+
+우리 결론: **soft delete를 도입하는 순간, 그 테이블의 모든 유니크 제약에 대해 "삭제 후 같은 키로 재생성" 시나리오를 굴려봐야 합니다.** 그리고 soft delete 필터는 엔티티 전역이 아니라 쿼리 단위 선택입니다. 참고로 같은 테이블에 두 삭제 경로가 공존할 수도 있습니다 — 이 프로젝트에서 탈퇴는 cascade 계열 정리, 연동 해제는 soft delete였고 각자의 복원 시나리오가 달랐습니다.
+
+## 검색을 코드 매칭에서 트라이그램으로
+
+그룹 공개/비공개 2트랙(GROMO-1015, PR #379)을 넣으면서 그룹 검색을 다시 썼습니다. 그전까지 그룹 참여는 참가 코드 매칭이었는데, 공개 그룹은 이름으로 찾아야 했습니다. 닉네임 검색에서 먼저 쓴 `pg_trgm`을 같은 형태로 옮겼습니다.
+
+트라이그램은 문자열을 연속된 3글자 조각으로 쪼갠 집합입니다. PostgreSQL은 앞에 공백 2개, 뒤에 공백 1개를 패딩해서 경계까지 잡습니다.
+
+```text
+"cat"  →  {"  c", " ca", "cat", "at "}
+```
+
+유사도는 두 집합의 교집합을 합집합으로 나눈 값(Jaccard 계열)입니다. 오타가 나도 대부분의 트라이그램은 살아남기 때문에 값이 높게 유지되고, 그래서 "비슷함" 판정이 됩니다. 실전에서 쓰는 표현은 네 개면 충분했습니다.
+
+| 표현 | 의미 |
+| --- | --- |
+| `similarity(a, b)` | 0~1 유사도 값 |
+| `a % b` | 유사도가 임계값(기본 0.3) 이상이면 true |
+| `a <-> b` | 거리(= 1 - similarity). `ORDER BY`에 쓰면 가까운 순 |
+| `word_similarity` / `a <% b` | a가 b의 일부 단어와 유사한지 |
+
+핵심은 인덱스입니다. 트라이그램 인덱스를 만들면 `%`와 `<->`뿐 아니라 **중간 일치 `LIKE`와 `ILIKE`까지 가속**됩니다. 일반 B-tree는 앞이 와일드카드인 패턴을 인덱스로 못 타는데 trgm은 됩니다.
+
+```sql
+CREATE INDEX idx_groups_name_trgm
+  ON groups USING gin (name gin_trgm_ops);
+```
+
+GIN은 조회가 빠르고 인덱스가 크며, GiST는 인덱스가 작고 거리 정렬(KNN)에 유리하지만 조회가 느릴 수 있습니다. 일반 검색이니 GIN을 골랐습니다. 쿼리는 `%`로 인덱스가 후보를 좁히고 `<->`로 가까운 순 정렬한 뒤 상위 20개만 내리는 형태입니다.
+
+마이그레이션에서 배운 게 하나 더 있습니다. `is_private` 컬럼 추가와 GIN 인덱스 생성을 **한 마이그레이션에 같이 두지 않고 V17과 V18로 분리**했습니다. `ADD COLUMN`이 잡는 락과 GIN 빌드 시간은 성격이 다르기 때문입니다. 커밋 메시지에도 그 이유를 남겼습니다.
+
+우리 결론은 도구 선택 표로 정리했습니다. 접두 자동완성은 B-tree, **오타 허용·중간 일치는 pg_trgm**, 단어 기반 문서 검색은 `tsvector`, 의미 유사도는 pgvector입니다. 닉네임과 그룹명은 의미가 없는 문자열이니 벡터 검색이 아니라 트라이그램입니다. 남은 숙제도 적어 뒀습니다. 한글은 음절 1개가 1문자로 다뤄져 동작은 하지만 받침 차이 같은 오타 패턴이 영문만큼 매끄럽지 않고, 1~2글자 이름은 트라이그램이 거의 없어 유사도가 들쭉날쭉합니다. 기본 임계값 0.3은 보수적이라 실데이터로 튜닝해야 합니다.
+
+## 정렬키를 ID 안에 심는다 — UUIDv7
+
+채팅 메시지의 PK를 UUIDv7로 정했습니다. 생성은 한 줄입니다.
+
+```java
+@PrePersist
+void assignId() {
+    if (id == null) {
+        id = UuidCreator.getTimeOrderedEpoch(); // UUIDv7
+    }
+}
+```
+
+처음에는 이 한 줄이 어떻게 "시간순 정렬되는 ID"가 되는지 몰라서 비트 레이아웃부터 봤습니다.
+
+| 버전 | 생성 방식 | 시간순 정렬 |
+| --- | --- | --- |
+| v1 | 타임스탬프 + MAC 주소 | 불가 (바이트 배치가 뒤섞임) |
+| v4 | 완전 랜덤 | 불가 |
+| v7 | 앞부분 시각 + 뒤 랜덤 | 가능 |
+
+v7의 앞 48비트가 Unix epoch 밀리초입니다. UUID를 바이트 순서로 정렬하면 앞 비트부터 비교하게 되므로 그게 곧 시간순이고, DB의 `uuid` 타입도 바이트 비교로 정렬합니다. 그래서 `ORDER BY id`가 그대로 "오래된 것에서 최신"이 됩니다. `UuidCreator.getTimeOrderedEpoch()`가 하는 일은 현재 epoch ms를 읽어 앞 48비트에 인코딩하고 version·variant 비트를 세팅한 뒤 나머지를 난수로 채우는 것입니다. "그냥" 나오는 값이 아니라 호출 시점의 시각을 박아 넣는 값입니다.
+
+Java 표준 `UUID.randomUUID()`는 v4만 만들기 때문에 별도 라이브러리가 필요했습니다. `BIGSERIAL`을 쓰지 않은 이유는 이렇습니다.
+
+| | BIGSERIAL | UUIDv7 |
+| --- | --- | --- |
+| 시간 정렬 | 가능 | 가능 |
+| 전역 고유 | DB 단위 | 전역 |
+| 앱/클라 선생성 | 불가 (DB가 발급) | 가능 |
+| 순차 추측 | 쉬움 | 어려움 |
+| 크기 | 8바이트 | 16바이트 |
+
+채팅은 분산과 시간 정렬이 둘 다 필요했고, 메시지 ID를 앱 레이어에서 미리 만들 수 있다는 점이 특히 컸습니다. 채팅 서비스는 persist-first(INSERT 후 발행) 구조라 이 ID가 정렬키이면서 동시에 중복 제거 키 역할을 합니다. 한 가지 한계는 적어 뒀습니다. **같은 밀리초에 만든 두 값의 순서는 뒤쪽 랜덤 비트로 갈리므로 안정적이지 않습니다.** 밀리초보다 엄격한 순서가 필요하면 `sent_at`이나 별도 시퀀스를 병행해야 합니다.
+
+## Limit은 페이지네이션이 아니다
+
+채팅 히스토리 조회를 만들면서 리포지토리 메서드에 `Limit`을 받았습니다.
+
+```java
+List<ChatMessage> findByGroupIdOrderByIdDesc(Long groupId, Limit limit);
+List<ChatMessage> findByGroupIdAndIdLessThanOrderByIdDesc(Long groupId, UUID id, Limit limit);
+```
+
+이 `Limit`이 페이지네이션을 자동으로 해주는 건지 헷갈려서 확인했습니다. 답은 아니었습니다. `Limit`은 SQL의 `LIMIT n`, 즉 개수 제한만 합니다. offset도 전체 카운트도 페이지 메타데이터도 없습니다. 페이지네이션은 세 조각이 합쳐져야 성립합니다.
+
+```sql
+WHERE group_id = ? AND id < :cursor   -- 커서: 어디서부터   [IdLessThan]
+ORDER BY id DESC                      -- 정렬              [OrderByIdDesc]
+LIMIT :n                              -- 개수              [Limit]
+```
+
+| 방식 | SQL | 카운트 쿼리 | 메타데이터 |
+| --- | --- | --- | --- |
+| `Pageable` → `Page` | `LIMIT` + `OFFSET` | 있음 | 총 페이지 수 등 |
+| `Pageable` → `Slice` | `LIMIT` + `OFFSET` | 없음 | 다음 페이지 유무 |
+| `Limit` | `LIMIT` | 없음 | 없음 |
+| 커서(keyset) | `WHERE id < ?` + `ORDER BY` + `LIMIT` | 없음 | nextCursor를 직접 계산 |
+
+offset 페이지네이션을 안 쓴 이유는 두 개입니다. 깊은 페이지에서 `OFFSET 10000`이면 DB가 1만 행을 읽고 버리므로 느려지고, 페이지를 보는 도중 앞에 새 메시지가 끼면 행이 밀려 **중복과 누락**이 생깁니다. keyset 커서는 "마지막으로 본 id보다 작은 것"으로 이어받으므로 offset 없이 인덱스를 타고 바로 점프하고, 기준이 id 값이라 삽입에도 어긋나지 않습니다.
+
+`nextCursor`는 DB가 주지 않으므로 서비스에서 계산합니다. 요청한 size를 꽉 채워 가져왔으면 마지막 행의 id가 nextCursor이고, 적게 왔으면 null(마지막 페이지)입니다. 그래서 채팅 히스토리는 `(group_id, id)` 인덱스 + `id < cursor` 커서로 굳혔습니다. id가 UUIDv7이라 정렬이 곧 시간순이라는 앞 절의 성질이 여기서 회수됩니다.
+
+## 여섯 개를 관통한 규칙
+
+다 쓰고 나서 공통점을 세 줄로 남겼습니다.
+
+- **DB는 우리의 논리적 의도를 모릅니다.** soft delete는 "없는 셈"이지만 유니크 제약에는 여전히 있는 행이고, 복합 인덱스는 "이 두 컬럼을 인덱싱했다"가 아니라 "이 순서로만 쓸 수 있다"는 계약입니다.
+- **애플리케이션 레벨 사전 검사는 방어선이 아닙니다.** `exists` 뒤의 `save`처럼, 검사와 쓰기가 나뉘면 그 사이는 항상 열려 있습니다. 최종 방어선은 DB 제약이고 우리가 설계할 것은 그 제약이 위반됐을 때의 응답 형태입니다.
+- **인덱스·제약·삭제 정책은 테이블 설계 시점에 함께 결정해야 합니다.** 나중에 붙이면 이미 기존 쿼리들이 잘못된 가정 위에 올라가 있고, 새 기능이 그 가정을 드러내는 방식으로 사고가 납니다.
+
+### 관련 기록
+
+PR #63 · GROMO-454 (핀 유니크 레이스) · PR #91 · GROMO-527 (soft delete 재활성화) · PR #111 · GROMO-581 (유니크 제약과 재시도) · PR #361 · GROMO-801 (역방향 인덱스) · PR #379 · GROMO-1015 (trgm 검색 재작성, V17/V18)

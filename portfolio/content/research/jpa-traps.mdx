@@ -1,0 +1,276 @@
+---
+title: "JPA는 조용히 어긋난다 — 영속성 함정 노트"
+summary: "영속성 계층에서 부딪힌 여섯 함정은 하나도 예외를 던지지 않았습니다. setter가 증발하고, 멤버 10명 조회가 쿼리 11방이 되고, 통합 테스트가 1을 기대했는데 2를 받는 식으로 조용히 어긋났습니다."
+status: "정리됨"
+date: "2026-08-17"
+order: 62
+keywords:
+  - JPA
+  - Hibernate
+  - 영속성 컨텍스트
+  - N+1
+  - 트랜잭션
+related:
+  - label: "낙관적 락은 있는데 작동하지 않는다"
+    href: "/research/concurrency-defense"
+  - label: "부딪히며 정리한 DB 설계 노트"
+    href: "/research/db-design-notes"
+  - label: "커버리지의 착시"
+    href: "/research/testing-notes"
+---
+
+JPA에서 겪은 함정은 대부분 스택트레이스를 남기지 않았습니다. 컴파일도 되고 기동도 되고 테스트도 초록불인데, 의도한 UPDATE가 안 나가거나 안 나갈 UPDATE가 나가거나 쿼리 수가 데이터 수에 비례해 늘어나는 식으로 어긋났습니다. 결론부터 적습니다. 여섯 함정은 서로 무관해 보였지만 진단은 전부 세 질문으로 좁혀졌습니다. **이 엔티티는 영속 상태인가, 이 트랜잭션은 쓰기인가, 이 쿼리는 어떤 테이블을 건드리는가.**
+
+아래는 각각을 증상 → 원리 → 우리 처방 순으로 정리한 기록입니다. 결론만 쓰면 다음에 또 틀리기 때문에, 어떻게 확인했는지도 같이 남깁니다.
+
+## save()를 안 불렀는데 UPDATE가 나가고, 불렀는데 안 나간다
+
+**증상.** 푸시 파이프라인(GROMO-528)에서 무효 토큰 정리 코드를 읽다가 멈췄습니다. `save()` 호출이 어디에도 없었습니다.
+
+```java
+PushSendResult result = pushNotificationPort.send(user.getDeviceToken(), message);
+if (result == PushSendResult.INVALID_TOKEN) {
+    user.setDeviceToken(null);   // save() 호출이 없다
+}
+```
+
+주석에는 "더티체킹 반영, 호출측은 쓰기 `@Transactional` 필요"라고만 적혀 있었습니다. 같은 패턴이 이미 코드베이스 곳곳에 있었습니다. `UserService.registerDeviceToken`, 일일 집중 통계 누적(GROMO-568), 소셜 연동 해제(GROMO-527) 모두 setter만 부르고 끝냅니다.
+
+**원리.** 영속성 컨텍스트는 엔티티를 1차 캐시에 넣을 때 **최초 상태의 스냅샷**을 함께 보관합니다. setter를 부른 시점엔 SQL이 나가지 않고, flush 시점(보통 커밋 직전)에 스냅샷과 비교해 달라진 엔티티마다 UPDATE를 생성합니다. 그래서 정확한 문장은 "save()를 안 불러도 반영된다"가 아니라 **"영속 상태 엔티티의 변경은 커밋 시 자동으로 UPDATE 된다"** 입니다. `save()`는 신규 INSERT나 준영속 merge용이고, 이미 영속인 엔티티 수정에는 원래 필요가 없습니다.
+
+문제는 이 자동 반영이 세 조건에 모두 걸려 있고, 하나만 빠지면 **에러 없이** 사라진다는 점입니다.
+
+| 조건 | 깨지는 경우 |
+| --- | --- |
+| 엔티티가 영속 상태 | 트랜잭션 밖에서 조회(준영속), DTO로 복사한 객체를 수정 |
+| 쓰기 트랜잭션 안 | `@Transactional(readOnly = true)` — flush 자체를 안 하므로 setter가 조용히 증발 |
+| 커밋까지 도달 | 예외로 롤백 |
+
+두 번째가 우리 코드베이스에서 가장 위험했습니다. 서비스 클래스에 클래스 레벨 `readOnly = true`를 걸어두는 관례가 있고(통계·리그 서비스가 그렇습니다), 쓰기 메서드에서 이를 덮어쓰는 것을 잊으면 UPDATE만 사라집니다.
+
+**우리 처방.** 두 가지를 했습니다. 첫째, 알림 서비스에 클래스 레벨 쓰기 `@Transactional`을 걸어 필터 체인의 `setDeviceToken(null)`이 그 트랜잭션에 편승하게 했습니다. 둘째, 트랜잭션을 스스로 열지 않는 `sendIfAllowed`의 Javadoc에 "호출측은 쓰기 트랜잭션 안에서 불러야 한다"를 **계약으로 명시**했습니다. 계층을 넘겨 엔티티를 수정하는 설계라면 누가 트랜잭션 경계를 갖는지가 문서에 없으면 안 됩니다.
+
+수정이 안 먹을 때는 SQL을 보기 전에 이 두 질문을 먼저 던지는 습관이 남았습니다. 이 엔티티 영속인가, 이 메서드 쓰기인가.
+
+## 벌크 쿼리 앞에서 flush가 될지 말지는 옵션이 아니라 테이블 겹침이 정한다
+
+**증상.** 회원 탈퇴 시 친구 관계를 정리하는 작업(GROMO-801, PR #361)에서, 한 트랜잭션 안에 더티 엔티티와 벌크 쿼리가 섞였습니다.
+
+```java
+User user = userRepository.findActiveByIdForUpdate(userId);   // ① user 영속 로드
+
+for (Friendship f : friendshipRepository.findActiveByUserId(userId)) {
+    f.softDelete(now);                                        // ② Friendship N건 dirty
+}
+pinnedUserRepository.deleteByUserIdOrPinnedUserId(userId, userId);  // ③ 파생 delete
+
+focusSessionRepository.nullifyUser(userId);                   // ④ 벌크 @Modifying UPDATE
+dailyFocusStatRepository.nullifyUser(userId);
+dailyScreenTimeStatRepository.nullifyUser(userId);
+
+user.setNickname(null);                                       // ⑤ user dirty
+user.setDeleted(true);
+```
+
+②에서 더티가 된 엔티티가 ④ 때문에 예상 못 한 시점에 flush되지 않는지, ⑤가 ④ 뒤에 있는 이 순서에 의존하는 건 아닌지가 걸렸습니다. `nullifyUser` 세 개는 옵션이 하나도 없는 맨 `@Modifying`이라 "안전망이 없다"고 판단했는데, 리뷰에서 **근거가 틀렸다**는 지적을 받았습니다.
+
+**원리.** `flushAutomatically`와 Hibernate의 auto-flush는 별개의 메커니즘입니다.
+
+- `flushAutomatically`는 **Spring Data**가 쿼리 실행 전에 명시적으로 `em.flush()`를 부를지만 정합니다.
+- 그와 무관하게 Hibernate 자신이 `FlushModeType.AUTO`에서 auto-flush를 합니다. 판정 기준은 옵션이 아니라 **query space(쿼리가 건드리는 테이블)와 더티 엔티티의 테이블이 겹치는지**입니다.
+
+즉 `flushAutomatically = false`는 "flush가 절대 안 일어난다"가 아니라 "겹치면 일어나고 안 겹치면 안 일어난다"입니다. 그래서 위 코드에 실제로 겹침이 있는지 표로 확인했습니다.
+
+| 시점 | 쿼리 대상 테이블 | 그때 더티인 테이블 | 겹침 |
+| --- | --- | --- | --- |
+| ③ 파생 delete | `pinned_users` | `friendships` | 없음 |
+| ④ `nullifyUser` 3건 | `focus_sessions`, `daily_focus_stats`, `daily_screen_time_stats` | `friendships` | 없음 |
+| ⑤ 이후 | — | `friendships`, `users` | — |
+
+한 번도 겹치지 않으므로 중간 flush가 없고, 모든 변경은 커밋 시점에 한 번에 나갑니다. **④와 ⑤의 순서에 의존하지 않습니다** — ⑤를 앞으로 옮겨도 결과가 같습니다.
+
+덤으로 알게 된 것이 두 개 더 있습니다. 하나는 `clearAutomatically`가 실제로 위험해지는 조건이 "벌크가 건드린 테이블의 엔티티를 같은 트랜잭션에서 이미 로드했고 그 뒤에 다시 읽는" 경우로 한정된다는 것입니다. 탈퇴 경로는 해당 엔티티를 아예 로드하지 않아 지금은 재현되지 않습니다. 다만 나중에 그 엔티티를 읽는 코드가 붙으면 그날 조용히 깨집니다.
+
+다른 하나는 커밋 시점의 flush 순서가 코드 작성 순서가 아니라는 것입니다. Hibernate `ActionQueue`가 타입별 고정 순서로 처리합니다.
+
+```text
+orphanRemoval → INSERT → UPDATE → 컬렉션 처리 → DELETE
+```
+
+그래서 실제 SQL은 `UPDATE friendships`, `UPDATE users`가 먼저 나가고 `DELETE FROM pinned_users`가 뒤에 나갑니다. FK로 얽힌 테이블을 같은 트랜잭션에서 건드릴 때 이 순서가 문제를 만들 수 있습니다.
+
+**우리 처방.** 벌크 대신 엔티티를 로드해 `softDelete()` 도메인 메서드를 태우는 선택은 유지했지만, 근거를 바꿔 적었습니다. 처음 쓴 근거는 cascade, `@SQLDelete`, 1차 캐시 세 리스크였는데 이 엔티티엔 cascade가 없고 `@SQLDelete`는 프로젝트 전체에 한 곳도 없어서 **실제로 물려 있는 건 하나도 없었습니다.** 남은 진짜 근거는 두 개입니다. `deletedAt`을 쓰는 통로를 도메인 메서드 하나로 유지하는 것, 그리고 나중에 같은 트랜잭션에서 이 엔티티를 읽는 코드가 붙었을 때를 선제적으로 막는 것. 탈퇴 1회당 많아야 수백 건이라 건별 처리 비용은 무의미했습니다.
+
+**그리고 벌크는 성능 장치이기 전에 표현력 장치였습니다.** 처음엔 `@Modifying`을 "UPDATE N번을 1번으로 줄이는 것"으로만 봤습니다. 더 중요한 쓰임은 더티 체킹으로는 **아예 쓸 수 없는 쿼리**를 쓰는 것입니다. 엔티티 필드에 값을 대입하는 한 JPA는 언제나 절대값 `SET x = ?`를 만들고, `SET x = x + 1`을 만들 방법이 없습니다. 더티 체킹은 구조적으로 read-then-write라 동시 요청에서 값이 증발합니다.
+
+```java
+@Modifying
+@Query("UPDATE Coupon c SET c.used = true WHERE c.id = :id AND c.used = false")
+int consume(@Param("id") Long id);   // 아직 안 쓴 것만 노린다
+
+// 서비스
+if (couponRepository.consume(id) == 0) {
+    throw new AlreadyUsedException();  // 0 = 이미 누가 먼저 썼다
+}
+```
+
+`int` 반환값을 로그용이 아니라 **성공 판정**에 쓰는 이 패턴이 락 없이 중복 처리를 막습니다. 반환 타입이 `void`, `int`, `Integer`로만 제한되는 이유도 여기서 이해됐습니다. 내부적으로 `executeUpdate()`의 `int`를 그대로 주거나 버리는 것뿐이기 때문입니다. 잘못된 타입은 호출 시점이 아니라 **기동 시점**에 터집니다. 리포지토리 프록시를 만들며 쿼리 메서드를 검증하기 때문입니다.
+
+대신 벌크는 영속성 컨텍스트를 우회하므로 다음이 전부 빠집니다. cascade와 orphanRemoval, 라이프사이클 콜백, `@Version` 자동 증가(낙관적 락을 유지하려면 `SET version = version + 1`을 직접 써야 합니다), 1차·2차 캐시. 이 목록의 두 번째가 바로 다음 함정과 이어집니다.
+
+## 내가 부르지 않는데 실행되는 코드 — @PrePersist
+
+**증상.** 채팅 메시지 엔티티의 PK를 이렇게 채우고 있었는데, 이 메서드를 호출하는 곳이 코드 어디에도 없었습니다.
+
+```java
+@PrePersist
+void assignId() {
+    if (id == null) {
+        id = UuidCreator.getTimeOrderedEpoch();
+    }
+}
+```
+
+**원리.** `@PrePersist`는 JPA 엔티티 생명주기 콜백입니다. `save()`(내부적으로 `em.persist()`)로 엔티티가 DB에 INSERT되기 바로 직전에 JPA가 자동 호출합니다. 시점별로 한 세트가 있습니다.
+
+| 어노테이션 | 호출 시점 |
+| --- | --- |
+| `@PrePersist` / `@PostPersist` | INSERT 직전 / 직후 |
+| `@PreUpdate` / `@PostUpdate` | UPDATE 직전 / 직후 (더티 체킹으로 수정될 때) |
+| `@PreRemove` / `@PostRemove` | DELETE 직전 / 직후 |
+| `@PostLoad` | 조회해 엔티티로 로딩된 직후 |
+
+중요한 단서는 `save()`를 불렀다고 항상 `@PrePersist`가 도는 게 아니라 **실제 INSERT가 일어날 때** 돈다는 점입니다. 이미 영속 상태면 UPDATE로 가서 `@PreUpdate`가 돕니다.
+
+**우리 처방.** 채팅 메시지 id는 앱에서 만드는 UUIDv7이라 DB가 만들어주지 않고 `@GeneratedValue`를 쓸 수 없습니다. 그래서 저장 직전에 앱이 채우는 이 콜백이 맞는 자리였습니다. `id == null` 가드는 테스트에서 id를 미리 지정한 경우를 살려두기 위한 것입니다. 콜백 안에서는 자기 필드 세팅만 하고 다른 엔티티를 조회·수정하지 않는다는 선을 지켰습니다. flush 도중이라 결과를 예측하기 어렵습니다.
+
+대안으로 Hibernate `@UuidGenerator`나 Spring Data Auditing이 있었지만, UUIDv7을 정확히 원할 때는 라이브러리 생성 + 콜백이 의도가 더 분명했습니다. 시간 필드는 별개로 Auditing 쪽이 맞습니다.
+
+앞 절과 이어 붙이면 이렇게 정리됩니다. **콜백은 "엔티티를 거쳐 갈 때만" 도는 안전망입니다.** 벌크 쿼리는 그 안전망 밖에서 실행되므로, 콜백에 로직을 두는 순간 그 로직은 벌크 경로에 없다는 사실이 설계 제약이 됩니다.
+
+## 쿼리 수를 센다 — N+1과 hot path 왕복
+
+두 문제는 층이 다른데 진단 방법이 같습니다. 요청 1건이 만드는 왕복 수를 실제로 세는 것입니다.
+
+### 멤버 10명이면 쿼리 11방
+
+**증상.** 그룹 상세 조회에서 멤버 목록을 가져온 뒤 스트림에서 `m.getUser().getNickname()`을 호출하고 있었습니다. 친구 핀 조회(GROMO-454, PR #63)에서도 리뷰로 같은 지적을 받았습니다.
+
+```java
+List<User> friends = pinnedFriendRepository.findByUser(meUser).stream()
+        .map(PinnedFriend::getFriendUser)   // LAZY → 핀 친구 수만큼 SELECT 추가
+        .toList();
+```
+
+**원리.** 연관이 `@ManyToOne(LAZY)`이면 루트 조회 1방 뒤에 연관 접근마다 SELECT가 추가됩니다. 멤버 10명이면 1 + 10 = 11방입니다. 여기서 놓치기 쉬운 예외가 하나 있습니다. `getId()`만 쓰면 프록시가 id를 들고 있어 쿼리가 나가지 않습니다. **닉네임처럼 다른 필드를 쓰는 순간** 프록시가 초기화되며 SELECT가 발생합니다. 그래서 "LAZY 연관을 만졌다"가 아니라 "LAZY 연관의 비-id 필드를 만졌다"가 판정 기준입니다. 위 코드는 닉네임을 쓰므로 N+1이 실재했습니다.
+
+**우리 처방.** 판정은 P6Spy 로그로 쿼리 수를 세서 했습니다. 같은 형태의 SELECT가 반복되고, 멤버·친구 수를 늘렸을 때 쿼리 수가 **선형으로 증가**하면 확정입니다. Hibernate 통계(`generate_statistics`)의 prepared statement 수도 같은 결론을 줍니다. 해결은 경로마다 나눴습니다.
+
+| 처방 | 쓰는 곳 | 트레이드오프 |
+| --- | --- | --- |
+| `@EntityGraph(attributePaths = "friendUser")` | 리포지토리 메서드 한 곳에서 끝나는 단일 연관 | 선언이 리포지토리에 흩어짐 |
+| JPQL `JOIN FETCH` | 조건이 복잡해 쿼리를 직접 써야 할 때 | 컬렉션 다중 fetch 시 카테시안 곱, 페이지네이션 제한 |
+| 배치 `IN` 조회 (`findByUserIn`) | 여러 도메인을 유저 묶음으로 모아 붙일 때 | 조립 코드를 서비스가 짐 |
+
+핀 친구 응답은 캐릭터 장착 정보와 오늘 집중 시간을 함께 내려야 해서 세 번째를 썼습니다. 유저 목록을 먼저 확정하고 `findByUserIn`으로 도메인별 한 방씩 긁어 메모리에서 조립하면, 연관 개수가 늘어도 쿼리 수가 도메인 수로 고정됩니다.
+
+### 모든 요청이 DB를 두 번 때리고 있었다
+
+**증상.** 인증 hot path 최적화(GROMO-903) 스펙을 짜다가 `JwtFilter`가 인증 요청마다 DB를 **2번** 왕복한다는 사실이 드러났습니다.
+
+```text
+JwtFilter (요청 1건당)
+  1. 화이트리스트 검사   — 메모리, 공짜
+  2. JWT 서명 검증       — CPU, 공짜
+  3. type 클레임 검사    — 메모리, 공짜
+  4. 탈퇴 유저 차단 exists      ← DB 왕복 ①  (GROMO-827)
+  5. last_active_at 갱신        ← DB 왕복 ②  (GROMO-578)
+```
+
+hot path는 로그인 계열 화이트리스트를 빼고 **모든 API 요청이 100% 통과**하는 경로입니다. 컨트롤러 하나가 느린 건 그 API만 느린 것이지만, hot path가 1ms 느려지면 전 API가 1ms 느려집니다. 기능 추가가 아니라 전역 세금 부과에 가깝습니다.
+
+**원리.** 왕복 ②는 이미 스로틀이 걸려 있었습니다. `last_active_at`은 미접속 복귀 푸시 판정용이라 하루 단위 정밀도면 충분하므로, 갱신 조건을 SQL WHERE 절에 넣어 하루 첫 요청만 쓰게 해뒀습니다.
+
+```java
+@Modifying
+@Query("UPDATE User u SET u.lastActiveAt = :now"
+        + " WHERE u.id = :id AND u.lastActiveAt < :startOfTodayKst")
+int touchLastActiveAt(UUID id, Instant now, Instant startOfTodayKst);
+```
+
+유저 1명이 하루 500 요청을 보내도 실제 write는 1회입니다. 그런데도 최적화 티켓이 남은 이유가 여기 있습니다. **"안 쓰는 것"과 "안 가는 것"은 다릅니다.** 0건 매치인 UPDATE도 트랜잭션을 열고 쿼리를 보내고 커밋합니다. write는 0인데 왕복과 트랜잭션 비용은 100% 지불합니다. 동시 요청이 많아지면 병목은 쿼리 속도가 아니라 커넥션 풀에서 기다리는 시간입니다.
+
+후보로 검토한 것이 인메모리 스로틀 캐시였습니다. "이 유저는 오늘 이미 갱신했다"는 **판정 플래그**를 메모리에 적어두고 있으면 DB에 아예 가지 않는 방식입니다. 일반 캐시가 조회 결과를 저장하는 것과 달리 저장 대상이 "이미 했다는 사실"이라 스로틀 캐시라고 부릅니다. 이때 어려운 건 넣고 빼는 게 아니라 **언제 뭘 버릴지**이고, 그래서 Caffeine이 후보로 올라왔습니다.
+
+| | `ConcurrentHashMap` | Caffeine |
+| --- | --- | --- |
+| 저장, 스레드 안전 | 가능 | 가능 |
+| 크기 상한 | 없음 — 무한 성장 후 OOM | `maximumSize(n)`, 초과 시 자동 축출 |
+| 축출 정책 | 직접 구현 | W-TinyLFU (LRU보다 히트율 높음) |
+| TTL 만료 | 직접 스윕 | `expireAfterWrite` / `expireAfterAccess` |
+| 통계 | 없음 | `recordStats()`로 히트·미스·축출 |
+
+Caffeine은 "해시맵 + 자동 청소부"이고, Redis 대신 로컬 캐시를 고른 기준은 명확했습니다. 캐시가 틀려서 생기는 최악은 "활동 시각이 하루 늦게 갱신됨"뿐인데, 그걸 위해 Redis 왕복을 추가하면 **DB 왕복을 Redis 왕복으로 바꾼 것뿐**입니다. 왕복을 없애려면 캐시가 왕복 없는 곳(로컬 힙)에 있어야 합니다.
+
+**우리 처방. 그런데 결론은 캐시가 아니었습니다.** 이미 요청마다 왕복 ①로 users 행을 PK로 찾고 있다는 사실이 판을 바꿨습니다. 거기서 `last_active_at`을 같이 읽어오면 왕복을 늘리지 않고 판정할 수 있습니다.
+
+```java
+@Query("SELECT u.lastActiveAt FROM User u WHERE u.id = :id AND u.isDeleted = false")
+Optional<Instant> findLastActiveAtIfActive(UUID id);
+```
+
+비어 있으면 없는 유저이거나 탈퇴자이므로 401(기존 exists와 같은 판정), 값이 오늘 이후면 그대로 통과, 오늘 이전일 때만 갱신 트랜잭션을 엽니다.
+
+| | 지금 | 캐시(Caffeine) | read 합치기 |
+| --- | --- | --- | --- |
+| 요청당 왕복 | 2 | 1 (히트 시) | 1 (오늘 첫 요청만 2) |
+| 트랜잭션 | 매번 | 하루 1회 | 하루 1회 |
+| 새 의존성 | — | Caffeine | 없음 |
+| 서버 상태 | 없음 | 있음 (맵·축출·인스턴스 불일치·재시작) | 없음 |
+
+상태를 들지 않고 같은 결과에 도달합니다. 캐시는 왕복을 0으로 만들 때 값어치가 있는데, 여기선 ①이 어차피 남아 캐시를 넣어도 1회는 그대로입니다. 즉 **캐시의 추가 이득이 0**이었습니다. 일반화하면, 캐시를 얹기 전에 "이미 하고 있는 쿼리에 합칠 수 있나"를 먼저 봅니다. 캐시는 상태를 도입하는 대가를 치르는 수단이고, 무상태로 같은 효과가 나면 그쪽이 이깁니다.
+
+남겨둔 확인 거리도 있습니다. 프로젝션 조회가 `existsById`와 실행계획이 같은지(exists는 인덱스만 읽을 수 있지만 컬럼을 읽으면 힙 접근이 생길 수 있습니다), 그리고 왕복 2에서 1로 줄인 것이 커넥션 풀 크기(HikariCP 기본 10) 대비 처리량에 실제로 얼마나 기여하는지는 k6로 재봐야 합니다.
+
+## @SpringBootTest는 테스트 데이터를 롤백하지 않는다
+
+**증상.** STOMP 통합 테스트에서 단건 저장을 검증하는데 카운트가 하나 더 나왔습니다.
+
+```text
+expected: 1L
+ but was: 2L   // chatMessageRepository.count()
+```
+
+다른 테스트가 넣은 데이터가 누적돼 있었습니다. 그전까지 쓴 리포지토리 슬라이스 테스트에서는 한 번도 없던 일이었습니다.
+
+**원리.** 슬라이스 테스트와 통합 테스트의 기본값이 다릅니다.
+
+| | `@DataJpaTest` | `@SpringBootTest` |
+| --- | --- | --- |
+| 각 테스트를 트랜잭션으로 감쌈 | 기본 적용 | 아님 |
+| 테스트 종료 시 | 자동 롤백 → 깨끗 | 커밋된 채 남음 → 누적 |
+
+`@DataJpaTest`는 각 테스트 메서드를 트랜잭션으로 감싸고 끝나면 롤백해서 격리가 공짜로 생깁니다. `@SpringBootTest`에는 그 자동 트랜잭션이 없습니다. 게다가 우리처럼 실서버 포트를 띄우고 **별도 스레드(WebSocket 핸들러)** 에서 저장하면, `@Transactional`을 붙여도 소용이 없습니다. 저장이 테스트 스레드의 트랜잭션 밖에서 커밋되기 때문입니다.
+
+**우리 처방.** 가장 단순하고 확실한 쪽을 골랐습니다.
+
+```java
+@BeforeEach
+void clean() {
+    chatMessageRepository.deleteAll();
+}
+```
+
+`@Sql` 정리 스크립트나 테스트마다 고유 키를 쓰는 방법도 있고, `@DirtiesContext`는 무거워서 뺐습니다. 규칙으로 남긴 문장은 이것입니다. **슬라이스 테스트는 자동 롤백 격리, `@SpringBootTest`는 수동 정리.** 특히 실서버·멀티스레드·비동기가 끼면 테스트 트랜잭션 롤백을 신뢰하면 안 됩니다.
+
+## 여섯 함정이 공유하는 하나
+
+정리하면서 이것들이 같은 모양이라는 걸 알게 됐습니다. **JPA는 선언과 실행 사이에 한 겹을 두고, 그 겹에서 어긋날 때 예외를 던지지 않습니다.** setter는 트랜잭션 속성에 따라 UPDATE가 되거나 증발합니다. flush 시점은 옵션이 아니라 테이블 겹침이 정합니다. 콜백은 엔티티를 거쳐 갈 때만 돕니다. 쿼리 수는 코드 줄 수가 아니라 데이터 수에 비례합니다. 롤백은 어노테이션이 아니라 트랜잭션 경계와 스레드가 정합니다.
+
+그래서 습관 두 개가 남았습니다. 첫째, **일반론과 진단을 분리합니다.** "벌크는 위험하다"는 맞는 말이지만 "이 코드가 위험하다"의 근거는 될 수 없습니다. 탈퇴 코드에 세 리스크를 나열했다가 실제로 물린 게 하나도 없다는 지적을 받은 경험이 이걸 가르쳤습니다. 리스크를 나열하는 대신 이 엔티티에 cascade가 걸려 있는지, 이 쿼리가 어떤 테이블을 건드리는지를 확인하고 표로 적습니다.
+
+둘째, **조용한 층에는 계측을 먼저 둡니다.** N+1과 hot path 왕복은 P6Spy 로그로 쿼리 수를 세는 순간 논쟁이 끝났습니다. 반대로 셀 수 없는 것은 계속 추측으로 남았습니다. 영속성 계층은 화면을 빨갛게 만들지 않는 층이라서, 눈으로 코드를 읽는 것보다 왕복을 세는 게 언제나 빨랐습니다.
+
+### 관련 기록
+
+PR #63 · PR #361 · GROMO-454 · GROMO-527 · GROMO-528 · GROMO-568 · GROMO-578 · GROMO-635 · GROMO-801 · GROMO-827 · GROMO-903
