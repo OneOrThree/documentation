@@ -1,6 +1,6 @@
 {
   "asOf": "2026-08-18",
-  "basis": "OneOrThree/phone main 브랜치 — squash 머지 전용이라 커밋 1개가 PR 1개. 파일 변경이 있는 커밋 849건 기준",
+  "basis": "OneOrThree/phone main 브랜치 — squash 머지 전용이라 커밋 1개가 PR 1개. 파일 변경이 있는 커밋 849건 기준. 지라 발행은 GROMO 프로젝트 전체 이슈 1,278건의 발행자(reporter) 기준",
   "areas": {
     "overall": {
       "label": "전체",
@@ -146,6 +146,28 @@
           "commits": 1,
           "lines": 35,
           "pct": 7.7
+        }
+      }
+    },
+    "jira": {
+      "label": "지라 발행",
+      "unit": "티켓",
+      "total": 1278,
+      "members": {
+        "jo": {
+          "commits": 714,
+          "lines": 0,
+          "pct": 55.9
+        },
+        "ahn": {
+          "commits": 450,
+          "lines": 0,
+          "pct": 35.2
+        },
+        "kwon": {
+          "commits": 114,
+          "lines": 0,
+          "pct": 8.9
         }
       }
     }

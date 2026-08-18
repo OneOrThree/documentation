@@ -20,7 +20,15 @@ const MEMBERS = [
 ] as const;
 
 /** Areas shown as donuts, in display order. android stays detail-only. */
-const DONUT_AREAS = ["overall", "backend", "infra", "docs", "app", "ios"] as const;
+const DONUT_AREAS = [
+  "overall",
+  "backend",
+  "infra",
+  "docs",
+  "jira",
+  "app",
+  "ios",
+] as const;
 
 const R = 15.9155; // circumference 100 — dash values are percentages
 const CIRC = 100;
@@ -28,6 +36,8 @@ const CIRC = 100;
 type AreaData = {
   label: string;
   total: number;
+  /** Counting unit shown under the donut. Defaults to 커밋. */
+  unit?: string;
   members: Record<string, { commits: number; lines: number; pct: number }>;
 };
 
@@ -89,7 +99,7 @@ function Donut({ area }: { area: AreaData }) {
         {area.label}
       </span>
       <span className="font-mono text-[0.6875rem] tabular-nums text-muted">
-        {mine.commits}/{area.total} 커밋
+        {mine.commits.toLocaleString()}/{area.total.toLocaleString()} {area.unit ?? "커밋"}
       </span>
     </Link>
   );
@@ -118,7 +128,7 @@ export function ContributionDonuts() {
         </ul>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {DONUT_AREAS.map((key) => (
           <Donut key={key} area={areas[key]} />
         ))}
