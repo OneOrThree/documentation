@@ -75,8 +75,13 @@ export default async function DocPage({
             {doc.title}
           </h1>
 
-          {(doc.status || doc.date || doc.keywords.length > 0) && (
+          {(doc.author || doc.status || doc.date || doc.keywords.length > 0) && (
             <ul className="mt-4 flex flex-wrap items-center gap-2">
+              {doc.author && (
+                <li className="text-[0.8125rem] font-medium text-muted-foreground">
+                  {doc.author}
+                </li>
+              )}
               {doc.status && (
                 <li>
                   <StatusPill status={doc.status} />

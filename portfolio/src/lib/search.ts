@@ -16,6 +16,7 @@ export interface SearchDoc {
   summary?: string;
   status?: string;
   date?: string;
+  author?: string;
   keywords: string[];
   /** Body as plain text — markdown syntax removed, prose and code kept. */
   text: string;
@@ -50,6 +51,7 @@ export function buildSectionIndex(section: string): SearchDoc[] {
     summary: doc.summary,
     status: doc.status,
     date: doc.date,
+    author: doc.author,
     keywords: doc.keywords,
     text: toPlainText(doc.body),
   }));

@@ -44,6 +44,9 @@ export function NumberedIndex({ docs }: { docs: Doc[] }) {
             </span>
 
             <span className="col-start-2 mt-2 flex items-center gap-2 sm:col-start-3 sm:mt-0 sm:justify-end">
+              {doc.author && (
+                <span className="text-[0.75rem] text-muted-foreground">{doc.author}</span>
+              )}
               {doc.status && <StatusPill status={doc.status} />}
               {doc.date && (
                 <time
