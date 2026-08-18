@@ -3,6 +3,7 @@ title: "발송 후 기록에서 사건 선점으로 — 알림 파이프라인 �
 summary: "알림을 '발송 후 기록'에서 '사건 선점(claim) 후 발송'으로 재편했습니다. (user_id, kind, subject_id) 유니크 + ON CONFLICT DO NOTHING 선점과 10분 리스 회수로 중복과 유실을 같은 구조에서 막고, BET_RESULT 배치 크론 2회를 정산 커밋 후 이벤트 + 15분 재훑기로 교체했습니다."
 status: "완료"
 date: "2026-08-14"
+author: "조재영"
 order: 42
 keywords:
   - FCM

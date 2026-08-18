@@ -3,6 +3,7 @@ title: "부딪히며 정리한 DB 설계 노트 — 인덱스·유니크·soft d
 summary: "탈퇴 트랜잭션이 friendships를 통째로 순차 스캔하는 경로를 리뷰에서 잡았습니다. 부하테스트 DB 기준 약 200만 행이었고, 원인은 역방향 FK 컬럼에 인덱스가 없다는 것이었습니다. 구현 중 막혀서 정리한 PostgreSQL 노트 6편 — '애플리케이션의 논리적 의도'와 'DB의 물리적 제약'이 어긋나는 자리를 모았습니다."
 status: "정리됨"
 date: "2026-08-17"
+author: "조재영"
 order: 22
 keywords:
   - PostgreSQL

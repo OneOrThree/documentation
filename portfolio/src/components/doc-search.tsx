@@ -154,6 +154,9 @@ export function DocSearch({
                     <span className="font-semibold leading-snug text-foreground group-hover:text-primary">
                       {highlight(doc.title, terms)}
                     </span>
+                    {doc.author && (
+                      <span className="text-[0.75rem] text-muted-foreground">{doc.author}</span>
+                    )}
                     {doc.status && <StatusPill status={doc.status} />}
                     {doc.date && (
                       <time
@@ -181,7 +184,7 @@ export function DocSearch({
 /** Every term must appear somewhere; where it appears decides the weight. */
 function scoreDoc(doc: SearchDoc, terms: string[]): number {
   const title = doc.title.toLowerCase();
-  const keywords = doc.keywords.join(" ").toLowerCase();
+  const keywords = [...doc.keywords, doc.author ?? ""].join(" ").toLowerCase();
   const summary = (doc.summary ?? "").toLowerCase();
   const text = doc.text.toLowerCase();
 
