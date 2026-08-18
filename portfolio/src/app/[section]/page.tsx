@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { docSections, findSection } from "@root/site.config";
 import { getDocs } from "@/lib/content";
+import { ContributionDonuts } from "@/components/contribution-donuts";
 import { DocSearch } from "@/components/doc-search";
 import { Kicker } from "@/components/kicker";
 import { NumberedIndex } from "@/components/numbered-index";
@@ -48,6 +49,7 @@ export default async function SectionIndexPage({
       </p>
 
       <div className="mt-10">
+        {section.slug === "team" && <ContributionDonuts />}
         {section.search ? (
           <DocSearch
             section={section.slug}
