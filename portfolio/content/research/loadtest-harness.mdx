@@ -1,0 +1,152 @@
+---
+title: "조용히 죽는 시드, 조용히 사라지는 브랜치 — 부하테스트 하네스 구축기"
+summary: "딸깍 한 번으로 golden 복제부터 부하 VM·k6·판정까지 도는 부하테스트 하네스를 GCP에 올렸습니다. 자체 컨트롤플레인 서버 0, API 93종 중 86종 자동 실행. 시간을 잡아먹은 실패는 전부 '조용한' 쪽이었습니다."
+status: "완료"
+date: "2026-07-20"
+order: 11
+keywords:
+  - 부하테스트
+  - 하네스
+  - GCP
+  - 시드
+  - 운영 자동화
+related:
+  - label: "p99가 정확히 30,000ms였다"
+    href: "/research/loadtest-error96"
+  - label: "측정 도구를 먼저 의심한다"
+    href: "/research/loadtest-design"
+  - label: "성공률 0%의 만성 원인은 60초였다"
+    href: "/research/cicd-infra"
+---
+
+진입점 3개(대시보드 버튼·Actions UI·로컬 make)가 딸깍 한 번으로 golden `TEMPLATE` 복제부터 부하 VM 기동·k6 실행·판정(INVALID 우선 → threshold → baseline 회귀)까지 굴리고, 리포트는 orphan 브랜치로 커밋해 대시보드가 서버 없이 읽습니다(PR #185). 자체 컨트롤플레인 서버는 0이고, API 93종 중 86종이 자동 생성된 recipe로 실행됩니다. 여기까지 오는 동안 발목을 잡은 실패는 전부 예외도 로그도 없이 한참 뒤에 간접적으로 드러나는 종류였습니다. 22GB golden 시드는 3,000만 건 INSERT 도중 에러도 스택트레이스도 없이 사라졌고(IAP ssh 터널이 끊기면서 원격 psql이 SIGHUP), 25분짜리 유료 run을 다 태우고 나서야 Prometheus가 run 내내 죽어 있었다는 것을 알았으며(9090 connection refused), SUT VM은 `ZONE_RESOURCE_POOL_EXHAUSTED`로 3연속 존 소진에 걸렸습니다. 그래서 작업의 절반은 기능을 붙이는 일이었고, 나머지 절반은 **조용한 실패를 시끄럽게 바꾸는 게이트를 심는 일**이었습니다.
+
+## 조용한 실패 목록
+
+| 사건 | 겉으로 보인 것 | 실제 원인 |
+| --- | --- | --- |
+| full seed 소멸 | `focus_sessions` INSERT 중 프로세스가 그냥 사라짐 | IAP ssh 터널 드롭 → 원격 psql이 SIGHUP |
+| 검증 숫자 역전 | 포모도로 건수가 상위 테이블보다 많음 | 검증 쿼리가 `n_live_tup` 추정치를 읽음 |
+| openapi 생성 타임아웃 | `waited for 180 seconds` | 부팅 config yml이 gitignored라 워크트리에 없음 |
+| 스택 PR base 증발 | `Base ref must be a branch` | 부모 PR의 squash 머지로 브랜치·SHA 소멸 |
+| 직렬 디스패치 | 워크플로가 API 수만큼 반복 실행 | "배치 = 순차"라는 오케스트레이션 편의 |
+| verdict INVALID | Prometheus 9090 connection refused | envsubst가 주석 안 변수 표기까지 치환 |
+| 인스턴스 생성 실패 | `ZONE_RESOURCE_POOL_EXHAUSTED` | 중지된 VM은 용량을 예약하지 않음 |
+
+에러율 96% 사건은 이 하네스가 처음 관통한 뒤 나온 별개의 이야기라 [별도 노트](/research/loadtest-error96)로 넘깁니다.
+
+## 조용히 죽는 시드 — 프로세스를 SSH 수명에서 떼어내기
+
+시드 파이프라인(PR #179)은 차원 테이블을 CSV `\copy`로 넣고 팩트 테이블은 Cloud SQL 안에서 `INSERT ... SELECT generate_series()`로 생성합니다. Cloud SQL이 사설 IP 전용이라 모든 DB 접근은 관측 VM의 IAP ssh를 경유했습니다.
+
+증상은 규모에 따라 갈렸습니다.
+
+| 시드 규모 | `focus_sessions` | 결과 |
+| --- | --- | --- |
+| `SCALE=0.1` | 300만 | 매번 완주 |
+| `SCALE=1` | 3,000만 | INSERT 도중 조용히 소멸 (스택트레이스·에러 없음) |
+
+가설은 셋이었습니다. (a) 단일 대형 트랜잭션의 메모리·WAL 폭발, (b) statement/idle timeout, (c) 원격 SSH 터널 드롭.
+
+먼저 Cloud SQL 서버 로그를 봤습니다. OOM도, crash도, timeout 흔적도 하나도 없었습니다. **서버는 멀쩡히 살아 있었는데 세션만 끊겼습니다.** 그러면 죽은 주체는 클라이언트(psql) 쪽입니다. 두 번째 단서가 결정적이었습니다. 데이터는 10배인데 소멸까지의 실행 시간은 완주하던 `SCALE=0.1` 대비 약 2.5배였고, 소멸 지점은 데이터 진행률보다 **경과 시간**에 붙어 있었습니다. 범인은 장시간 유지되는 터널이었습니다.
+
+psql은 로컬 포그라운드의 `gcloud compute ssh --command=...`에 매여 있었습니다. 터널이 끊기면 원격 psql이 SIGHUP을 받고, 트랜잭션은 롤백되고, 로컬에는 아무 일도 없던 것처럼 보입니다.
+
+해결은 프로세스 수명을 세션에서 떼어내는 것이었습니다.
+
+```bash
+# 긴 단계(팩트 생성·제약 복원)는 VM 안에서 detached 실행하고,
+# 로컬은 완료 rc 파일만 폴링한다
+setsid bash -c 'set -euo pipefail; psql -f 20_facts.sql; echo $? > /tmp/seed.rc' \
+  </dev/null >/tmp/seed.log 2>&1 &
+```
+
+이렇게 바꾼 뒤 3,000만 건 INSERT를 통과하고 golden 22GB를 `IS_TEMPLATE`으로 동결했습니다. `ServerAliveInterval` keepalive만으로는 부족했습니다. 유휴 터널은 살려두지만, 네트워크가 실제로 끊기면 소용이 없습니다.
+
+### 검증 쿼리가 불가능한 건수를 찍었다
+
+시드가 끝나고 검증 로그를 보니 포모도로 테이블 건수가 상위 개념인 `focus_sessions`보다 크게 찍혀 있었습니다(둘 다 4,700만대). 포모도로는 focus_sessions의 부분집합이므로 **더 많을 수가 없습니다.**
+
+원인은 검증 쿼리가 `pg_stat_user_tables.n_live_tup`을 읽고 있었다는 점입니다. 이 값은 추정치라 대량 적재 직후에는 크게 부풀 수 있고, 테이블 간 일관성도 보장되지 않습니다.
+
+교차검증은 볼륨으로 했습니다. 실측 `pg_database_size`는 22GB였습니다. `focus_sessions` 3,000만 행 기준으로 나올 수 있는 크기이고, 두 테이블이 각각 4,700만대였다면 이 볼륨에 담기지 않습니다. 즉 **실제 건수는 정상이고 추정만 부풀어 있었습니다.** 그래서 대량 적재 후 볼륨 검증은 `count(*)`로 하고, 최소한 db_size로 교차검증하도록 바꿨습니다. 동결된 golden의 최종 규모는 [에러율 96% 노트](/research/loadtest-error96)에 있습니다.
+
+## 재현 가능한 생성 — 내 로컬에만 있던 yml
+
+대시보드가 때릴 타겟을 손으로 4개 하드코딩하던 것을 백엔드 `openapi.json` 기반 자동 목록화로 넓히려 했습니다(GROMO-750). openapi.json은 springdoc gradle 플러그인의 부산물입니다. 앱을 부팅해서 api-docs 경로를 덤프하는 방식입니다.
+
+그런데 로컬에서 돌린 `generateOpenApiDocs`가 `Unable to connect to http://localhost:8080/v0/api-docs waited for 180 seconds`로 끝났습니다. 컴파일은 3분 걸려 정상 완료되는데 **포크된 앱이 8080에 뜨지 않습니다.** 플러그인이 포크 앱의 startup 로그를 출력하지 않아 원인도 볼 수 없었습니다.
+
+다음 순서로 추적했습니다.
+
+1. `local` 프로파일에 datasource를 시스템 프로퍼티로 넘겨 재시도했지만 같은 타임아웃으로 끝났습니다.
+2. 한 단계 내려가 `bootRun`을 직접 띄웠습니다. startup 로그를 확보하니 앱이 부팅 중 죽고 있었습니다.
+3. 핵심 원인: base `application.yml`과 `application-local.yml`이 **gitignored**라 fresh checkout 워크트리에 아예 없습니다. datasource·dialect·springdoc path 등 부팅에 필요한 config가 비어 크래시한 것입니다.
+4. 결정적 단서: 그 시점의 CI 워크플로는 같은 생성을 **매번 성공**시켰습니다. CI가 뭘 다르게 하나 보니, 자기완결적인 `ci` 프로파일을 쓰고 있었습니다. datasource·`ddl-auto: create-drop`·flyway off·외부 서비스 URL·서명키까지 전부 명시돼 gitignored 로컬 파일에 의존하지 않도록 설계돼 있었습니다.
+
+그대로 따랐습니다. `SPRING_PROFILES_ACTIVE=ci` + 일회용 DB로 datasource만 override했습니다(dev DB는 `create-drop`이 스키마를 지우므로 절대 붙이지 않습니다). 앱이 **3.2초** 만에 떴고 api-docs에서 **93개 operation**을 덤프했습니다.
+
+이 덤프가 그다음 자동화의 입력이 됐습니다. 93 operation에서 엔드포인트별 입력 전략(recipe)을 생성해 86종이 바로 실행 가능했습니다(생성기 설계는 [설계 노트](/research/loadtest-design)). 못 채운 7개가 시드에 없는 path ID라는 점이 자동화의 경계였습니다.
+
+gitignored 로컬 config에 기대던 생성은 fresh checkout에서 로그 한 줄 없이 크래시했고, 이걸 재현 가능하게 만든 것은 CI가 이미 쓰고 있던 자기완결 프로파일이었습니다.
+
+## 조용히 사라지는 브랜치 — squash 머지와 스택 PR
+
+recipe 작업은 앞선 PR 위에 스택으로 쌓아뒀는데, 후속 draft PR이 `Base ref must be a branch`로 거절당했습니다. 부모 PR(#190)이 **squash 머지**되면서 head 브랜치가 자동 삭제됐고, squash라 부모의 커밋 SHA도 main에 남지 않아 스택의 바닥이 통째로 증발한 상태였습니다. main에서 새 브랜치를 따 내 커밋만 `cherry-pick`하고 base=main으로 다시 열었습니다. 부모 내용은 이미 main에 squash로 반영돼 있어 충돌은 0건이었습니다.
+
+같은 계열로 한 번 더 데었습니다. 리뷰 반영 커밋을 푸시하는 동안 PR이 머지되면, 이후 푸시는 닫힌 브랜치로 가고 squash는 그 이력을 main에 남기지 않아 **반영했다고 믿은 픽스가 어디에도 남지 않습니다.** 그래서 "머지는 반영 완료 보고 후에"를 규칙으로 박았습니다.
+
+## 조용히 오염되는 측정 — 주석 한 줄과 렌더 검증 게이트
+
+첫 설계에서 대시보드는 선택한 N개 API를 **직렬로 N번 디스패치**했고, 스팟 VM 낭비와 병렬 부하 상실을 이유로 단일 run 랜덤 픽으로 교정했습니다. 그 결과 단독 선택이면 쿼리 프로필 격리, 다중 선택이면 결합 병렬 부하가 됩니다. 제네릭 러너와 `endpoint` 태그 설계는 [설계 노트](/research/loadtest-design)에 있습니다.
+
+### 25분 유료 run을 태운 주석 한 줄
+
+verdict INVALID의 원인은 관측 VM의 Prometheus였습니다. k6 remote-write는 전멸했고 collect 단계의 조회 2건도 실패했습니다.
+
+원인은 prometheus 설정 템플릿의 **주석**이었습니다. sync 단계에서 envsubst로 렌더하는데, 주석 안에 남아 있던 달러-중괄호 변수 표기까지 치환 대상이 됐습니다. 값이 호스트명 한 줄이던 시절에는 주석 안에서 무해했지만, 멀티-VM 전환으로 값이 6줄 멀티라인이 되자 치환된 개행이 주석 밖으로 이어지면서 렌더된 YAML 구조가 깨졌습니다. 로컬 재현으로 파싱 에러 위치까지 일치시켜 확정했습니다.
+
+고침의 핵심은 게이트였습니다. 표기만 지우면 다음 템플릿에서 같은 사고가 반복됩니다.
+
+```bash
+# 렌더 직후, obs와 동일한 이미지의 promtool로 스키마까지 검증한다
+envsubst '$SUT_HOST $LOADGEN_TARGETS' < prometheus.yml.tmpl > "$rendered"
+docker run --rm -v "$rendered:/c.yml" prom/prometheus:$TAG \
+  promtool check config /c.yml || exit 1
+```
+
+정상 렌더는 통과하고 사고 렌더는 exit 1로 막히는 것을 양방향으로 실증했습니다. envsubst에는 치환 대상 변수를 명시적으로 제한하는 습관도 함께 넣었습니다. 같은 계열의 권한 함정도 있었습니다. `mktemp`(기본 0600)로 렌더한 파일을 그대로 scp하면 non-root(nobody)로 도는 컨테이너가 읽지 못해 crash-loop에 빠집니다. scp 직후 배포 스크립트가 가독 권한을 확정하도록 바꿨습니다. 그때까지는 권한이 우연히 맞아떨어져 돌고 있었을 뿐입니다.
+
+## 재고는 조회할 수 없다 — 존 소진 3연속과 프로브 VM
+
+하네스는 평시 비용 0을 위해 VM을 중지 상태로 둡니다. 그런데 딸깍을 눌렀더니 SUT VM start가 `ZONE_RESOURCE_POOL_EXHAUSTED`로 실패했습니다. 자동 재시도(3×60s)도, 1.5시간 뒤 수동 재시도도 결과가 같았습니다.
+
+**중지된 VM은 용량을 예약하지 않습니다.** start마다 GCP가 호스트를 새로 배정하는데 그 존에 해당 인텔 머신 재고가 없었고, 세대 고정을 위해 걸어둔 min CPU platform exact-pin이 배치 가능한 호스트 풀을 더 좁혔습니다.
+
+3연속 소진의 경과는 이렇습니다.
+
+| 시점 | 시도 | 결과 |
+| --- | --- | --- |
+| 1일차 | n2(인텔) + 시작 재시도 3×60s | 소진 지속 → n2d(AMD)로 패밀리 이동 |
+| 2일차 저녁 | n2d로 stress 2회 | n2d도 소진(reason: resource_availability), 25분 뒤 재실행도 동일 |
+| 3일차 | b존으로 apply | b존도 소진, sut만 생성 실패 (obs·러너는 이동됨) |
+| 3일차 | 일회용 프로브 VM으로 c존 재고 확인 | 재고 확인 후 c존으로 이동 완료 |
+
+이틀 연속 **서로 다른 패밀리**가 품절이면 존 전체가 용량 압박 상태라는 뜻입니다. 머신 패밀리를 갈아타는 선택지는 그 시점에 다 써 버렸습니다. 그래서 apply로 시행착오하는 대신 **일회용 프로브 VM을 만들어 재고를 실증**한 뒤 존을 옮겼습니다. 존 재고를 미리 조회할 API는 없고, 프로브 생성이 유일한 사전 확인이며 apply 시행착오보다 훨씬 쌉니다.
+
+존을 옮기는 과정에서 함정 셋이 파생됐습니다.
+
+- **핀과 머신의 갱신 순서**: terraform provider가 min CPU platform을 machine_type보다 먼저 갱신해 "인텔 머신 + AMD 핀" 조합으로 400이 났습니다. 두 값을 원자적으로 적용해 우회했습니다.
+- **각자 정상, 합치면 깨진다**: 한 PR이 부하 VM 템플릿에 SUT의 핀 변수를 공유했고(당시 값으로는 유효), 다른 PR이 그 변수를 AMD로 바꿨습니다. 파일이 달라 git 충돌도, 리뷰 diff도 걸리지 않았습니다. 템플릿 생성은 통과하고 GCP가 조합을 검증하는 시점은 **인스턴스 생성**이라, run에서만 드러났습니다(`required CPU platform of cascadelake ... but was milan`). 부하 VM의 머신 타입(인텔)이 요구하는 플랫폼과, 공유 변수가 가리키게 된 AMD 핀이 어긋난 것입니다. 부하 VM용 핀 변수를 분리해 끊었습니다(PR #213 · GROMO-763). 이후로는 변수를 공유하기 전에 두 소비자의 의미가 함께 움직여도 되는지를 먼저 확인합니다.
+- **재생성된 VM의 암묵 의존**: c존 이동 후 첫 run에서 reset이 exit 127(`psql: command not found`)로 죽었습니다. sync가 운영 SQL은 올리면서 그것을 실행할 psql 바이너리는 보장하지 않았고, 기존 관측 VM에는 시드 실행이 설치해 둔 psql이 남아 있던 탓에 그때까지 이 구멍이 드러나지 않았습니다. 인프라를 부수고 다시 만드는 설계라 "어쩌다 설치된" 의존까지 부트스트랩이 소유하도록, 멱등 설치를 sync 경로에 넣었습니다.
+
+## 규칙으로 남긴 것
+
+자동화 범위를 넓힐 때마다 실패를 시끄럽게 만드는 작업을 같이 붙였습니다. 부하테스트에서 조용한 오류는 그대로 에러율·지연 왜곡이 되어 "정상인데 느림", "실패인데 통과"를 만들어냅니다. 그래서 실행 불가 recipe는 즉시 throw하고, path 파라미터 생성 실패는 문자열 `'null'`로 흘리지 않고 throw하며, 미구현 옵션은 기본값으로 대체하지 않고 실행 전에 차단합니다.
+
+남은 과제는 존 배치입니다. 단일 존 올인은 "아무 때나 눌러도 도는" 딸깍 컨셉과 맞지 않아, 장기 운영에는 멀티존 폴백이 필요합니다.
+
+### 관련 기록
+
+- PR #179(시드 파이프라인) · PR #185(대시보드 MVP) · PR #213(부하 VM 세대 핀 분리)
+- GROMO-548(하네스) · GROMO-750(전 API recipe) · GROMO-752(전용 러너) · GROMO-763(핀 충돌)

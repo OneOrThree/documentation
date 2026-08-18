@@ -1,0 +1,189 @@
+---
+title: "Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트"
+summary: "Boot 4 조기 채택으로 같은 모양의 사고를 세 번 겪었고, 세 번 다 원인은 빌드 스크립트가 아니라 Boot 4가 바꾼 구조(오토컨피그·테스트 슬라이스의 모듈 분리, 딸려 온 Jackson 3)였습니다. 4.0.6 jar를 grep해 30초 만에 찾은 좌표를 몰라서 의존성 트리를 한참 붙잡았고, 증상은 import 실패와 로그 한 줄 없는 미동작 두 갈래로 나왔습니다."
+status: "정리됨"
+date: "2026-08-17"
+order: 61
+keywords:
+  - Spring Boot 4
+  - Jackson 3
+  - 테스트 슬라이스
+  - 모듈형 오토컨피그
+  - 마이그레이션
+related:
+  - label: "flyway-core를 넣었는데 왜 안 켜질까"
+    href: "/research/flyway-adoption"
+  - label: "구현 중 막혀서 정리한 Spring 배선 노트"
+    href: "/research/spring-wiring-notes"
+  - label: "WebSocket은 왜 혼자 확장이 안 될까"
+    href: "/research/chat-fanout"
+  - label: "커버리지의 착시"
+    href: "/research/testing-notes"
+---
+
+## 결론부터
+
+Boot 4 조기 채택으로 같은 모양의 사고를 세 번 겪었고, 세 번 다 원인은 빌드 스크립트가 아니라 Boot 4가 바꾼 구조였습니다. 둘은 오토컨피그와 테스트 슬라이스의 모듈 분리였고, 하나는 Boot 4에 딸려 온 Jackson 3의 패키지 좌표 이동이었습니다. 4.0.6 jar를 직접 grep하니 30초 만에 좌표가 나왔습니다. 그 30초를 몰라서 의존성 트리를 한참 붙잡고 있었습니다.
+
+| 증상 | 처음 의심한 것 | 실제 원인 |
+| --- | --- | --- |
+| `Cannot resolve symbol 'DataJpaTest'` | 테스트 의존성 누락 | Boot 4가 테스트 슬라이스를 모듈별 패키지로 재편 |
+| `package com.fasterxml.jackson.datatype.jsr310 does not exist` | Jackson 모듈 의존성 누락 | Boot 4 = Jackson 3, 패키지 좌표가 `tools.jackson.*`로 이동 |
+| Flyway 마이그레이션이 로그 한 줄 없이 미적용 | 설정값 오타 | 오토컨피그가 기술별 모듈로 분리돼 `flyway-core`만으론 부족 |
+
+우리 팀은 백엔드를 Spring Boot 4 계열로 시작했지만, 참고한 예제와 물려온 코드는 전부 Boot 3 세대였습니다. 새 버전을 먼저 쓴 대가로 우리가 치른 것은 **정보의 부재**였습니다. **메이저 버전이 앞선 환경에서는 import가 안 잡히면 좌표 이동을, 기능이 로그 한 줄 없이 안 켜지면 오토컨피그 모듈 누락을 먼저 의심합니다.** 의존성 누락으로 단정하고 빌드 스크립트를 다시 들여다본 시간이 통째로 낭비였습니다. Flyway 사례는 원인 구조가 같지만 서사가 길어서 [flyway-core를 넣었는데 왜 안 켜질까](/research/flyway-adoption) 노트로 따로 뺐습니다.
+
+## Jackson 2 → 3 — "package does not exist"의 진짜 원인
+
+채팅 서버의 STOMP 통합 테스트를 쓰다가 두 가지에 막혔습니다. 하나는 컴파일러가 `MappingJackson2MessageConverter`에 제거 예정(deprecated) 경고를 다는 것, 다른 하나는 `JavaTimeModule` import가 아예 잡히지 않는 것이었습니다.
+
+Boot의 메이저 업그레이드에 Jackson의 메이저 업그레이드가 딸려 옵니다.
+
+| 항목 | Jackson 2 (Boot 3) | Jackson 3 (Boot 4) |
+| --- | --- | --- |
+| 패키지 | `com.fasterxml.jackson.databind` | `tools.jackson.databind` |
+| groupId | `com.fasterxml.jackson.core` | `tools.jackson.core` |
+| 매퍼 | `com.fasterxml...ObjectMapper` | `tools.jackson...JsonMapper` 등 |
+| java.time | 별도 모듈 `jackson-datatype-jsr310` 수동 등록 | 코어에 통합, 수동 등록 불필요 |
+
+그래서 `com.fasterxml.jackson.datatype.jsr310.JavaTimeModule`은 Boot 4 클래스패스에 **존재하지 않습니다.** java.time 등록 코드 자체가 필요 없어졌으니, 의존성을 더 넣을 것 없이 우리가 직접 등록해온 한 줄을 지우는 것으로 끝났습니다. 다만 사라진 것은 jsr310 모듈이고, Jackson 2 기반 컨버터 클래스는 deprecated 상태로 클래스패스에 남아 있습니다. 그래서 옛 컨버터를 쓴 테스트 코드는 경고만 달고 그대로 컴파일됐습니다.
+
+메시지 컨버터 쪽은 패키지 좌표에 더해 클래스 이름 규칙까지 바뀌었습니다.
+
+| 용도 | Boot 3 (Jackson 2) | Boot 4 (Jackson 3) |
+| --- | --- | --- |
+| STOMP·메시지 JSON 변환 | `MappingJackson2MessageConverter` | `JacksonJsonMessageConverter` |
+| 웹 MVC HTTP 변환 | `MappingJackson2HttpMessageConverter` | `JacksonJsonHttpMessageConverter` |
+
+`MappingJackson2*`에서 숫자 2가 떨어지고 `Jackson*`이 됩니다. 검색으로 일괄 치환할 수 있는 형태이긴 하지만, 이름에 붙어 있던 버전 숫자가 사라지면서 "이게 어느 세대 클래스인지"를 이름만으로 판별할 수 없게 됐습니다.
+
+### 조용히 수신 실패하던 테스트
+
+이 조합을 오래 붙잡고 있었습니다.
+
+- 서버는 Boot 4 기본 컨버터(Jackson 3)로 `Instant`가 포함된 브로드캐스트 페이로드를 직렬화했습니다. java.time이 코어에 들어와 있으니 **에러가 없었습니다.**
+- 테스트 STOMP 클라이언트는 Boot 3 세대 예제를 보고 앞서 작성한 코드를 그대로 물려받아 `MappingJackson2MessageConverter`(Jackson 2)를 쓰고 있었습니다.
+- 결과: 컨버터 불일치와 `Instant` 역직렬화 실패가 겹쳐 **테스트가 메시지를 조용히 수신하지 못했습니다.** 예외도 실패 로그도 없이, 아무것도 도착하지 않았습니다.
+
+수정은 클라이언트 쪽도 Jackson 3 컨버터로 맞추는 것이었습니다.
+
+```java
+// 테스트 STOMP 클라이언트: Boot 4 세대 컨버터로 통일
+client.setMessageConverter(new JacksonJsonMessageConverter());
+```
+
+그래도 타입 역직렬화 이슈가 남아서, 테스트에서는 페이로드를 `Map`으로 받아 키 단위로 검증하는 쪽으로 우회했습니다. 실제 클라이언트(React Native)는 JSON을 직접 파싱하므로 서버 계약에는 영향이 없다고 판단했습니다. 다만 이건 우회로 남았고, 테스트가 클라이언트와 다른 경로로 역직렬화한다는 사실 자체가 리스크입니다.
+
+## 테스트 슬라이스 — jar를 grep해서 찾았다
+
+채팅 서비스(Boot 4.0.6) 리포지토리 테스트를 쓰다가 컴파일이 안 됐습니다.
+
+```text
+Cannot resolve symbol 'DataJpaTest'
+Cannot resolve symbol 'AutoConfigureTestDatabase'
+package org.springframework.boot.test.autoconfigure.orm.jpa does not exist
+```
+
+빌드 스크립트에 테스트 오토컨피그 의존성이 분명히 선언돼 있었습니다. 여기서 한참을 의존성 트리와 씨름했는데, 원인은 Boot 4가 **테스트 슬라이스를 기능 모듈별 jar와 패키지로 쪼갠 것**이었습니다.
+
+Boot 3.x는 슬라이스 어노테이션을 `spring-boot-test-autoconfigure` 한 모듈 아래 영역별 패키지에 모아뒀습니다. Boot 4는 이를 모듈별로 분리하고, 패키지 이름도 그 구조를 따라갑니다.
+
+```text
+org.springframework.boot.MODULE.test.autoconfigure.ANNOTATION
+```
+
+4.0.6 기준으로 우리가 직접 확인한 좌표입니다.
+
+| 어노테이션 | Boot 4 패키지 | jar |
+| --- | --- | --- |
+| `@SpringBootTest` | `org.springframework.boot.test.context` (그대로) | `spring-boot-test` |
+| `@DataJpaTest` | `org.springframework.boot.data.jpa.test.autoconfigure` | `spring-boot-data-jpa-test` |
+| `@AutoConfigureTestDatabase` | `org.springframework.boot.jdbc.test.autoconfigure` | `spring-boot-jdbc-test` |
+| `@AutoConfigureMockMvc`, `@WebMvcTest` | `org.springframework.boot.webmvc.test.autoconfigure` | `spring-boot-webmvc-test` |
+
+혼란의 절반은 `@SpringBootTest`가 **자리를 옮기지 않은 데서** 나왔습니다. 통합 테스트는 그대로 컴파일되는데 슬라이스 테스트만 깨지니, 어노테이션 위치를 늦게야 의심했습니다.
+
+### 재현: 문서보다 jar가 빠르다
+
+"의존성은 있는데 Cannot resolve symbol"이면 jar 안의 클래스 경로를 직접 뒤졌습니다. 릴리스 노트를 찾아 헤매는 것보다 빨랐습니다.
+
+```bash
+JAR=$(find ~/.gradle/caches -name 'spring-boot-data-jpa-test-4.0.6.jar' | head -1)
+jar tf "$JAR" | grep -i 'DataJpaTest.class'
+# → org/springframework/boot/data/jpa/test/autoconfigure/DataJpaTest.class
+```
+
+새 버전에서는 검색 결과가 구 버전 정보로 오염돼 있으니, 조기 채택자는 클래스패스에서 좌표를 직접 확인합니다.
+
+## 모듈형 오토컨피그와 버전 고정
+
+테스트 슬라이스 분리도 Flyway 미적용도 같은 설계 변경의 증상입니다. 좋은 방향이라고 생각하지만, 전환기에 이걸 쓰는 팀은 두 가지 비용을 치릅니다.
+
+- **필요 의존성이 늘어난다.** 예전엔 코어 라이브러리 하나면 오토컨피그까지 따라왔는데, 이제는 연결용 모듈을 명시적으로 넣어야 합니다.
+- **스타터 이름이 겹친다.** 리뷰에서 `starter-web`과 `starter-webmvc`를 동시에 선언해 둔 걸 지적받았습니다. Boot 4 네이밍 전환기에 양쪽 이름을 다 넣은 흔적이고, 미사용 스타터가 왜 무해하지 않은지는 [구현 중 막혀서 정리한 Spring 배선 노트](/research/spring-wiring-notes)에 정리했습니다.
+
+버전 고정에서도 한 번 데였습니다. 채팅 서비스를 더 최신 조합(Boot 4.1.0 + Testcontainers 2.0.5)으로 올리려다 Testcontainers 모듈 좌표가 맞지 않아 의존성 해결 자체가 실패했습니다. 결국 **메인 백엔드와 동일한 Boot 4.0.6 + Testcontainers 1.20.1로 통일**해 회피했습니다.
+
+프레임워크를 앞서 쓰는 건 감당할 수 있었는데, **앞서 쓰는 것들끼리 조합하면 비용이 곱해집니다.** 새 프레임워크와 새 테스트 인프라를 동시에 최신으로 밀지 않고, 서비스 간에 하나의 조합으로 고정하는 쪽이 훨씬 저렴했습니다.
+
+## boolean is-프리픽스 — 컴파일과 테스트를 모두 통과하는 계약 위반
+
+Boot 4가 만든 문제는 아닙니다. 직렬화 세대를 갈아엎는 김에 같은 계약 층위를 훑다가, 클라이언트가 응답 필드를 못 읽는데 서버 쪽에서는 아무 신호도 나오지 않는 코드를 하나 잡았습니다. 리뷰에서 지적받은 모양은 이렇습니다.
+
+```java
+@Getter
+public class PinnedFriendResponse {
+    private boolean isFocusing;   // Lombok이 만드는 getter: isFocusing()
+}
+```
+
+세 규칙이 겹쳐서 계약이 어긋납니다.
+
+1. Lombok은 `boolean isFocusing` 필드에 `isFocusing()` getter를 만듭니다. 이미 `is`로 시작하니 접두어를 중복해 붙이지 않습니다.
+2. Jackson은 getter `isXxx()`에서 **`is`를 떼고** 프로퍼티 이름을 `xxx`로 봅니다.
+3. 따라서 JSON 키는 `"isFocusing"`이 아니라 `"focusing"`으로 나갑니다.
+
+클라이언트가 `isFocusing`을 기대하면 그 필드를 못 읽습니다. 그런데 **컴파일도 통과하고 테스트도 통과합니다.** 우리 컨트롤러 테스트는 사용자 식별자와 집중 시간 필드만 검증하고 있었기 때문에, 문제가 되는 키는 아무도 보고 있지 않았습니다. 같은 패턴이 코드베이스에 이미 하나 더 있었습니다. 친구 응답의 `isPinned` 필드도 JSON에서는 `"pinned"`로 나갑니다.
+
+대응은 두 갈래입니다. 어느 쪽을 골라도 되지만, **프로젝트 차원에서 한 번 정하고 통일하는 것**이 중요했습니다.
+
+```java
+// 방법 1: 직렬화 키를 명시적으로 고정한다
+@JsonProperty("isFocusing")
+private boolean isFocusing;
+```
+
+```java
+// 방법 2: 필드 네이밍에서 is를 빼고, 계약을 focusing으로 통일한다
+private boolean focusing;
+```
+
+재발은 테스트로 막습니다. 필드 이름은 놔두고, **선택한 계약의 JSON 키**를 검증 대상으로 잡습니다.
+
+```java
+// 방법 1을 택한 경우. 방법 2라면 $.focusing으로 못 박습니다
+mockMvc.perform(get("/api/friends/pinned"))
+    .andExpect(jsonPath("$.isFocusing").value(true));  // 키 자체가 검증 대상
+```
+
+확인 항목 두 개는 열어둔 채로 남겼습니다. 응답뿐 아니라 **요청 역직렬화**도 같은 키 규칙을 타는지, 그리고 박싱 타입(`Boolean`)일 때 Lombok이 만드는 getter 이름과 그에 따른 JSON 키가 무엇인지입니다. 둘 다 실제로 생성된 getter 이름을 확인한 뒤에야 판단할 수 있어서, 아직 결론을 적지 않았습니다.
+
+## 조기 채택 체크리스트
+
+같은 선택을 다시 한다 해도 Boot 4로 갔을 것입니다. 대신 첫 행동의 순서를 바꿉니다.
+
+| 상황 | 첫 행동 |
+| --- | --- |
+| "import가 안 잡힌다" | 의존성 트리 대신 `jar tf "$JAR"` 출력에서 어노테이션 클래스 이름 검색 |
+| 라이브러리 클래스 이름이 낯설다 | 클래스 이름에서 버전 숫자가 떨어졌는지 보고 groupId 좌표를 대조 |
+| 기능이 조용히 안 켜진다 | `--debug`의 CONDITIONS EVALUATION REPORT에서 해당 오토컨피그 이름 검색 |
+| 통합 테스트가 아무것도 못 받는다 | 서버와 테스트 클라이언트가 같은 세대 컨버터를 쓰는지 확인 |
+| DTO 필드를 클라이언트가 못 읽는다 | 응답 본문을 한 번 찍어 실제 키를 확인한 뒤 `jsonPath`로 그 키를 고정 |
+| 다른 패키지 테스트에서 `@Import`가 안 된다 | 대상 `@TestConfiguration` 클래스가 public인지 확인 |
+| 새 조합을 올리고 싶다 | 프레임워크와 테스트 인프라를 동시에 올리지 않기 |
+
+프레임워크는 앞서 나가도, 그것을 검증할 테스트 인프라와 참고할 예제는 같은 속도로 따라오지 않습니다. 조기 채택 비용의 대부분이 그 간격에서 나왔으니, 다음 버전을 고를 때는 숫자보다 간격의 폭을 먼저 재보겠습니다.
+
+### 관련 기록
+
+PR #63 · GROMO-454

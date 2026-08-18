@@ -1,0 +1,123 @@
+---
+title: "크론 11종이 한 스레드 풀에서 — 배치 처리의 함정들"
+summary: "알림 크론 9종(리그 5 + 리텐션 4)에 주간 정산 1과 고아 세션 스윕 1을 더한 크론 11종이 기본 스레드 1개로 직렬 실행되고 있었습니다. 2026-07-20 감사에서 정산의 단일 거대 트랜잭션, REPEATABLE_READ를 연 채로 하는 동기 FCM POST, 분산 락 부재 세 가지가 드러났습니다."
+status: "일부 해소"
+date: "2026-07-20"
+order: 43
+keywords:
+  - 배치
+  - 스케줄러
+  - 트랜잭션 경계
+  - 멱등성
+  - 분산 락
+related:
+  - label: "루프가 있다 ≠ 페이지네이션이다"
+    href: "/research/league-batch"
+  - label: "발송 후 기록에서 사건 선점으로"
+    href: "/research/notification-pipeline"
+  - label: "낙관적 락은 있는데 작동하지 않는다"
+    href: "/research/concurrency-defense"
+---
+
+2026-07-20 크론 전수 감사에서 나온 구조 결함 3건은 8월 재편에서 모두 닫혔습니다. 정산의 단일 거대 트랜잭션은 건별 트랜잭션 + 멱등 재실행으로, 트랜잭션을 연 채로 하던 동기 FCM POST는 선점 후 발송으로, 분산 락 부재는 ShedLock JDBC provider + `usingDbTime()`으로 닫았습니다. 지금 남은 것은 배치 성공/실패 메트릭, 미접속 복귀 잡의 keyset 페이징(GROMO-901), 인증 요청당 쿼리 왕복을 줄일 인메모리 스로틀(GROMO-903) 셋입니다.
+
+감사에 걸린 셋은 평시 트래픽에서 조용했습니다. 탈퇴 레이스나 스케일아웃 같은 경계에서만 드러나기 때문에, 크론 11종이 스레드 1개짜리 기본 태스크 스케줄러에서 직렬로 도는 동안에도 지표는 멀쩡해 보였습니다. 겪고 나서 막아둔 개별 함정은 대부분 쿼리 한 줄로 닫혔고, 남은 것은 스케줄러 층 자체였습니다.
+
+## 크론 11종이 한 스레드 풀에서 직렬로 돌고 있었다
+
+스택은 Spring의 `@EnableScheduling` + `@Scheduled(cron = "...", zone = "Asia/Seoul")` 뿐입니다. Spring Batch도 Quartz도 넣지 않았습니다. 매시~주 1회, 회차당 수백~수천 건 규모라 청크·재시작·메타테이블은 과설계라고 판단했고, 그 판단 자체는 지금도 유효하다고 봅니다.
+
+문제는 판단의 부작용이었습니다. `@Scheduled`의 기본 태스크 스케줄러는 스레드 1개짜리여서, 크론 11종을 한 줄로 세워 하나씩 실행합니다.
+
+```text
+스케줄러 층 — 기본 풀 스레드 1 (직렬)
+  LeagueScheduler
+  NotificationScheduler
+  FocusSessionOrphanScheduler
+        |
+        +-- LeagueBatchService   단일 @Transactional 전 유저 정산
+        +-- 알림 서비스 4종       @Transactional(REPEATABLE_READ) 루프
+                                   └ 유저당 1건 동기 POST → FCM 클라이언트
+```
+
+주요 배치의 발화 시각과 역할입니다.
+
+| 배치 | cron (KST) | 하는 일 | 티켓 |
+| --- | --- | --- | --- |
+| 주간 리그 마감 | `0 0 0 * * MON` | 아레나 순위 확정·승강등 판정·다음 주 재배정 | GROMO-412 |
+| 리그 승격/강등 알림 | `0 0 9 * * MON` | 직전 주차 ENDED 결과 재조회 후 발송 | GROMO-528 |
+| 리그 마감 임박 알림 | `0 0 20 * * SUN` | ACTIVE 아레나 전원에 현재 순위 발송 | GROMO-528 |
+| 미접속 복귀 알림 | `0 0 10 * * *` | `last_active_at` 기준 D+3/7/14 유저 발송 | GROMO-578 |
+| 순위 추월 알림 | `0 0 19 * * *` | 어제 스냅샷과 오늘 실시간 순위 비교 | GROMO-579 |
+| 고아 라이브 세션 정리 | 매시 | `ended_at IS NULL`인 오래된 세션 마감 | GROMO-610 |
+
+설계의 중심은 **상태 재조회**(state-refetch)입니다. 월 00:00 정산이 결과를 영속화하면, 09:00 알림 배치가 그 결과 테이블을 다시 조회해서 발송합니다. 별도 발송 큐가 없어 단순하지만, "이미 보냈는지"를 저장하는 곳이 없습니다.
+
+## 2026-07-20 감사: 개별 함정이 아니라 구조가 걸렸다
+
+감사에서 나온 것 세 가지입니다.
+
+**① 정산이 단일 거대 트랜잭션입니다.** `LeagueBatchService`가 전 유저 정산을 하나의 `@Transactional` 안에서 끝내 재시작 지점이 없고, 정산 중 유저 1명이 탈퇴하면 `settlement user disappeared`로 수천 명의 정산이 전량 롤백되는 레이스를 감사에서 확인했습니다. 탈퇴 레이스의 상세는 [루프가 있다 ≠ 페이지네이션이다](/research/league-batch)에 있습니다.
+
+**② 알림이 트랜잭션을 연 채로 FCM에 동기 POST를 합니다.** 알림 서비스 4종이 `@Transactional(isolation = REPEATABLE_READ)` 루프 안에서 유저당 단건 POST를 보내, 외부 HTTP 왕복 동안 DB 커넥션을 붙잡고 처리량은 스케줄러 스레드 1개에 묶입니다. 트랜잭션 안에서 외부 I/O를 하는 것은 교과서적 안티패턴인데, 배치 루프 안에 있으면 "한 유저씩 처리하는 평범한 코드"로 보여서 눈에 잘 안 걸립니다. 발송 파이프라인 재편은 [발송 후 기록에서 사건 선점으로](/research/notification-pipeline)로 이어집니다.
+
+**③ ShedLock이 없습니다.** 크론 전체를 단일 인스턴스 가정 위에 두고 있었습니다. 코드에는 `// TODO 분산 락`만 있고, 멀티 인스턴스 배포 시 필요하다는 것은 GROMO-565에 주의사항으로만 적혀 있었습니다. 스케일아웃하는 순간 파드 수만큼 같은 배치가 동시 발화해서 중복 푸시가 나갑니다. 여기에 dev/staging용 수동 트리거 컨트롤러(`@Profile` 게이팅)가 있어서, 크론 발화 시각과 겹칠 수도 있습니다.
+
+## 이미 막아둔 함정들 — 무엇을 어떻게 막았나
+
+고친 방식은 대체로 같았습니다. 검사와 갱신을 한 문장으로 합치거나, 조건을 `WHERE` 절로 밀어넣는 것입니다.
+
+**TOCTOU 이중 반영 → 원자적 조건부 UPDATE.** 세션 종료 PATCH가 동시에 2건 들어오면 둘 다 `ended_at IS NULL`을 읽고 각자 갱신해서, 통계·스트릭·이벤트가 두 번 반영됐습니다(GROMO-610). `SELECT` 후 검사하는 형태를 버리고 조건을 UPDATE 안으로 밀어넣었습니다.
+
+```sql
+UPDATE focus_sessions
+   SET ended_at = :now
+ WHERE id = :id
+   AND ended_at IS NULL;
+```
+
+영향 row가 1이면 경쟁 승자라 후처리를 진행하고, 0이면 이미 처리된 것이라 조용히 스킵하며, 락이나 버전 컬럼은 쓰지 않았습니다.
+
+**인증 hot path의 쓰기 → WHERE 가드로 유저당 1일 1 write.** 미접속 복귀 알림(GROMO-578)의 `last_active_at`은 인증되는 모든 요청에서 갱신돼야 하는 값이라, 갱신 조건을 `WHERE last_active_at < :todayStartKst`로 가드해 오늘 이미 갱신된 유저는 0건 매치로 흘려보냅니다(상세: [발송 후 기록에서 사건 선점으로](/research/notification-pipeline)).
+
+나머지 함정과 대처입니다.
+
+| 함정 | 대처 |
+| --- | --- |
+| 대상 조회 풀스캔 | 부분 인덱스 `(last_active_at) WHERE is_guest = false AND deleted_at IS NULL` — 배치 대상만 인덱싱 |
+| 유저별 설정 N+1 | `findAllById(userIds)` 일괄 로드, 아레나별 순위는 `JOIN FETCH` 1쿼리 |
+| 루프 중 1건 예외로 전체 중단 | 건별 `try/catch` 예외 격리 — warn 로그 후 계속 |
+| cron 타임존 혼동 | 전 배치 `zone = "Asia/Seoul"` 고정, 하루 경계는 `atStartOfDay(KST)`, 주 경계는 공용 `resolveWeekStart` 재사용 |
+| 알림 폭탄 | 순위 추월에 `notification_sent_logs` 기반 48시간 쿨다운·주 2회 상한 |
+| 시각 민감 문구의 지연 발송 | 지연 발송하지 않고 폐기 — "마감까지 4시간"이 늦게 도착하면 오정보가 됩니다 |
+
+수용한 리스크는 하나입니다. 배치가 못 돈 회차는 소급하지 않습니다(no catch-up). D+3 윈도우를 놓치면 다음 날엔 이미 D+4라서 대상이 아니고, 리텐션 발송이 조용히 샙니다. 발화 시각에 프로세스가 죽으면 그 회차는 재실행되지 않습니다. 소급이 문제되는 잡이 주 1회 정산과 일 1회 리텐션 알림에 한정돼 로그 감시로 버티기로 하고, 코드 주석과 PR에 알려진 한계로 적었습니다. 정석은 발송 이력 + 워터마크(마지막 성공 시각) 기반 소급 처리입니다.
+
+**배치가 새 컬럼에 의존하면 마이그레이션이 먼저 가야 합니다.** `ddl-auto=validate`인 dev/staging에서는 배포 전에 `run-migration-v*.sh`를 선적용해야 하는데, 컬럼 타입에서 한 번, 스크립트가 리뷰 diff에 보이지 않아서 한 번 넘어졌습니다.
+
+### 스키마 변경이 diff에 안 보였다
+
+`@Enumerated(EnumType.STRING)`은 네이티브 enum 타입이 아니라 varchar 저장입니다. 마이그레이션에서 친절하게 네이티브 enum 타입으로 컬럼을 만들면 부팅이 `type "occupation" does not exist`로 터집니다.
+
+마이그레이션 스크립트를 두던 `docs/`는 gitignore 대상이라 diff에 나타나지 않았고, 리뷰에서는 diff에 없다는 이유로 마이그레이션이 빠진 것으로 읽혔습니다. 그래서 스키마 변경 스크립트는 gitignore되지 않는 경로로 옮겨 리뷰에 보이게 뒀습니다.
+
+## 다음 단계 — 함정 땜질에서 스케줄러 층으로
+
+이 계획은 2026-07-20 감사 시점 기준이고, ②·③은 8월 알림 재편에서, ①은 리그 정산 재편에서 닫혔습니다([발송 후 기록에서 사건 선점으로](/research/notification-pipeline), [루프가 있다 ≠ 페이지네이션이다](/research/league-batch)).
+
+| 티켓 | 내용 | 얻는 것 | 이후 |
+| --- | --- | --- | --- |
+| GROMO-892 | 정산을 Spring Batch Step으로 이관 (reader = keyset 커서, processor = `settleUser`, writer = `saveAll`) | 청크 커밋 + JobRepository 재시작성 | 닫힘 — Spring Batch 이관 대신 건별 트랜잭션 + 멱등 재실행으로 해소 |
+| GROMO-893 / GROMO-900 | 알림 트랜잭션 경계를 페이지 단위로 축소, FCM 발송은 트랜잭션 밖으로 + `sendEach` 다건화 | 커넥션 점유 해소, 처리량이 스레드 1에서 분리 | 닫힘 — 선점 후 발송 재편 |
+| GROMO-894 | 크론 전체에 ShedLock (`lockAtMostFor`) | 스케일아웃·수동 트리거 중복 발화 차단 | 닫힘 — ShedLock JDBC provider + `usingDbTime()` |
+| GROMO-901 | 미접속 복귀 잡의 전량 메모리 적재를 keyset 페이징으로 | 대상 수와 무관한 메모리 | — |
+
+메타테이블과 설정 복잡도를 받고 재시작성을 Spring Batch 표준으로 얻는 교환을 감사 시점에 검토했지만, 기존 유니크 행을 완료 마커로 재사용하니 신규 테이블 0개로 같은 성질이 나왔습니다.
+
+발송 이력(아웃박스, GROMO-622)은 감사 시점에 미도입이었고, 8월 재편에서 `notification_sent_logs`가 사건 축 선점 로그로 확장되며 그 자리를 대신했습니다([발송 후 기록에서 사건 선점으로](/research/notification-pipeline)). 메트릭·GROMO-901·GROMO-903 셋은 아직 열려 있습니다.
+
+배치는 시각이 방아쇠라 실패해도 화면이 빨개지지 않고, 메트릭이 붙기 전까지는 로그를 뒤져야만 실패를 압니다.
+
+### 관련 기록
+
+GROMO-412 · GROMO-528 · GROMO-565 · GROMO-578 · GROMO-579 · GROMO-610 · GROMO-622 · GROMO-892 · GROMO-893 · GROMO-894 · GROMO-900 · GROMO-901 · GROMO-903

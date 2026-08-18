@@ -1,0 +1,177 @@
+---
+title: "낙관적 락은 있는데 작동하지 않는다 — 동시성 방어선 실측 감사"
+summary: "가장 자신 있던 그룹 정원은 낙관적 락의 부품(@Version·예외 매핑)만 갖춘 채 방아쇠가 없었고, 반대로 기대하지 않던 4곳은 서로 다른 기법으로 이미 막고 있었습니다. 2026-07-23 동시성 위험 API 전수 감사 결과입니다."
+status: "유효"
+date: "2026-07-23"
+order: 28
+keywords:
+  - 동시성
+  - TOCTOU
+  - 비관적 락
+  - 낙관적 락
+  - 유니크 제약
+  - 동시성 테스트
+related:
+  - label: "클라가 금액을 정하면 안 된다 — 재화·정산 무결성의 돈 경로"
+    href: "/research/money-integrity"
+  - label: "유니크 제약은 예외 계약의 변경이다 — 인증·소셜 로그인 하드닝"
+    href: "/research/auth-hardening"
+  - label: "커버리지의 착시 — 테스트 전략 노트"
+    href: "/research/testing-notes"
+---
+
+가장 자신 있던 그룹 정원에는 `@Version`과 `OptimisticLockException` → `ROOM_FULL` 매핑이 다 있는데, 그 예외를 던지는 지점이 없었습니다. 반대로 기대하지 않았던 4곳(비관락 가드, 조건부 원자 UPDATE, 유니크 제약 + 재시도, 비관락 + 유니크 조합)은 이미 제대로 막고 있었습니다.
+
+## 감사 결과 — 그룹 정원에는 방아쇠가 없었다
+
+그룹 참가 API(`POST /groups/{id}/join`)는 정원(`maxMembers`) 초과를 막아야 합니다. 2026-07-23 감사 시점의 상태는 이랬습니다.
+
+| 부품 | 존재 여부 | 실제 동작 |
+| --- | --- | --- |
+| `Group` 엔티티의 `@Version` | 있음 | 참가 경로에서 증가하지 않음 |
+| 전역 핸들러의 `OptimisticLockException` → `ROOM_FULL` 매핑 | 있음 | 던져지는 지점이 없음 |
+| `group_members(user_id, group_id)` 유니크 제약 | 있음 | 같은 유저의 중복 가입만 차단 |
+| 정원 검증 | 있음 | `count` 사전검사 — 원자적이지 않음 |
+
+문제는 `joinGroup`이 멤버 수를 `count`로 세어보고 통과시킨 뒤 멤버 행을 INSERT할 뿐, `Group` 행을 UPDATE하지 않는다는 데 있었습니다. 낙관적 락은 "쓰기 시점에 version이 어긋났으면 실패"하는 장치이므로, 그 행에 쓰기가 없으면 충돌이 감지될 방아쇠 자체가 없습니다.
+
+```text
+요청 A: memberCount 조회 → 9/10
+요청 B: memberCount 조회 → 9/10   ← A가 아직 커밋 안 함
+요청 A: INSERT → 10/10
+요청 B: INSERT → 11/10            ← 정원 초과, 예외 없음
+```
+
+유니크 제약도 여기서는 도움이 안 됩니다. `(user_id, group_id)` 유니크는 "같은 사람이 두 번 들어오는 것"을 막을 뿐, 서로 다른 두 사람이 남은 마지막 1자리를 동시에 차지하는 것은 그대로 통과시킵니다.
+
+수리 방향은 두 갈래로 정리했습니다. (1) 참가 시 `Group` 행의 버전을 실제로 올려 낙관적 락에 방아쇠를 달거나, (2) 카운트 검사와 INSERT를 원자화해 낙관적 락 없이 막는 것(비관적 락 또는 조건부 INSERT). (1)은 인기 그룹에 트래픽이 몰리면 충돌이 잦아져 비용이 재시도 폭증으로 옮겨갑니다. 그래서 그룹 규모로 (1)과 (2)를 분기하는 안을 열어 두었습니다.
+
+## 이름을 붙이면 같은 버그가 보인다 — TOCTOU
+
+이 결함에는 이름이 있습니다. TOCTOU(Time-Of-Check to Time-Of-Use), 즉 조건을 확인한 시점과 그 조건에 기대어 행동하는 시점 사이에 다른 주체가 상태를 바꾸는 문제입니다.
+
+```text
+스레드 A: [확인] 없네? ──────────────→ [생성]
+스레드 B:      [확인] 없네? ──→ [생성]      ← 둘 다 "없음"을 보고 둘 다 생성
+                    ↑ 이 틈에 상태가 바뀜
+```
+
+TOCTOU로 분류해 코드베이스를 훑으니 `if (없으면) 만든다` / `if (충분하면) 뺀다` 패턴이 여러 도메인에서 같은 모양으로 나왔습니다. 이 중 그룹 정원만 미수정이고, 나머지는 이미 막혀 있습니다.
+
+| 실패 모드 | 증상 | 대표 사례 | 처방 |
+| --- | --- | --- | --- |
+| 가드 우회 | 불변식이 깨짐(활성 연동 0개, 정원 초과) | 소셜 연동 해제(GROMO-527), 그룹 정원 | 잠금 또는 원자적 쓰기로 check와 act 직렬화 |
+| lost update | 누적 증분이 조용히 덮어써짐 | 일별 집중 집계 `+=`(GROMO-568) | 비관적 락 또는 원자적 UPDATE |
+| 중복 삽입 | 같은 키로 두 행 생성 시도 → 제약 위반 | 소셜 첫 로그인(GROMO-581), 스크린타임 저장(GROMO-560) | 유니크 제약 + 재시도 |
+
+여기서 두 가지를 배웠습니다. 첫째, `@Transactional`은 이걸 막아주지 않습니다. 트랜잭션은 원자성(전부 반영 또는 전부 롤백)을 주는 것이고, 두 트랜잭션의 인터리빙을 직렬화해 주는 장치가 아닙니다. READ COMMITTED에서 평범한 SELECT는 아무것도 잠그지 않으므로 둘 다 "조건 통과"를 봅니다.
+
+둘째, 겉보기가 같은 check-then-act여도 안전성은 서로 다릅니다. 스크린타임 저장은 같은 패턴인데도 값을 덮어쓰는 의미론(last-write-wins)이라 lost update가 없었고, 집중 집계는 `+=` 누적이라 위험했습니다. 패턴만 보고 일괄 처방하면 필요 없는 락을 걸거나 필요한 락을 빠뜨립니다. 그래서 스크린타임에는 락을 걸지 않았고, 집계에는 걸었습니다.
+
+정리하면 층위가 이렇게 갈립니다. **INSERT 레이스는 유니크 제약이 막고, 이미 있는 행의 레이스는 락이나 조건절을 품은 원자적 UPDATE가 막습니다.** 아직 없는 행은 잠글 대상이 없어서 비관적 락이 통하지 않습니다.
+
+## 실제로 작동하던 방어 4곳
+
+기법이 서로 다른 네 개의 방어가 이미 코드에 들어 있었고, 위 표의 세 실패 모드를 모두 덮고 있었습니다(집계 upsert는 두 모드를 한 번에 막습니다).
+
+| 위치 | 기법 | 막는 것 |
+| --- | --- | --- |
+| 소셜 연동 해제 (GROMO-527 · PR #91) | `SELECT ... FOR UPDATE` | 마지막 로그인 수단 가드 우회 |
+| 스크린타임 저장 (GROMO-560 · PR #270) | 유니크 제약 + 새 트랜잭션 1회 재시도 | 중복 삽입으로 인한 500 |
+| orphan 세션 정리 (GROMO-804 · PR #230) | 조건부 원자 UPDATE | 동시 PATCH 완료와의 레이스 |
+| 일별 집중 집계 upsert (GROMO-568 · PR #90) | 비관락 조회 + 유니크 제약 | lost update와 중복 삽입 |
+
+**비관락 가드의 설계 포인트**는 소셜 연동 해제에서 배웠습니다. 처음 구현은 `count` 쿼리로 활성 연동 수를 읽고 `count <= 1`이면 409를 던진 뒤 대상 행을 soft delete했습니다. 활성 연동 2개인 유저가 DELETE 2건을 동시에 보내면 둘 다 2를 읽고 둘 다 통과해 활성 연동이 0개가 됩니다. 비밀번호 로그인이 없는 앱이므로 계정 접근 불능입니다.
+
+```java
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("SELECT sa FROM SocialAccount sa WHERE sa.user = :user AND sa.deletedAt IS NULL")
+List<SocialAccount> findAllByUserAndDeletedAtIsNullForUpdate(@Param("user") User user);
+```
+
+수정에서는 세는 쿼리와 지우는 대상 조회를 하나로 합쳤습니다.
+
+```java
+List<SocialAccount> active = repo.findAllByUserAndDeletedAtIsNullForUpdate(user); // 전부 잠금
+SocialAccount target = active.stream().filter(...).findFirst()                    // 404 먼저
+        .orElseThrow(() -> new UserException(NOT_FOUND));
+if (active.size() == 1) throw new UserException(LAST_SOCIAL_ACCOUNT);             // 409
+target.setDeletedAt(Instant.now());
+```
+
+잠긴 리스트의 `size()`로 세고 같은 리스트에서 대상을 고르면, "세는 시점"과 "지우는 시점" 사이에 낄 틈이 없습니다. 대신 잠금 메서드는 쓰기 경로 전용으로 분리하고 이름에 `ForUpdate`를 붙여, 일반 조회까지 불필요하게 경합하지 않도록 했습니다.
+
+**조건부 원자 UPDATE**는 orphan 세션 정리에서 썼습니다. 종료 시각이 없는 세션을 배치가 자동 종료로 표시하는데, 그 사이 유저가 PATCH로 정상 종료할 수 있습니다. `markAutoClosedIfOpen`이 `ended_at IS NULL`을 WHERE에 넣은 단일 UPDATE로 표시하므로, 유저가 먼저 끝냈으면 갱신 행이 0건이 되고 배치는 아무것도 덮지 않습니다. check를 DB 조건절로 흡수하면 락도 재시도도 필요 없습니다.
+
+**집계 upsert**는 이 분담을 한 메서드 안에서 씁니다. `findByUserAndDateForUpdate`가 기존 행의 lost update를 막고, INSERT-INSERT 경쟁은 `unique(user_id, date)`가 받습니다. 한 건은 제약 위반으로 실패하지만 데이터 오염은 남지 않습니다.
+
+### 원자적 upsert를 안 쓴 이유 — 3안 비교 (GROMO-560)
+
+스크린타임 저장(GROMO-560)은 같은 `(user, date)`로 동시 2요청이 오면 둘 다 `findByUserAndDate`에서 empty를 보고 각자 INSERT해서, 진 요청이 유니크 위반으로 실패했습니다. 앱이 UUID를 할당해 `save()`가 flush까지 지연되므로 유니크 위반은 커밋 시점에 터지고, `@Transactional` 안의 `try/catch`로는 잡히지 않습니다. 이 메커니즘은 소셜 첫 로그인에서 먼저 겪었고 [인증 하드닝 노트](/research/auth-hardening)에 자세히 적어 두었습니다.
+
+선택지를 세 개로 놓고 비교했습니다.
+
+| 안 | 장점 | 왜 안 썼나 / 골랐나 |
+| --- | --- | --- |
+| 네이티브 `INSERT ... ON CONFLICT DO UPDATE` | 완전 원자적, INSERT 경쟁까지 한 번에 | 저장이 순수 upsert가 아님 — 목표 달성 플래그의 false→true 전이를 읽어 알림을 발사하는 side-effect가 얹혀 있어 raw SQL 경로로는 후속 로직을 태우기 어려움 |
+| 비관적 락 | 확실, 코드 단순 | 스크린타임은 덮어쓰기(last-write-wins)라 lost update가 없음 → 막을 게 없는데 대기 비용만 지불 |
+| 유니크 제약 + 새 트랜잭션 재시도 (채택) | 엔티티 경로 유지, 전이 감지 로직 그대로 | 트랜잭션 경계를 손으로 쪼개야 함 |
+
+채택 구조는 소셜 첫 로그인 TOCTOU(GROMO-581 · PR #111)의 선례를 그대로 따랐습니다. 커밋 시 나는 `DataIntegrityViolationException`을 트랜잭션 밖 래퍼가 잡아 **정확히 1회** 새 트랜잭션으로 재조회·갱신하면, 진 요청도 204로 흡수됩니다(구현 세부는 [인증 하드닝 노트](/research/auth-hardening)).
+
+이 서비스에서만 걸린 함정이 하나 더 있었습니다. 클래스 레벨에 읽기 전용 트랜잭션이 걸려 있으면 래퍼도 그 안에 묶여 재시도의 쓰기가 막힙니다. 래퍼를 트랜잭션 밖으로 빼야 할 이유가 하나 더 늘었습니다.
+
+## 재현 없는 동시성 수정은 믿지 않는다
+
+동시성 버그는 Mockito 단위 테스트로 잡히지 않습니다. 서비스를 두 번 호출해도 순차 실행이라 레이스가 나지 않기 때문입니다. 그래서 실제 DB(Testcontainers)와 실제 스레드로 겹침을 만드는 패턴을 표준으로 뒀습니다.
+
+```java
+int threadCount = 2;
+ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+CountDownLatch startGate = new CountDownLatch(1);
+CountDownLatch doneGate = new CountDownLatch(threadCount);
+AtomicInteger successCount = new AtomicInteger();
+List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
+
+for (int i = 0; i < threadCount; i++) {
+    pool.submit(() -> {
+        try {
+            startGate.await();          // 다 같이 출발 대기
+            service.spend(userId, 80);
+            successCount.incrementAndGet();
+        } catch (Throwable t) {
+            failures.add(t);
+        } finally {
+            doneGate.countDown();
+        }
+    });
+}
+startGate.countDown();                  // 출발
+assertThat(doneGate.await(5, TimeUnit.SECONDS)).isTrue();  // 초과 시 실패
+pool.shutdown();
+```
+
+`newFixedThreadPool`로 별도 스레드를 띄우고, `startGate`로 모두를 묶었다가 한 번에 풀어 겹침을 최대화하고, `doneGate`로 검증 전에 전원이 끝나기를 기다립니다. 겪은 함정은 네 가지입니다.
+
+| 함정 | 왜 문제인가 | 대응 |
+| --- | --- | --- |
+| 테스트 클래스에 `@Transactional` | 단일 트랜잭션·롤백이라 스레드 간 변경이 안 보이고 given도 커밋되지 않음 → 재현 실패 | 트랜잭션 없는 통합 테스트 베이스를 상속 — given이 즉시 커밋되어 다른 스레드에도 보임 |
+| 예외 타입 단정 | 타이밍에 따라 낙관락 실패와 잔액 부족으로 갈려 flaky | 결과 상태로 단정 — 성공 1건, 실패 1건, 재조회 잔액 일치 |
+| `doneGate.await()` 무한 대기 | 한 스레드가 락 대기에서 멈추면 테스트 전체가 멈춤 | 타임아웃을 주고 반환값을 단정 |
+| 데이터 정리 | 롤백이 없어 잔여 데이터가 다음 테스트를 오염 | `@AfterEach` 정리 또는 매번 고유 데이터 |
+
+두 번째가 가장 값졌습니다. 재화 이중 차감 테스트에서 한쪽이 완전히 먼저 끝나면 나중 요청은 낙관적 락 대신 잔액 부족으로 실패하는데, 둘 다 정상 결과입니다.
+
+동시성 테스트는 비싸서 돈 경로에만 붙이는 것이 기본 규칙인데, 유니크 위반이 500으로 새거나 계정 정합성이 깨지는 경로에는 예외로 붙였습니다. GROMO-560 수정에는 이 패턴으로 N=2와 N=10 동시 저장 테스트를 붙여 예외 0건, 행 1개, 최종값 일관을 확인했습니다. 재화 지갑에는 낙관적 락과 함께 동시성 테스트가 이미 활성 상태로 있었고, 게스트 계정을 두 기기에서 동시에 승격하는 레이스는 배리어로 묶어 1승 1패를 검증했습니다.
+
+## 감사가 남긴 것
+
+- 방어선은 **발동 경로**로 확인해야 합니다. `@Version`과 예외 매핑을 세어 보는 것만으로는 그 예외가 실제로 던져지는지 알 수 없습니다.
+- 실패 모드를 먼저 분류해야 처방이 맞습니다. 같은 패턴에 같은 약을 쓰면 낭비하거나 뚫리는데, 덮어쓰기냐 누적이냐가 그 갈림길이었습니다.
+- 동시성 수정은 재현 테스트와 같은 PR에 있어야 합니다. 테스트가 없으면 다음 리팩터링에서 누가 방어를 걷어내도 CI가 걸러 주지 못합니다.
+
+문서가 가리키던 그룹 참가 동시성 전략 파일은 이미 사라진 상태였습니다. 방어선 문서와 코드가 따로 늙고 있었던 셈입니다. 남은 숙제는 두 개입니다. 그룹 정원에 방아쇠를 달고 낙관↔비관 분기 임계값을 운영 지표로 정하는 것, 그리고 탈퇴와 관계 생성이 서로 다른 API에서 부딪히는 레이스(GROMO-801 · PR #361)에서 공유 잠금이 처리량에 주는 비용을 실제로 재보는 것입니다.
+
+### 관련 기록
+
+PR #91 · GROMO-527 (비관락 가드) · PR #90 · GROMO-568 (집계 upsert) · PR #270 · GROMO-560 (UPSERT 레이스 3안 비교) · PR #230 · GROMO-804 (조건부 원자 UPDATE) · PR #111 · GROMO-581 (유니크 + 재시도) · PR #361 · GROMO-801 (서로 다른 API 간 TOCTOU)

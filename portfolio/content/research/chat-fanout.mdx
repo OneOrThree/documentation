@@ -1,0 +1,166 @@
+---
+title: "WebSocket은 왜 혼자 확장이 안 될까 — 채팅 서버 팬아웃 설계"
+summary: "WebSocket 연결이 stateful이라는 제약 하나가 단일 서버에서 메시지 큐 팬아웃까지의 4단계를 전부 끌고 갔습니다. 결론부터: 수평 확장은 같은 앱을 N대로 늘리는 일이고, '별개 서버'가 정당화되는 지점은 팬아웃 컨슈머를 떼어낼 때 단 한 번입니다."
+status: "유효"
+date: "2026-06-18"
+order: 46
+keywords:
+  - WebSocket
+  - STOMP
+  - Redpanda
+  - 팬아웃
+  - persist-first
+related:
+  - label: "우리는 왜 WebSocket을 쓰지 않기로 했나 — 집중 세션 동기화"
+    href: "/research/focus-session-sync"
+  - label: "발송 후 기록에서 사건 선점으로 — 알림 파이프라인 재편"
+    href: "/research/notification-pipeline"
+  - label: "부딪히며 정리한 DB 설계 노트 — 인덱스·유니크·soft delete"
+    href: "/research/db-design-notes"
+  - label: "Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트"
+    href: "/research/springboot4-migration"
+---
+
+배선에서 가장 오래 붙잡은 것은 클래스패스에 Jackson 2와 3이 함께 있어 STOMP 응답은 멀쩡한데 MQ 경로만 `Instant` 직렬화에서 터진 일이었습니다. 설계 쪽 결론은 따로 있습니다. 수평 확장은 같은 앱을 N대로 늘리는 일이고, 별개 배포가 정당화되는 지점은 팬아웃 컨슈머를 떼어낼 때 한 번뿐입니다. 구성은 이렇습니다. 채팅 전용 서비스를 메인 API에서 떼어 따로 띄웠고(`:8081`, 채팅 전용 PostgreSQL `:5433`), 경로는 persist-first입니다. DB INSERT가 끝난 뒤에 `group_id`를 파티션 키로 publish하고, 메시지 ID는 `@PrePersist`가 만드는 UUIDv7, at-least-once 중복은 클라이언트가 붙이는 `clientMessageId`로 흡수합니다. 지금은 단일 인스턴스로 돌지만 MQ 경로는 미리 깔아뒀고, consume 후 릴레이는 로컬 구독자에게만 하는 LocalRelay 상태입니다.
+
+## 제약 하나가 모든 단계를 끌고 간다
+
+WS 연결이 stateful이라는 제약 하나가 단일 서버 → Presence 릴레이 → Pub/Sub → MQ 컨슈머 팬아웃 분리 4단계를 순서대로 강제했습니다. WS 연결은 특정 인스턴스의 로컬 메모리에만 존재하므로, 인스턴스를 늘리는 순간 무상태 HTTP에는 없는 문제가 생깁니다. **수신자가 어느 서버에 붙었나.** HTTP API라면 어느 인스턴스가 받아도 같은 응답을 만들 수 있으니 로드밸런서만 붙이면 끝이지만, WebSocket은 받는 쪽이 특정 인스턴스에 묶여 있습니다.
+
+## 지금 가동 중인 구조 — persist-first, UUIDv7, 파티션 키
+
+메시지 한 건은 이 경로를 지납니다.
+
+```text
+SEND → ① DB INSERT → ② publish(key=group_id) → ③ consume(@KafkaListener) → ④ relay
+```
+
+이 순서를 **persist-first**라고 부르기로 했습니다. DB를 진실원천으로 두고 저장이 끝난 뒤에 전파합니다. 브로드캐스트를 먼저 하고 저장을 나중에 하면 전파는 성공했는데 저장이 실패하는 경우가 생기고, 그러면 클라이언트 화면에는 있지만 서버에는 없는 메시지가 만들어집니다.
+
+ID는 두 개를 쓰고 축이 다릅니다. 나머지 결정들도 각각 하나의 문제에 대응합니다.
+
+| 결정 | 무엇 | 어떤 문제를 막나 |
+| --- | --- | --- |
+| 메시지 ID = UUIDv7 (`@PrePersist` 생성) | 시간순 정렬 가능한 UUID | 별도 정렬 컬럼 없이 커서 페이지네이션 |
+| dedup 키 = `clientMessageId` (클라 생성) | 클라이언트가 붙이는 발송 단위 ID | at-least-once 중복 전달 |
+| Redpanda 파티션 키 = `group_id` | 같은 방은 같은 파티션 | 다중 파티션·다중 컨슈머 환경의 방 단위 순서 역전 |
+| 인증 = 메인 API와 JWT 서명 키 공유 | 채팅 서비스가 자체 검증 | 프레임마다 메인 API를 왕복하는 검증 |
+| Presence = deviceID 단위 | 기기 단위로 잡는 접속 상태 | 멀티디바이스에서 한 기기 접속이 다른 기기를 덮는 문제 |
+
+멤버십 조회 결과는 Redis에 캐시해서, 인가 때마다 DB를 다시 때리지 않게 했습니다.
+
+Redpanda를 고른 이유는 Kafka 와이어 호환입니다. 나중에 관리형 Kafka로 옮길 때 **spring-kafka 코드는 그대로 두고 엔드포인트만 교체**할 수 있습니다. 지금 단계에서 MQ 경로를 미리 깔아둔 비용이 그 시점에 회수되는 구조입니다.
+
+DB INSERT와 MQ publish 사이에는 원자성이 없습니다. INSERT는 성공했는데 publish가 실패하면 저장은 됐지만 아무에게도 안 간 메시지가 남습니다. 정석은 Transactional Outbox(같은 트랜잭션에 outbox 행을 남기고 릴레이가 발행)이거나 CDC입니다. 지금 규모에서는 publish 실패 시 재시도와 폴링 보정으로 시작했습니다.
+
+## 0차와 1차 — 위치를 조회해서 직접 릴레이한다
+
+다음 단계로 넘어가는 근거는 앞 단계에 남은 한계입니다.
+
+**0차는 단일 WebSocket 서버**입니다. 스프링 부트 한 대에 STOMP를 띄우고 접속 세션을 인메모리에 들고 있으니 라우팅 고민이 아예 없습니다. 한계는 두 가지입니다. 한 대를 넘길 수 없고, 재시작하면 연결과 세션이 통째로 날아갑니다. 1차가 푸는 것은 앞쪽이고, 재시작 유실은 1차에서도 남습니다.
+
+**1차는 다중 인스턴스 + 공유 메모리(Presence)** 입니다. 채팅 서버 1, 2는 같은 스프링 앱을 수평 확장한 인스턴스들입니다. 각 인스턴스는 자기에게 붙은 유저의 WS 세션만 로컬에 들고 있고, "누가 어느 서버에 붙어 있는지"는 모든 인스턴스가 함께 보는 Key-Value Store(보통 Redis)에 올립니다. 이게 Presence입니다.
+
+메시지 흐름은 이렇습니다.
+
+```text
+1. A가 서버1로 SEND (WebSocket)
+2. 서버1: 자기 메모리에 B의 연결이 없다 → KV에서 "B가 붙은 서버"를 조회
+3. 서버1 → 서버2로 릴레이 요청 (직접 전달)
+4. 서버2: 자기 메모리의 B 연결로 push
+```
+
+수평 확장이 가능해지고 연결 상태가 중앙화됩니다. 남는 한계는 매번 수신자 위치를 조회해야 한다는 것, 그리고 훨씬 심각한 팬아웃 부하입니다. 대규모 단톡방이면 메시지 한 건에 대해 유저 요청을 처리하던 그 스레드가 릴레이를 수천 번 실행합니다.
+
+여기서 흔히 나오는 변형이 **Redis Pub/Sub**입니다. 위치를 매번 조회하는 대신 서버가 방 채널에 publish하고 그 방을 구독한 서버들이 받으니, 위치 조회는 사라집니다. 다만 Pub/Sub이 해결하는 것은 "어디로 보내나"까지이고, 팬아웃의 무게가 요청 경로에 얹히는 문제는 그대로 남습니다.
+
+## 2차 — 팬아웃을 요청 경로에서 떼어낸다
+
+2차에서는 메시지를 받은 서버가 직접 릴레이하지 않습니다. 대신 "이 메시지를 이 수신자 묶음에게 보내라"를 메시지 큐에 발행하고 즉시 응답합니다. 무거운 팬아웃(수신자 목록 조회, presence 조회, 릴레이)은 컨슈머가 큐에서 꺼내 비동기로 처리합니다.
+
+```text
+1. 유저 → 서버로 SEND
+2. 서버: 채팅방 수신자 목록을 DB에서 조회
+        → 수신자를 묶음으로 쪼개 큐에 발행 (예: 1~200번 / 201~400번)
+        → 즉시 응답
+3. 컨슈머: 묶음을 꺼내 KV에서 "이 유저들이 각각 어느 서버에 붙었나"를 한 번에 일괄 조회
+4. 컨슈머: 해당 채팅 서버로 순차 릴레이 → 각 서버가 자기 유저에게 push
+```
+
+지금 구현은 방 단위로 한 건만 발행합니다(키 `group_id`). 위처럼 수신자를 묶음으로 쪼개는 것은 한 방의 수신자가 수천 명이 될 때의 변형입니다. 묶음을 쪼개는 순간 방 단위 순서의 근거는 파티션 키가 아니라 메시지 ID 정렬로 옮겨갑니다.
+
+개선점은 세 개입니다. 첫째, 수신 서버는 발행만 하고 즉시 응답하니 **응답 지연이 팬아웃 규모와 무관해집니다.** 줄어드는 것은 발신자가 받는 응답 지연이고, 수신자에게 도달하는 종단 지연은 큐를 한 단계 더 지나므로 늘어납니다. 둘째, 팬아웃이 독립적으로 스케일됩니다(컨슈머만 늘리면 됩니다). 셋째, 큐가 버퍼 역할을 하니 버스트를 흡수합니다. 대신 파티션과 순서, at-least-once 재전송, 멱등 처리를 직접 신경 써야 합니다.
+
+### 여기서 비로소 '별개 서버'가 생긴다
+
+이 단계에서도 채팅 서버 1, 2는 여전히 0차·1차와 **같은 스프링 앱 인스턴스**(WS 게이트웨이)입니다. 새로 등장한 것은 컨슈머라는 **역할** 하나뿐이고, 그 역할을 어디에 두는지는 두 갈래입니다.
+
+| 배치 | 방법 | 별개 배포 필요? |
+| --- | --- | --- |
+| (a) 같은 앱 안 | `@KafkaListener`를 WS 앱에 함께 둔다 | 필요 없음 |
+| (b) 떼어낸다 | 팬아웃 워커를 독립 배포로 분리 | 이 순간 처음 생긴다 |
+
+이유는 규모가 아니라 성질입니다. 팬아웃은 무겁고 버스트성이어서, 요청 처리 경로와 자원·장애를 격리하려는 것이 분리의 목적입니다. 반대로 말하면 팬아웃이 아직 가볍다면 (a)로 두는 것이 맞고, 그때 워커를 떼는 건 과설계입니다.
+
+### 4단계 비교
+
+| 단계 | 구조 | 서버 간 전달 방식 | 얻는 것 | 남는 한계 |
+| --- | --- | --- | --- | --- |
+| 0 | 단일 WS 서버 | 불필요 | 라우팅 고민 없음 | 1대 한계·재시작 유실·확장 불가 |
+| 1 | 다중 인스턴스 + KV Presence | B 위치 조회 후 직접 릴레이 | 수평 확장·상태 중앙화 | 매번 위치 조회, 팬아웃이 요청 경로 직격 |
+| 1' | + Redis Pub/Sub | 채널 publish/subscribe | 위치 조회 제거 | 팬아웃 무게는 여전 |
+| 2 | MQ + 컨슈머 팬아웃 | 발행 후 컨슈머가 비동기 릴레이 | 즉시 응답·독립 스케일·버스트 흡수 | 복잡도 증가, 종단 전달 지연 증가, 순서·멱등 관리 |
+
+## 배선하며 걸린 것들
+
+설계 말고 실제 코드에서 시간을 쓴 곳은 두 군데였습니다.
+
+**첫째, WebSocket 인증은 두 층입니다.** 통합 테스트에서 연결이 `DeploymentException`으로 실패했는데, 원인은 HTTP 서블릿 필터였습니다. WS 연결은 2단계로 일어납니다.
+
+```text
+1) HTTP 핸드셰이크: GET /ws (Upgrade: websocket)   ← 평범한 HTTP 요청
+2) STOMP CONNECT 프레임 (Authorization: Bearer …)  ← JWT는 여기에 있다
+```
+
+JWT는 ②에 실리고 ①에는 없습니다. 그런데 `JwtAuthFilter`가 ①까지 가로채서 "토큰 없음 → 401"을 내고, 핸드셰이크가 실패해 연결 자체가 안 됩니다. 해결은 `/ws`를 HTTP 필터 화이트리스트에 넣는 것입니다. 인증 책임을 층별로 나누면 이렇게 됩니다.
+
+| 층 | 담당 | 하는 일 |
+| --- | --- | --- |
+| HTTP 핸드셰이크 `/ws` | `JwtAuthFilter` (화이트리스트) | 인증 안 함 |
+| STOMP CONNECT | `StompAuthChannelInterceptor` | JWT 검증 후 `setUser` |
+| STOMP SUBSCRIBE | 같은 인터셉터 | `getUser`로 신원 꺼내 멤버십 인가 |
+
+STOMP 쪽 배선은 `clientInboundChannel`에 `ChannelInterceptor`를 걸어서 합니다. HTTP의 서블릿 필터와 같은 자리인데 대상이 STOMP 프레임입니다. `accessor`는 프레임마다 새로 만들어지는 로컬 래퍼지만, `setUser`가 저장하는 곳은 WS 세션입니다. CONNECT에서 한 번 `setUser`를 해두면 Spring이 같은 연결의 이후 프레임마다 그 Principal을 다시 실어줍니다. 그래서 **CONNECT는 인증(연결당 1회), SUBSCRIBE는 인가**로 역할이 갈립니다. 매 요청을 검증하는 HTTP 필터와는 이 지점에서 동작이 다릅니다.
+
+**둘째, 같은 `Instant` 필드가 MQ 경로에서만 직렬화에 실패했습니다.** `ChatMessageEvent`(record, `Instant sentAt` 포함)를 Redpanda로 보내려는데 `InvalidDefinitionException: Java 8 date/time type java.time.Instant not supported by default`가 났습니다. 그런데 STOMP 응답 DTO는 똑같이 `Instant`를 갖는데도 멀쩡했습니다.
+
+원인은 클래스패스에 Jackson이 두 버전 있는 것이었습니다.
+
+| 쓰는 곳 | Jackson | 네임스페이스 |
+| --- | --- | --- |
+| spring-kafka의 `JsonSerializer`/`JsonDeserializer` | 2.x | `com.fasterxml.jackson.*` |
+| Spring Boot 4 웹·STOMP 메시지 컨버터 | 3.x | `tools.jackson.*` |
+
+`JsonSerializer`는 Boot이 구성한 `ObjectMapper`를 쓰지 않고 자기만의 Jackson 2 `ObjectMapper`를 새로 만듭니다. 그 `ObjectMapper`는 클래스패스의 알려진 모듈을 자동 등록하는데, `java.time` 지원은 **Jackson 2용 jsr310 모듈**이 있어야 합니다. Boot 4에는 Jackson 3 jsr310만 들어 있어서 MQ 경로만 비어 있었습니다.
+
+선택지는 세 개였고 A를 골랐습니다.
+
+```java
+// A. 페이로드에서 java.time 제거 — epoch millis(long)
+public record ChatMessageEvent(UUID messageId, Long groupId, Long senderId,
+                               String content, long sentAt, UUID clientMessageId) { }
+// 되돌릴 때: Instant.ofEpochMilli(event.sentAt())
+```
+
+B는 Jackson 2 jsr310 의존을 하나 더 추가하는 것, C는 `ProducerFactory`에 커스텀 `ObjectMapper`를 주입하는 것입니다. A를 고른 이유는 직렬화 모듈 의존이 0이 되는 것도 있지만, MQ 계약을 특정 JVM 시간 타입에 묶지 않는 편이 언어중립적이기 때문입니다. "어디서는 되고 어디서는 안 됨"의 원인은 대개 서로 다른 Jackson 버전이거나, Boot 자동설정 `ObjectMapper`와 라이브러리가 내부에서 새로 만드는 `ObjectMapper`가 서로 다른 객체라는 데 있습니다.
+
+## 아직 안 푼 것
+
+- **순서 보장**: 파티션 키를 `group_id`로 잡아 방 단위 순서의 근거는 만들었지만, 재접속·재전송이 섞였을 때 클라이언트가 보는 최종 순서까지 검증하지는 못했습니다. 지금은 UUIDv7의 시간순 성질(설계 근거는 [DB 설계 노트](/research/db-design-notes))에 정렬 보정을 의존하고 있습니다.
+- **오프라인 동기화**: 재접속 시 `last_read` 기준 미수신 메시지 동기화와 FCM 푸시는 설계만 있고 구현 전입니다.
+- **cross-instance 릴레이**: 현재 LocalRelay는 자기 로컬 구독자만 압니다. 인스턴스가 2대가 되면 다른 서버 접속자에게 전달이 안 됩니다. 다음 단계는 `ws:instance:{id}` 채널을 쓰는 RedisRelay이고, 방 단위 채널 구독과 어느 쪽이 나은지는 아직 판단이 서지 않았습니다.
+- **Outbox 도입 시점**: 지금 규모에서 publish 실패 재시도로 충분한지, 아니면 이미 Outbox가 필요한지의 경계를 못 그었습니다.
+
+### 관련 기록
+
+채팅 서비스 `:8081` · 채팅 전용 PostgreSQL `:5433` · `ChatMessageEvent` 계약(epoch millis `sentAt`) · `/ws` HTTP 필터 화이트리스트와 `StompAuthChannelInterceptor` · Redpanda 파티션 키 `group_id`
