@@ -36,7 +36,7 @@ const CIRC = 100;
 type AreaData = {
   label: string;
   total: number;
-  /** Counting unit shown under the donut. Defaults to 커밋. */
+  /** Counting unit shown under the donut. Defaults to PR. */
   unit?: string;
   members: Record<string, { commits: number; lines: number; pct: number }>;
 };
@@ -99,7 +99,7 @@ function Donut({ area }: { area: AreaData }) {
         {area.label}
       </span>
       <span className="font-mono text-[0.6875rem] tabular-nums text-muted">
-        {mine.commits.toLocaleString()}/{area.total.toLocaleString()} {area.unit ?? "커밋"}
+        {mine.commits.toLocaleString()}/{area.total.toLocaleString()} {area.unit ?? "PR"}
       </span>
     </Link>
   );
