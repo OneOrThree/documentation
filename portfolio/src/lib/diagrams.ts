@@ -39,6 +39,9 @@ export interface DiagramGraph {
   nodes: { id: string; label: string }[];
   edges: { id: string; label: string; source: string | null; target: string | null }[];
   adjacency: Record<string, { nodes: string[]; edges: string[] }>;
+  /** The export's own pixel size, used to open the viewer at 1:1. */
+  width?: number;
+  height?: number;
 }
 
 /**

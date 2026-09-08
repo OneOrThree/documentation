@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { DiagramGraph } from "@/lib/diagrams";
 import { DiagramHeading } from "@/components/diagram/diagram-heading";
@@ -21,8 +21,8 @@ import { DiagramHeading } from "@/components/diagram/diagram-heading";
  * to — which an <img> would not.
  */
 
-const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3] as const;
-const DEFAULT_ZOOM_INDEX = 3;
+const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6] as const;
+const FIT_ZOOM_INDEX = 3; // 100% — the artwork fits the frame width exactly.
 
 export function DiagramViewer({
   id,
@@ -39,16 +39,25 @@ export function DiagramViewer({
   graph: DiagramGraph;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
+  // The wheel handler is bound once and must not close over a stale zoom.
+  const zoomIndexRef = useRef<number>(FIT_ZOOM_INDEX);
+  // Where the cursor was when a pinch changed the zoom, so the point under it
+  // can be put back after the re-render.
+  const anchorRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
 
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [zoomIndex, setZoomIndex] = useState<number>(DEFAULT_ZOOM_INDEX);
+  const [zoomIndex, setZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
+  // Where the % button returns to. Not a constant: it is measured per diagram.
+  const [homeZoomIndex, setHomeZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const zoom = ZOOM_STEPS[zoomIndex];
+  zoomIndexRef.current = zoomIndex;
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +83,38 @@ export function DiagramViewer({
 
   // Switching diagrams must not carry the previous selection over.
   useEffect(() => setFocusId(null), [id]);
+
+  /**
+   * Open at roughly 1:1 instead of fit-to-width.
+   *
+   * These exports are wide — the service diagram is 2420px — and the frame is
+   * about 1070px. Fitting it to the frame renders every label at 44%, which
+   * turns 12px type into 5px: legible in a thumbnail, not on a page. So the
+   * opening zoom is measured, not fixed, and the frame pans instead. Small
+   * diagrams keep fit-to-width, since blowing an 880px export past its own
+   * size only makes it fuzzy. Measured once per diagram, not on every resize:
+   * re-deriving it while the reader is panning fights the zoom controls.
+   */
+  useEffect(() => {
+    const artwork = graph.width ?? 0;
+    const frame = scrollRef.current;
+    if (!svg || !artwork || !frame) return;
+
+    const style = getComputedStyle(frame);
+    const available =
+      frame.clientWidth -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight);
+    if (available <= 0) return;
+
+    const oneToOne = artwork / available;
+    const step = ZOOM_STEPS.findIndex((z) => z >= oneToOne);
+    const opening =
+      step === -1 ? ZOOM_STEPS.length - 1 : Math.max(FIT_ZOOM_INDEX, step);
+
+    setZoomIndex(opening);
+    setHomeZoomIndex(opening);
+  }, [svg, graph.width, id]);
 
   // Paint the focus state onto the injected SVG. Classes rather than inline
   // styles so the transition lives in CSS with the rest of the design.
@@ -107,6 +148,72 @@ export function DiagramViewer({
       }
     }
   }, [focusId, graph, svg]);
+
+  /**
+   * Pinch-to-zoom over the diagram belongs to the diagram, not to the browser.
+   *
+   * A trackpad pinch arrives as a wheel event with ctrlKey set, and Chrome
+   * treats it as page zoom unless the event is cancelled — so reading a
+   * diagram meant scaling the whole site around it. This is bound natively
+   * with { passive: false }: React's onWheel is registered passively and
+   * preventDefault() there is a no-op, which is exactly the shape of bug that
+   * looks fixed in code review and does nothing in a browser.
+   *
+   * A plain wheel is left alone — that still pans the frame, which is what
+   * the artwork being wider than the window calls for.
+   */
+  useEffect(() => {
+    const frame = scrollRef.current;
+    if (!frame || !svg) return;
+
+    // A pinch emits a stream of small deltas; one zoom step per notch of
+    // travel keeps a single gesture from crossing the whole scale.
+    const STEP_THRESHOLD = 24;
+    let travelled = 0;
+
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+
+      travelled += event.deltaY;
+      if (Math.abs(travelled) < STEP_THRESHOLD) return;
+
+      const direction = travelled > 0 ? -1 : 1;
+      travelled = 0;
+
+      const current = zoomIndexRef.current;
+      const next = Math.min(
+        ZOOM_STEPS.length - 1,
+        Math.max(0, current + direction),
+      );
+      if (next === current) return;
+
+      const rect = frame.getBoundingClientRect();
+      anchorRef.current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        zoom: ZOOM_STEPS[current],
+      };
+      setZoomIndex(next);
+    };
+
+    frame.addEventListener("wheel", onWheel, { passive: false });
+    return () => frame.removeEventListener("wheel", onWheel);
+  }, [svg]);
+
+  // Put the pixel that was under the cursor back under the cursor. Without
+  // this the diagram lurches toward its top-left corner on every step, which
+  // makes zooming into a corner of a 2420px drawing impossible.
+  useEffect(() => {
+    const frame = scrollRef.current;
+    const anchor = anchorRef.current;
+    if (!frame || !anchor) return;
+    anchorRef.current = null;
+
+    const ratio = ZOOM_STEPS[zoomIndex] / anchor.zoom;
+    frame.scrollLeft = (frame.scrollLeft + anchor.x) * ratio - anchor.x;
+    frame.scrollTop = (frame.scrollTop + anchor.y) * ratio - anchor.y;
+  }, [zoomIndex]);
 
   useEffect(() => {
     const onChange = () =>
@@ -151,6 +258,17 @@ export function DiagramViewer({
     [toggle],
   );
 
+  /**
+   * Stable across renders on purpose.
+   *
+   * React 19 compares `dangerouslySetInnerHTML` by object identity, so a fresh
+   * `{ __html }` literal each render re-commits the markup on every zoom step:
+   * the browser re-parsed a 6 MB SVG per click and the node was replaced, which
+   * silently dropped whatever the reader had selected. Measured with a
+   * MutationObserver — one style change, five children swapped, every time.
+   */
+  const artwork = useMemo(() => (svg ? { __html: svg } : null), [svg]);
+
   const focused = focusId ? graph.nodes.find((n) => n.id === focusId) : undefined;
   const linkCount = focusId ? (graph.adjacency[focusId]?.nodes.length ?? 0) : 0;
 
@@ -179,7 +297,7 @@ export function DiagramViewer({
             </ZoomButton>
             <button
               type="button"
-              onClick={() => setZoomIndex(DEFAULT_ZOOM_INDEX)}
+              onClick={() => setZoomIndex(homeZoomIndex)}
               className="min-w-11 rounded-pill px-1 py-0.5 font-mono text-[0.6875rem] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
               aria-live="polite"
             >
@@ -219,8 +337,12 @@ export function DiagramViewer({
         {/* The diagram keeps a light canvas in every theme: a draw.io export
             carries baked-in fills like #f1f2f4, so recolouring the page around
             it would leave the artwork stranded. */}
+        {/* Height is capped so a 1:1 diagram stays a window you pan, not a
+            2000px slab that pushes the caption off the screen. Fullscreen
+            drops the cap and takes the viewport instead. */}
         <div
-          className="overflow-auto p-4 fullscreen:h-dvh"
+          ref={scrollRef}
+          className="max-h-[78vh] overflow-auto p-4 fullscreen:h-dvh fullscreen:max-h-none"
           style={{
             backgroundColor: "var(--diagram-canvas)",
             backgroundImage:
@@ -244,12 +366,15 @@ export function DiagramViewer({
               // the frame scrolls horizontally instead, and 문서 보기 is there
               // for anyone who would rather read it than pan it.
               style={{ width: `${zoom * 100}%`, minWidth: "34rem" }}
-              className="mx-auto transition-[width] duration-150"
+              // No width transition: animating a layout property relaid out a
+              // 150-node SVG on every frame, and the interpolation stalled at
+              // its start value so a 250% zoom rendered at 100%.
+              className="mx-auto"
               // Build output, and `scripts/build-diagrams.mjs` strips <script>,
               // on* handlers and javascript: URLs from the export before it is
               // written — a .drawio file from Drive can carry arbitrary label
               // HTML from whoever authored it.
-              dangerouslySetInnerHTML={{ __html: svg }}
+              dangerouslySetInnerHTML={artwork ?? undefined}
             />
           ) : (
             <div
