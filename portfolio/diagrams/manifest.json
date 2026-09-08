@@ -21,13 +21,13 @@
     "id": "03-service",
     "title": "서비스 아키텍처",
     "titleEn": "Service Architecture",
-    "summary": "요청이 앱에서 출발해 API를 거쳐 저장소와 워커로 갈라지는 경로."
+    "summary": "클라이언트부터 Repository·테이블까지 여섯 띠로 끊은 현재 운영 기준(2026.08) 계약 맵. 화면 · 엔드포인트 · 저장소가 한 줄로 이어집니다."
   },
   {
     "id": "04-system",
     "title": "시스템 아키텍처",
     "titleEn": "System Architecture",
-    "summary": "클라이언트 · 게이트웨이 · 서비스 · 데이터 네 계층. 계층을 건너뛰는 화살표가 없는지 보는 용도."
+    "summary": "역할과 시스템 경계만 남긴 운영 오버뷰. 백엔드는 단일 Spring Boot 모듈러 모놀리스이고, 실선은 요청·배포 · 점선은 외부 연동·관측입니다."
   },
   {
     "id": "05-cloud",
