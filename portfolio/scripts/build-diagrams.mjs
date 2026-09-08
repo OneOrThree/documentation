@@ -86,13 +86,15 @@ function build(entry, i) {
     }
   }
 
+  const rawSvg = fs.readFileSync(svgPath, "utf8");
   const graph = parseDrawio(fs.readFileSync(xmlPath, "utf8"), id);
-  const { svg, annotated } = annotateSvg(fs.readFileSync(svgPath, "utf8"), graph, id);
+  const size = readIntrinsicSize(rawSvg);
+  const { svg, annotated } = annotateSvg(rawSvg, graph, id);
 
   fs.writeFileSync(path.join(OUT_DIR, `${id}.svg`), svg);
   fs.writeFileSync(
     path.join(OUT_DIR, `${id}.graph.json`),
-    JSON.stringify(graph, null, 2) + "\n",
+    JSON.stringify({ ...graph, ...size }, null, 2) + "\n",
   );
   fs.copyFileSync(xmlPath, path.join(OUT_DIR, `${id}.drawio.xml`));
 
@@ -347,6 +349,29 @@ function stripActiveContent(svg) {
     .replace(/(href|xlink:href)\s*=\s*"\s*javascript:[^"]*"/gi, "");
 }
 
+/**
+ * The export's own pixel size, read before `makeResponsive` throws it away.
+ * The viewer needs it to open at 1:1 — fit-to-width on a 2420px export shrinks
+ * a 12px label to 5px, which is unreadable and cannot be fixed in CSS.
+ */
+function readIntrinsicSize(svg) {
+  const tag = /<svg\b[^>]*>/.exec(svg)?.[0] ?? "";
+
+  const w = /\swidth="([\d.]+)/.exec(tag);
+  const h = /\sheight="([\d.]+)/.exec(tag);
+  if (w && h) return { width: Math.round(+w[1]), height: Math.round(+h[1]) };
+
+  const viewBox = /\sviewBox="([^"]*)"/.exec(tag);
+  if (viewBox) {
+    const parts = viewBox[1].trim().split(/[\s,]+/).map(Number);
+    if (parts.length === 4 && parts.every(Number.isFinite)) {
+      return { width: Math.round(parts[2]), height: Math.round(parts[3]) };
+    }
+  }
+
+  return { width: 0, height: 0 };
+}
+
 /** Drop the fixed px size so the diagram scales with its container. */
 function makeResponsive(svg, id) {
   return svg.replace(/<svg\b[^>]*>/, (tag) => {
@@ -364,7 +389,19 @@ function makeResponsive(svg, id) {
       // draw.io bakes a white page colour into the root. Drop it so the
       // viewer's canvas token owns the background instead.
       .replace(/\s*background-color:[^;"]*;?/, "")
+      // draw.io writes every fill as light-dark(light, dark) and leaves the
+      // root at `color-scheme: light dark`, so the artwork follows the
+      // viewer's OS preference and renders black on a dark machine. The
+      // canvas behind it is light in every theme (--diagram-canvas), so the
+      // export is pinned to the light half rather than left to drift.
+      .replace(/color-scheme:\s*[^;"]*/, "color-scheme: light")
       .replace(/\sstyle="\s*"/, "");
+    if (!/color-scheme:/.test(out)) {
+      out = /\sstyle="/.test(out)
+        ? out.replace(/\sstyle="/, ' style="color-scheme: light; ')
+        : out.replace(/<svg\b/, '<svg style="color-scheme: light"');
+    }
+
     return out.replace(/\s*\/?>$/, "") + ` data-diagram-id="${id}" width="100%">`;
   });
 }

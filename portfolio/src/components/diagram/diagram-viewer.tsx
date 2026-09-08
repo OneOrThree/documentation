@@ -21,8 +21,8 @@ import { DiagramHeading } from "@/components/diagram/diagram-heading";
  * to — which an <img> would not.
  */
 
-const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3] as const;
-const DEFAULT_ZOOM_INDEX = 3;
+const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6] as const;
+const FIT_ZOOM_INDEX = 3; // 100% — the artwork fits the frame width exactly.
 
 export function DiagramViewer({
   id,
@@ -39,12 +39,15 @@ export function DiagramViewer({
   graph: DiagramGraph;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
 
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const [zoomIndex, setZoomIndex] = useState<number>(DEFAULT_ZOOM_INDEX);
+  const [zoomIndex, setZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
+  // Where the % button returns to. Not a constant: it is measured per diagram.
+  const [homeZoomIndex, setHomeZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -74,6 +77,38 @@ export function DiagramViewer({
 
   // Switching diagrams must not carry the previous selection over.
   useEffect(() => setFocusId(null), [id]);
+
+  /**
+   * Open at roughly 1:1 instead of fit-to-width.
+   *
+   * These exports are wide — the service diagram is 2420px — and the frame is
+   * about 1070px. Fitting it to the frame renders every label at 44%, which
+   * turns 12px type into 5px: legible in a thumbnail, not on a page. So the
+   * opening zoom is measured, not fixed, and the frame pans instead. Small
+   * diagrams keep fit-to-width, since blowing an 880px export past its own
+   * size only makes it fuzzy. Measured once per diagram, not on every resize:
+   * re-deriving it while the reader is panning fights the zoom controls.
+   */
+  useEffect(() => {
+    const artwork = graph.width ?? 0;
+    const frame = scrollRef.current;
+    if (!svg || !artwork || !frame) return;
+
+    const style = getComputedStyle(frame);
+    const available =
+      frame.clientWidth -
+      parseFloat(style.paddingLeft) -
+      parseFloat(style.paddingRight);
+    if (available <= 0) return;
+
+    const oneToOne = artwork / available;
+    const step = ZOOM_STEPS.findIndex((z) => z >= oneToOne);
+    const opening =
+      step === -1 ? ZOOM_STEPS.length - 1 : Math.max(FIT_ZOOM_INDEX, step);
+
+    setZoomIndex(opening);
+    setHomeZoomIndex(opening);
+  }, [svg, graph.width, id]);
 
   // Paint the focus state onto the injected SVG. Classes rather than inline
   // styles so the transition lives in CSS with the rest of the design.
@@ -179,7 +214,7 @@ export function DiagramViewer({
             </ZoomButton>
             <button
               type="button"
-              onClick={() => setZoomIndex(DEFAULT_ZOOM_INDEX)}
+              onClick={() => setZoomIndex(homeZoomIndex)}
               className="min-w-11 rounded-pill px-1 py-0.5 font-mono text-[0.6875rem] tabular-nums text-muted-foreground transition-colors hover:text-foreground"
               aria-live="polite"
             >
@@ -219,8 +254,12 @@ export function DiagramViewer({
         {/* The diagram keeps a light canvas in every theme: a draw.io export
             carries baked-in fills like #f1f2f4, so recolouring the page around
             it would leave the artwork stranded. */}
+        {/* Height is capped so a 1:1 diagram stays a window you pan, not a
+            2000px slab that pushes the caption off the screen. Fullscreen
+            drops the cap and takes the viewport instead. */}
         <div
-          className="overflow-auto p-4 fullscreen:h-dvh"
+          ref={scrollRef}
+          className="max-h-[78vh] overflow-auto p-4 fullscreen:h-dvh fullscreen:max-h-none"
           style={{
             backgroundColor: "var(--diagram-canvas)",
             backgroundImage:
@@ -244,7 +283,10 @@ export function DiagramViewer({
               // the frame scrolls horizontally instead, and 문서 보기 is there
               // for anyone who would rather read it than pan it.
               style={{ width: `${zoom * 100}%`, minWidth: "34rem" }}
-              className="mx-auto transition-[width] duration-150"
+              // No width transition: animating a layout property relaid out a
+              // 150-node SVG on every frame, and the interpolation stalled at
+              // its start value so a 250% zoom rendered at 100%.
+              className="mx-auto"
               // Build output, and `scripts/build-diagrams.mjs` strips <script>,
               // on* handlers and javascript: URLs from the export before it is
               // written — a .drawio file from Drive can carry arbitrary label
