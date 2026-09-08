@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { DiagramGraph } from "@/lib/diagrams";
 import { DiagramHeading } from "@/components/diagram/diagram-heading";
@@ -41,6 +41,11 @@ export function DiagramViewer({
   const frameRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
+  // The wheel handler is bound once and must not close over a stale zoom.
+  const zoomIndexRef = useRef<number>(FIT_ZOOM_INDEX);
+  // Where the cursor was when a pinch changed the zoom, so the point under it
+  // can be put back after the re-render.
+  const anchorRef = useRef<{ x: number; y: number; zoom: number } | null>(null);
 
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +57,7 @@ export function DiagramViewer({
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const zoom = ZOOM_STEPS[zoomIndex];
+  zoomIndexRef.current = zoomIndex;
 
   useEffect(() => {
     let cancelled = false;
@@ -143,6 +149,72 @@ export function DiagramViewer({
     }
   }, [focusId, graph, svg]);
 
+  /**
+   * Pinch-to-zoom over the diagram belongs to the diagram, not to the browser.
+   *
+   * A trackpad pinch arrives as a wheel event with ctrlKey set, and Chrome
+   * treats it as page zoom unless the event is cancelled — so reading a
+   * diagram meant scaling the whole site around it. This is bound natively
+   * with { passive: false }: React's onWheel is registered passively and
+   * preventDefault() there is a no-op, which is exactly the shape of bug that
+   * looks fixed in code review and does nothing in a browser.
+   *
+   * A plain wheel is left alone — that still pans the frame, which is what
+   * the artwork being wider than the window calls for.
+   */
+  useEffect(() => {
+    const frame = scrollRef.current;
+    if (!frame || !svg) return;
+
+    // A pinch emits a stream of small deltas; one zoom step per notch of
+    // travel keeps a single gesture from crossing the whole scale.
+    const STEP_THRESHOLD = 24;
+    let travelled = 0;
+
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+
+      travelled += event.deltaY;
+      if (Math.abs(travelled) < STEP_THRESHOLD) return;
+
+      const direction = travelled > 0 ? -1 : 1;
+      travelled = 0;
+
+      const current = zoomIndexRef.current;
+      const next = Math.min(
+        ZOOM_STEPS.length - 1,
+        Math.max(0, current + direction),
+      );
+      if (next === current) return;
+
+      const rect = frame.getBoundingClientRect();
+      anchorRef.current = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        zoom: ZOOM_STEPS[current],
+      };
+      setZoomIndex(next);
+    };
+
+    frame.addEventListener("wheel", onWheel, { passive: false });
+    return () => frame.removeEventListener("wheel", onWheel);
+  }, [svg]);
+
+  // Put the pixel that was under the cursor back under the cursor. Without
+  // this the diagram lurches toward its top-left corner on every step, which
+  // makes zooming into a corner of a 2420px drawing impossible.
+  useEffect(() => {
+    const frame = scrollRef.current;
+    const anchor = anchorRef.current;
+    if (!frame || !anchor) return;
+    anchorRef.current = null;
+
+    const ratio = ZOOM_STEPS[zoomIndex] / anchor.zoom;
+    frame.scrollLeft = (frame.scrollLeft + anchor.x) * ratio - anchor.x;
+    frame.scrollTop = (frame.scrollTop + anchor.y) * ratio - anchor.y;
+  }, [zoomIndex]);
+
   useEffect(() => {
     const onChange = () =>
       setIsFullscreen(document.fullscreenElement === frameRef.current);
@@ -185,6 +257,17 @@ export function DiagramViewer({
     },
     [toggle],
   );
+
+  /**
+   * Stable across renders on purpose.
+   *
+   * React 19 compares `dangerouslySetInnerHTML` by object identity, so a fresh
+   * `{ __html }` literal each render re-commits the markup on every zoom step:
+   * the browser re-parsed a 6 MB SVG per click and the node was replaced, which
+   * silently dropped whatever the reader had selected. Measured with a
+   * MutationObserver — one style change, five children swapped, every time.
+   */
+  const artwork = useMemo(() => (svg ? { __html: svg } : null), [svg]);
 
   const focused = focusId ? graph.nodes.find((n) => n.id === focusId) : undefined;
   const linkCount = focusId ? (graph.adjacency[focusId]?.nodes.length ?? 0) : 0;
@@ -291,7 +374,7 @@ export function DiagramViewer({
               // on* handlers and javascript: URLs from the export before it is
               // written — a .drawio file from Drive can carry arbitrary label
               // HTML from whoever authored it.
-              dangerouslySetInnerHTML={{ __html: svg }}
+              dangerouslySetInnerHTML={artwork ?? undefined}
             />
           ) : (
             <div
