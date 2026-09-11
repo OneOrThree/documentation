@@ -9,13 +9,15 @@
     "id": "01-ia",
     "title": "IA · 정보 구조",
     "titleEn": "Information Architecture",
-    "summary": "화면이 어떤 계층으로 묶이는지. 홈에서 두 번 안에 닿을 수 있는 범위를 기준으로 나눴습니다."
+    "summary": "R61 · 섬 홈과 시설별 주요 기능을 살펴보고, 세부 기능을 누르면 모든 하위 항목이 펼쳐집니다.",
+    "format": "html"
   },
   {
     "id": "02-journey",
     "title": "유저 저니",
     "titleEn": "User Journey",
-    "summary": "설치부터 알림까지 한 바퀴. 비동기로 넘어가는 지점이 어디인지가 이 그림의 핵심입니다."
+    "summary": "R61 · 시작하기부터 집중, 성장과 섬 생활까지. 지도 아래에서 각 여정의 목표·행동·도달 상태를 확인할 수 있습니다.",
+    "format": "html"
   },
   {
     "id": "03-service",

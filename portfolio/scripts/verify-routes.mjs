@@ -21,11 +21,14 @@ const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 function readConfig() {
   const config = fs.readFileSync(path.join(ROOT, "site.config.ts"), "utf8");
   const slugs = [...config.matchAll(/slug:\s*"([^"]+)"/g)].map((m) => m[1]);
-  if (slugs.length === 0) throw new Error("No sections found in site.config.ts");
+  if (slugs.length === 0)
+    throw new Error("No sections found in site.config.ts");
 
   // Sections carrying `search: true` also publish a static index route; the
   // search box is dead without it, and nothing else would catch that.
-  const searchable = [...config.matchAll(/slug:\s*"([^"]+)"[\s\S]*?(?=\n  \{|\n\];)/g)]
+  const searchable = [
+    ...config.matchAll(/slug:\s*"([^"]+)"[\s\S]*?(?=\n  \{|\n\];)/g),
+  ]
     .filter((m) => /search:\s*true/.test(m[0]))
     .map((m) => m[1]);
 
@@ -51,6 +54,10 @@ function collectUrls() {
   if (fs.existsSync(manifestPath)) {
     for (const entry of JSON.parse(fs.readFileSync(manifestPath, "utf8"))) {
       urls.push(`/diagrams/${entry.id}`);
+      if (entry.format === "html") {
+        urls.push(`/diagrams/${entry.id}.html`);
+        continue;
+      }
       // The viewer is useless without these three, and they are produced by a
       // separate build step, so check them as routes in their own right.
       urls.push(`/diagrams/${entry.id}.svg`);

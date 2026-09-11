@@ -1,0 +1,3009 @@
+<!doctype html>
+<html lang="ko">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>GROMO · 전체 유저 저니</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font:
+        15px -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+      color: #36414e;
+      background: white;
+    }
+    header {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 26px;
+      border-bottom: 1px solid #e6e8eb;
+      background: white;
+    }
+    h1 {
+      font-size: 17px;
+      font-weight: 600;
+    }
+    a {
+      color: #526f89;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+    }
+    button {
+      background: white;
+      border: 1px solid #d6dbe0;
+      border-radius: 4px;
+      padding: 7px 11px;
+      font: inherit;
+      cursor: pointer;
+    }
+    #viewport {
+      height: calc(100vh - 62px);
+      overflow: auto;
+      background: white;
+    }
+    #canvas {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 100%;
+      min-height: 100%;
+    }
+    #canvas svg {
+      display: block;
+      flex-shrink: 0;
+    }
+    main {
+      padding: 32px;
+      max-width: 1900px;
+      margin: auto;
+      background: #fbfcfd;
+    }
+    article {
+      scroll-margin-top: 20px;
+      margin: 0 0 60px;
+      padding-top: 24px;
+      border-top: 1px dashed #aeb5bd;
+    }
+    h2 {
+      font-size: 24px;
+    }
+    .context {
+      line-height: 1.8;
+      margin: 20px 0;
+    }
+    .stages {
+      display: flex;
+      gap: 18px;
+    }
+    .scroll {
+      overflow: auto;
+      padding-bottom: 14px;
+    }
+    .stage {
+      flex: 1;
+      min-width: 240px;
+      background: white;
+      border: 1px solid #d4d9df;
+      padding: 16px;
+    }
+    .stage h3 {
+      background: #eff0f2;
+      padding: 12px;
+      margin: 0 0 18px;
+      font-size: 17px;
+    }
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #697785;
+    }
+    .stage p {
+      line-height: 1.7;
+      min-height: 64px;
+    }
+    .refs {
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .options {
+      border-left: 3px solid #bac9d7;
+      padding: 10px 18px;
+      line-height: 1.8;
+    }
+    .back {
+      font-size: 13px;
+    }
+    footer {
+      padding: 24px;
+      text-align: center;
+    }
+    header {
+      height: auto;
+      min-height: 62px;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+    }
+    nav {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid #526f89;
+      outline-offset: 3px;
+    }
+    #viewport {
+      height: calc(100dvh - 70px);
+      min-height: 300px;
+    }
+    @media (max-width: 600px) {
+      header {
+        padding: 12px;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0;
+      }
+      nav {
+        font-size: 12px;
+        gap: 10px;
+      }
+      main {
+        padding: 20px 12px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+    }
+    header {
+      justify-content: flex-end;
+    }
+  </style>
+  <header id="top">
+    <nav>
+      <button id="minus" aria-label="축소">−</button><span id="ratio"></span
+      ><button id="plus" aria-label="확대">+</button
+      ><button id="fit">전체 맞춤</button><a href="#details">상세 여정 ↓</a>
+    </nav>
+  </header>
+  <div id="viewport">
+    <div id="canvas">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 2480 1140"
+        role="img"
+        aria-label="GROMO 전체 사용자 여정"
+      >
+        <rect width="2480" height="1140" fill="white" />
+        <rect
+          x="209"
+          y="142"
+          width="360"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="224"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="234"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          1. 시작하기
+        </text>
+        <rect
+          x="579"
+          y="142"
+          width="730"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="594"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="604"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          2. 집중하는 동안
+        </text>
+        <rect
+          x="1319"
+          y="142"
+          width="1100"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="1334"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="1344"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          3. 성장과 섬 생활 · 목적별 선택
+        </text>
+        <rect
+          x="30"
+          y="283.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="306.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          목표
+        </text>
+        <rect
+          x="30"
+          y="431.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="454.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          행동
+        </text>
+        <rect
+          x="30"
+          y="602.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="625.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          터치포인트
+        </text>
+        <rect
+          x="30"
+          y="782.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="805.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          확정 규칙
+        </text>
+        <rect
+          x="30"
+          y="941.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="964.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          도달 상태
+        </text>
+        <rect
+          x="214"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          01 내 공간에서 시작
+        </text>
+        <rect
+          x="214"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          혼자 또는 기존 섬에서
+        </text>
+        <text
+          x="229"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 첫 집중을 시작한다.
+        </text>
+        <rect
+          x="214"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          혼자 시작할 섬 만들기
+        </text>
+        <text
+          x="229"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          또는 기존 섬에 참여하기
+        </text>
+        <text
+          x="229"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          현재 섬과 부두 확인
+        </text>
+        <text
+          x="229"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          할 일·집중 시간 설정
+        </text>
+        <rect
+          x="220"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#edf2fa"
+          stroke="#7ea2c4"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          첫 소속 선택
+        </text>
+        <rect
+          x="220"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf6ee"
+          stroke="#83b49b"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          섬 홈
+        </text>
+        <rect
+          x="220"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          부두 · 집중 설정
+        </text>
+        <rect
+          x="214"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="778.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          친구의 동시 접속은 필요 없음
+        </text>
+        <text
+          x="229"
+          y="806.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          처음에는 내 뗏목·부두·모닥불
+        </text>
+        <text
+          x="229"
+          y="833.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기존 섬은 현재 시설 상태 이용
+        </text>
+        <rect
+          x="214"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          첫 소속과 집중 목표를 정한다.
+        </text>
+        <text
+          x="229"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          첫 건설은 시작 조건이 아니다.
+        </text>
+        <a href="#p01">
+          <text
+            x="229"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 01
+          </text>
+        </a>
+        <rect
+          x="584"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          02 할 일에 집중
+        </text>
+        <rect
+          x="584"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          배 위 낚시 집중으로
+        </text>
+        <text
+          x="599"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 할 일에 시간을 쓴다.
+        </text>
+        <rect
+          x="584"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          낚시 집중 시작
+        </text>
+        <text
+          x="599"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          할 일에 집중하며 진행 확인
+        </text>
+        <text
+          x="599"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요할 때 짧은 소통
+        </text>
+        <text
+          x="599"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          건설된 축음기에서 음원 변경
+        </text>
+        <rect
+          x="590"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          부두 · 집중하기
+        </text>
+        <rect
+          x="590"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eef4e8"
+          stroke="#9eb87f"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          집중 화면의 축음기
+        </text>
+        <rect
+          x="584"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이모티콘5종 → 캐릭터 말풍선
+        </text>
+        <text
+          x="599"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중 중인 모두에게 잠시 표시
+        </text>
+        <text
+          x="599"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          음원은 그룹원 누구나 변경
+        </text>
+        <text
+          x="599"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          같은 섬이 함께 듣는 공동 소리
+        </text>
+        <rect
+          x="584"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중을 이어간다.
+        </text>
+        <text
+          x="599"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          소통과 음원 변경은 선택이다.
+        </text>
+        <a href="#p02">
+          <text
+            x="599"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 02 · 08
+          </text>
+        </a>
+        <rect
+          x="954"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          03 쉬거나 결과 확인
+        </text>
+        <rect
+          x="954"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요할 때 쉬고
+        </text>
+        <text
+          x="969"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이번 집중 결과를 확인한다.
+        </text>
+        <rect
+          x="954"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쉬고 싶으면 잠시 휴식 선택
+        </text>
+        <text
+          x="969"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          같은 모닥불로 이동해 쉬기
+        </text>
+        <text
+          x="969"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중을 마치면 결과 확인
+        </text>
+        <text
+          x="969"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기록·물고기·퀘스트 결과 구분
+        </text>
+        <rect
+          x="960"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          모닥불 · 휴식
+        </text>
+        <rect
+          x="960"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          집중 결과
+        </text>
+        <rect
+          x="960"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#faf3df"
+          stroke="#c6ad65"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          게시판 · 퀘스트 결과
+        </text>
+        <rect
+          x="954"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          휴식은 집중 중 선택 행동
+        </text>
+        <text
+          x="969"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          모닥불을 별도 장소로 중복하지 않음
+        </text>
+        <text
+          x="969"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          게시판 전 물고기는 섬 귀속
+        </text>
+        <text
+          x="969"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          게시판 이후 개인 집중은 개인 재화
+        </text>
+        <rect
+          x="954"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쉬는 모습 또는 완료 결과를 본다.
+        </text>
+        <text
+          x="969"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          휴식과 종료는 다른 선택이다.
+        </text>
+        <a href="#p02">
+          <text
+            x="969"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 02 · 04 · 05
+          </text>
+        </a>
+        <rect
+          x="1324"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          04 함께 시설을 열기
+        </text>
+        <rect
+          x="1324"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중과 퀘스트의 기여로
+        </text>
+        <text
+          x="1339"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          섬의 새 기능을 연다.
+        </text>
+        <rect
+          x="1324"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          섬 물고기로 회관 → 게시판
+        </text>
+        <text
+          x="1339"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          퀘스트 달성으로 마을 포인트
+        </text>
+        <text
+          x="1339"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관에서 다음 건물 선택
+        </text>
+        <text
+          x="1339"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          완성된 시설의 기능 이용
+        </text>
+        <rect
+          x="1330"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf6ee"
+          stroke="#83b49b"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          섬 홈 · 첫 건설
+        </text>
+        <rect
+          x="1330"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#faf3df"
+          stroke="#c6ad65"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          게시판 · 퀘스트
+        </text>
+        <rect
+          x="1330"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f1edfa"
+          stroke="#a697c1"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          마을회관 · 다음 건물
+        </text>
+        <rect
+          x="1324"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관 다음 게시판은 고정 순서
+        </text>
+        <text
+          x="1339"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이후 전망대·우체통·축음기 선택
+        </text>
+        <text
+          x="1339"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기100P · 게시판 이후 가능
+        </text>
+        <text
+          x="1339"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          전망대·우체통 뒤 마지막 NPC상점
+        </text>
+        <rect
+          x="1324"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          새 시설을 사용할 수 있다.
+        </text>
+        <text
+          x="1339"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기는 상점의 선행 조건이 아니다.
+        </text>
+        <a href="#p03">
+          <text
+            x="1339"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 03 · 04 · 05 · 06
+          </text>
+        </a>
+        <rect
+          x="1694"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          05 내 취향과 우리 살림
+        </text>
+        <rect
+          x="1694"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쌓은 재화로 산 물건을
+        </text>
+        <text
+          x="1709"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인과 섬에 맞게 사용한다.
+        </text>
+        <rect
+          x="1694"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 물고기로 옷·배 꾸밈 구매
+        </text>
+        <text
+          x="1709"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 배에서 옷·선체·소품 적용
+        </text>
+        <text
+          x="1709"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          마을 포인트로 공동 외양 구매
+        </text>
+        <text
+          x="1709"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          상점에서 섬·건물 테마 적용
+        </text>
+        <rect
+          x="1700"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f8ebee"
+          stroke="#c798a7"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          상점 · 개인 / 공동 상품
+        </text>
+        <rect
+          x="1700"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf4fb"
+          stroke="#8bb4cd"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          내 배 · 꾸미기
+        </text>
+        <rect
+          x="1700"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f8ebee"
+          stroke="#c798a7"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          상점 · ASMR
+        </text>
+        <rect
+          x="1694"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          상점 진입 시 두 재화 잔액 표시
+        </text>
+        <text
+          x="1709"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          뗏목 → 돛단배 → 배 업그레이드
+        </text>
+        <text
+          x="1709"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기 건설 후 상점에서ASMR 구매
+        </text>
+        <text
+          x="1709"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          모두 해금한 뒤에도 외양·소리 구매
+        </text>
+        <rect
+          x="1694"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="937.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 외양은 내 배에서 바꾼다.
+        </text>
+        <text
+          x="1709"
+          y="965.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          공동 외양과 소리는 섬에서 함께 쓴다
+        </text>
+        <text
+          x="1709"
+          y="992.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          .
+        </text>
+        <a href="#p07">
+          <text
+            x="1709"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 07 · 08 · 09
+          </text>
+        </a>
+        <rect
+          x="2064"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          06 이야기·기록·탐색
+        </text>
+        <rect
+          x="2064"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요한 순간에 그룹과 소통하고
+        </text>
+        <text
+          x="2079"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기록이나 다른 섬을 살펴본다.
+        </text>
+        <rect
+          x="2064"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          우체통에서 그룹 대화 읽고 쓰기
+        </text>
+        <text
+          x="2079"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관에서 집중·스크린타임 조회
+        </text>
+        <text
+          x="2079"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          전망대에서 다른 섬 탐색·이동
+        </text>
+        <text
+          x="2079"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          목적에 맞는 기능만 선택
+        </text>
+        <rect
+          x="2070"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fbeee6"
+          stroke="#d1a288"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          우체통 · 그룹 편지방
+        </text>
+        <rect
+          x="2070"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f1edfa"
+          stroke="#a697c1"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          마을회관 · 통계
+        </text>
+        <rect
+          x="2070"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#e8f5f6"
+          stroke="#8bbcc0"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          전망대 · 다른 섬
+        </text>
+        <rect
+          x="2064"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          편지 감성의 그룹 전체 채팅방
+        </text>
+        <text
+          x="2079"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 수신자 선택 없음
+        </text>
+        <text
+          x="2079"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          통계에서 두 기록 유형 제공
+        </text>
+        <text
+          x="2079"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          다른 섬 이동은 전망대 해금 필요
+        </text>
+        <rect
+          x="2064"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="937.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          대화·기록·탐색은 각각 선택한다.
+        </text>
+        <text
+          x="2079"
+          y="965.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중 후 필수로 거치는 코스는 아니다
+        </text>
+        <text
+          x="2079"
+          y="992.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          .
+        </text>
+        <a href="#p10">
+          <text
+            x="2079"
+            y="1067.375"
+            font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+            font-size="15"
+            font-weight="400"
+            fill="#36414e"
+            text-anchor="start"
+          >
+            상세 10 · 11 · 12
+          </text>
+        </a>
+      </svg>
+    </div>
+  </div>
+  <main id="details">
+    <h2>상세 여정</h2>
+    <p>
+      전체 경험을 목적별12개 여정으로 풀었습니다. 아래에 모두 펼쳐져 있습니다.
+    </p>
+    <article id="p01" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>첫 소속에서 내 첫 집중하기</h2>
+      <div class="context">
+        처음 집중을 시작하는 사용자<br />시작: 집중할 섬이 필요함 → 완료: 선택한
+        섬에서 자신의 첫 집중을 마침<br />시간: 첫 소속 선택 → 첫 집중<br /><b
+          >혼자 집중할 수 있다. 기존 섬에 참여한 사람에게 초기 건설을 다시
+          요구하지 않는다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>내 소속을 선택함</h3>
+            <div class="label">목표</div>
+            <p>집중할 공간을 정한다.</p>
+            <div class="label">행동</div>
+            <p>혼자 시작할 섬을 만들거나 기존 섬에 참여한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중할 섬이 정해진다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=on5"
+                >첫 섬 선택</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=on5a"
+                >혼자 시작할 섬 만들기</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=on5b"
+                >기존 섬 참여</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>현재 섬에 들어감</h3>
+            <div class="label">목표</div>
+            <p>지금 사용할 공간을 확인한다.</p>
+            <div class="label">행동</div>
+            <p>섬 홈에서 내 배·부두·모닥불과 현재 열린 시설을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>새 섬과 기존 섬의 현재 상태를 구분한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=plaza"
+                >섬 홈</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=rt1"
+                >내 배</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>할 일을 정함</h3>
+            <div class="label">목표</div>
+            <p>내 집중의 목표를 정한다.</p>
+            <div class="label">행동</div>
+            <p>부두에서 할 일·목표 시간을 설정한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중을 시작할 준비가 된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo1"
+                >집중 설정</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>집중하고 결과를 봄</h3>
+            <div class="label">목표</div>
+            <p>실제로 한 집중을 확인한다.</p>
+            <div class="label">행동</div>
+            <p>집중을 시작하고 마친 뒤 기록과 물고기 획득을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>첫 집중 결과를 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo2"
+                >집중하기</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo3"
+                >집중 결과</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p>
+          <b>소속 선택</b> — 혼자 시작 → 새 섬 / 기존 섬 참여 → 해당 섬. 두
+          경로는 선택지다.
+        </p>
+        <p>
+          <b>보상 귀속</b> — 게시판 완성 전 집중 물고기는 섬 귀속, 완성 이후
+          개인 집중 물고기는 개인 재화다.
+        </p>
+      </div>
+    </article>
+    <article id="p02" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>오늘 집중하고 결과 확인하기</h2>
+      <div class="context">
+        집중하려는 주민 한 명<br />시작: 오늘 할 일이 있음 → 완료: 이번 집중
+        결과를 확인<br />시간: 한 집중 세션 · 선택 행동은 본선과 분리<br /><b
+          >휴식·이모티콘·음원 변경을 하지 않아도 집중을 진행할 수 있다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>오늘의 목표를 정함</h3>
+            <div class="label">목표</div>
+            <p>내가 할 집중을 준비한다.</p>
+            <div class="label">행동</div>
+            <p>부두에서 할 일과 집중 시간을 설정한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중할 목표가 정해진다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo1"
+                >집중 설정</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>집중을 시작함</h3>
+            <div class="label">목표</div>
+            <p>할 일에 시간을 쓴다.</p>
+            <div class="label">행동</div>
+            <p>배 위 낚시 집중을 시작한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중과 낚시가 진행된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo2"
+                >집중하기</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>집중을 이어감</h3>
+            <div class="label">목표</div>
+            <p>진행 중인 집중을 유지한다.</p>
+            <div class="label">행동</div>
+            <p>집중을 진행하며 필요한 경우 아래 선택 행동을 이용한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중 화면에서 현재 진행을 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo2"
+                >집중하기</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>집중을 마침</h3>
+            <div class="label">목표</div>
+            <p>이번 결과를 확인한다.</p>
+            <div class="label">행동</div>
+            <p>종료 후 집중 기록·물고기 획득량·관련 퀘스트 결과를 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>개인 집중 결과와 퀘스트 결과를 구분한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo3"
+                >집중 결과</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd5"
+                >지난 결과</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p>
+          <b>잠시 휴식</b> — 집중 중 버튼 선택 → 섬 홈의 동일한 모닥불로 이동 →
+          쉬는 모습 표시.
+        </p>
+        <p>
+          <b>이모티콘 소통</b> — 5종 중 선택 → 내 캐릭터 위 말풍선 → 같은 섬에서
+          집중 중인 모두에게 표시 → 몇 초 후 사라짐.
+        </p>
+        <p>
+          <b>공동 음원 변경</b> — 축음기 건설 후 집중 화면에서 표시. 그룹원
+          누구나 보유 음원을 변경하면 같은 섬이 함께 듣는다.
+        </p>
+      </div>
+    </article>
+    <article id="p03" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>빈 섬에서 회관·게시판까지</h2>
+      <div class="context">
+        건물이 없는 섬에서 집중하는 주민<br />시작: 모닥불·부두·개인 뗏목으로
+        시작 → 완료: 게시판이 생기고 이후 재화 구조를 이해<br />시간: 여러
+        집중과 건설에 걸친 성장<br /><b
+          >마을회관이 먼저, 게시판이 그다음이다. 게시판은 회관의 선택 건물
+          목록에서 고르는 시설이 아니다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>첫 공동 집중을 보탬</h3>
+            <div class="label">목표</div>
+            <p>첫 시설을 위한 재화를 모은다.</p>
+            <div class="label">행동</div>
+            <p>섬에서 집중하고 낚시로 물고기를 가져온다.</p>
+            <div class="label">확인 결과</div>
+            <p>게시판 전 물고기는 모두 섬에 귀속된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo1"
+                >집중 설정</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo3"
+                >집중 결과</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>마을회관이 생김</h3>
+            <div class="label">목표</div>
+            <p>처음 열린 시설을 이용한다.</p>
+            <div class="label">행동</div>
+            <p>첫 시설인 마을회관이 해금된 뒤 이용한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중 기록·스크린타임 기록을 회관 통계에서 볼 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh1"
+                >마을회관</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh2"
+                >통계</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>다음 게시판을 지음</h3>
+            <div class="label">목표</div>
+            <p>정해진 다음 시설을 연다.</p>
+            <div class="label">행동</div>
+            <p>회관 다음 순서로 게시판을 짓는다.</p>
+            <div class="label">확인 결과</div>
+            <p>게시판의 퀘스트를 이용할 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=plaza"
+                >섬 홈</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd1"
+                >게시판</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>이후 보상을 구분함</h3>
+            <div class="label">목표</div>
+            <p>개인 재화와 공동 포인트를 이해한다.</p>
+            <div class="label">행동</div>
+            <p>
+              이후 개인 집중으로 물고기를 얻고 퀘스트 달성으로 마을 포인트를
+              얻는다.
+            </p>
+            <div class="label">확인 결과</div>
+            <p>개인 물고기와 마을 포인트가 다른 경로로 쌓인다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo3"
+                >집중 결과</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd5"
+                >지난 결과</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+    <article id="p04" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>집중 퀘스트로 마을 포인트 얻기</h2>
+      <div class="context">
+        집중 퀘스트를 이용하는 주민<br />시작: 게시판 해금 후 퀘스트에 참여하려
+        함 → 완료: 달성 결과와 마을 포인트 확인<br />시간: 선택한 집중 퀘스트의
+        조건에 따른 진행<br /><b
+          >하루 폰 사용 퀘스트는 별도05다. 두 유형을 순서대로 모두 수행하는
+          흐름이 아니다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>퀘스트를 살펴봄</h3>
+            <div class="label">목표</div>
+            <p>나에게 맞는 조건을 찾는다.</p>
+            <div class="label">행동</div>
+            <p>게시판에서 집중 퀘스트를 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>기간·목표 등 참여 조건을 본다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd2"
+                >집중·폰 사용 퀘스트 목록</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd3"
+                >퀘스트 상세</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>조건에 맞춰 참여함</h3>
+            <div class="label">목표</div>
+            <p>퀘스트의 집중 목표를 수행한다.</p>
+            <div class="label">행동</div>
+            <p>퀘스트에 참여하고 부두에서 집중한다.</p>
+            <div class="label">확인 결과</div>
+            <p>개인 집중과 퀘스트 진행을 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd3"
+                >퀘스트 상세</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo1"
+                >집중 설정</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=fo2"
+                >집중하기</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>달성 결과를 확인함</h3>
+            <div class="label">목표</div>
+            <p>공동 보상의 결과를 안다.</p>
+            <div class="label">행동</div>
+            <p>퀘스트 결과를 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>퀘스트 달성은 마을 포인트로 연결된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd5"
+                >지난 결과</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>공동 자원을 확인함</h3>
+            <div class="label">목표</div>
+            <p>섬에 쌓인 재화를 확인한다.</p>
+            <div class="label">행동</div>
+            <p>회관에서 공동 자원 내역을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>다음 건설에 사용할 공동 자원 내역을 본다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh4"
+                >공동 자원 장부</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+    <article id="p05" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>하루 폰 사용 퀘스트 달성하기</h2>
+      <div class="context">
+        하루 폰 사용 퀘스트를 이용하는 주민<br />시작: 게시판 해금 후 하루 사용
+        목표에 참여하려 함 → 완료: 하루 사용 조건에 대한 결과 확인<br />시간:
+        하루 사용 → 해당 퀘스트 결과 확인<br /><b
+          >집중 세션 종료와 하루 사용 결과를 같은 시점으로 연결하지 않는다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>하루 조건을 확인함</h3>
+            <div class="label">목표</div>
+            <p>참여할 사용 목표를 안다.</p>
+            <div class="label">행동</div>
+            <p>게시판에서 하루 폰 사용 퀘스트 조건을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>하루 기준으로 달성할 목표를 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd2"
+                >집중·폰 사용 퀘스트 목록</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd3"
+                >퀘스트 상세</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>하루 동안 실천함</h3>
+            <div class="label">목표</div>
+            <p>폰 사용 목표를 수행한다.</p>
+            <div class="label">행동</div>
+            <p>선택한 조건에 맞춰 하루 폰 사용을 조절한다.</p>
+            <div class="label">확인 결과</div>
+            <p>일상의 폰 사용이 목표의 대상이 된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd3"
+                >퀘스트 상세</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>결과를 확인함</h3>
+            <div class="label">목표</div>
+            <p>하루 목표 달성 여부를 안다.</p>
+            <div class="label">행동</div>
+            <p>해당 퀘스트의 결과가 제공되면 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>달성 결과에 따라 마을 포인트를 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd5"
+                >지난 결과</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>기록을 돌아봄</h3>
+            <div class="label">목표</div>
+            <p>실제 사용 기록을 본다.</p>
+            <div class="label">행동</div>
+            <p>필요할 때 회관에서 스크린타임 기록을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>퀘스트 결과와 사용 기록을 구분해 볼 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh2"
+                >통계</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+    <article id="p06" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>다음 시설 선택부터 새 기능 이용까지</h2>
+      <div class="context">
+        게시판 이후 섬 성장에 참여하는 주민<br />시작: 다음에 열 시설을 정하려
+        함 → 완료: 완성한 시설의 기능을 이용<br />시간: 공동 목표 선택 → 퀘스트
+        기여 → 시설 이용<br /><b>주민의 성장 경험과 시설 이용을 설명한다.</b>
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>다음 목표를 확인함</h3>
+            <div class="label">목표</div>
+            <p>정해진 시설 중 다음 목표를 고른다.</p>
+            <div class="label">행동</div>
+            <p>마을회관의 다음 건물 선택에서 대상 시설을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>전망대·우체통·축음기가 선택 목록에 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh5"
+                >다음 건물 선택</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>공동 재화를 모음</h3>
+            <div class="label">목표</div>
+            <p>건설에 필요한 포인트를 보탠다.</p>
+            <div class="label">행동</div>
+            <p>퀘스트를 달성해 마을 포인트를 모은다.</p>
+            <div class="label">확인 결과</div>
+            <p>공동 자원이 쌓인다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=bd5"
+                >지난 결과</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh4"
+                >공동 자원 장부</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>선택한 시설을 완성함</h3>
+            <div class="label">목표</div>
+            <p>새로운 기능을 연다.</p>
+            <div class="label">행동</div>
+            <p>모은 마을 포인트로 해당 시설을 건설한다.</p>
+            <div class="label">확인 결과</div>
+            <p>완성된 시설을 이용할 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh5"
+                >다음 건물 선택</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>필요한 기능을 이용함</h3>
+            <div class="label">목표</div>
+            <p>건설의 결과를 경험한다.</p>
+            <div class="label">행동</div>
+            <p>
+              열린 시설에서 다른 섬 탐색·그룹 대화·공동 소리 등 해당 기능을
+              이용한다.
+            </p>
+            <div class="label">확인 결과</div>
+            <p>기여가 실제 이용 경험으로 이어진다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=ob0"
+                >전망대</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=po1"
+                >우체통</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=gr2"
+                >집중 화면의 축음기</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p>
+          <b>축음기</b> — 게시판 이후 선택 가능. 건설 비용100 마을 포인트.
+          상점보다 먼저 건설할 수 있으며 상점 건설의 선행 조건은 아니다.
+        </p>
+        <p>
+          <b>이용 순서</b> — 각 시설은 완성 후 이용한다. 모든 중간 시설을
+          이용해야 마지막 상점을 건설하는 것은 아니다.
+        </p>
+        <p>
+          <b>마지막 상점</b> — 전망대·우체통 완성 후 마지막 상점을 건설한다.
+          번영한 섬에 상점 운영 NPC가 이사온다.
+        </p>
+      </div>
+    </article>
+    <article id="p07" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>상점에서 사고 내 배에서 꾸미기</h2>
+      <div class="context">
+        개인 꾸밈 상품을 구매하는 주민<br />시작: 상점에서 개인 물고기를
+        사용하려 함 → 완료: 산 물건을 내 배에서 적용<br />시간: 구매 → 장소 이동
+        → 적용<br /><b
+          >캐릭터 꾸미기·배 소품·배 업그레이드는 선택지다. 전부 구매할 필요는
+          없다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>내 상품을 고름</h3>
+            <div class="label">목표</div>
+            <p>원하는 개인 모습을 찾는다.</p>
+            <div class="label">행동</div>
+            <p>상점에서 개인 물고기 잔액과 내 꾸미기 상품을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>의상·배 꾸밈·업그레이드 중 원하는 상품을 고른다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp1"
+                >상점</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp2"
+                >개인 상품 목록</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp9"
+                >배 업그레이드</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>개인 재화로 구매함</h3>
+            <div class="label">목표</div>
+            <p>선택한 상품을 얻는다.</p>
+            <div class="label">행동</div>
+            <p>개인 물고기로 해당 상품을 구매한다.</p>
+            <div class="label">확인 결과</div>
+            <p>개인 보유품에 추가된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp6"
+                >구매 확인·결과</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp7"
+                >내 구매품 조회</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>내 배로 이동함</h3>
+            <div class="label">목표</div>
+            <p>구매품을 바꿀 장소에 간다.</p>
+            <div class="label">행동</div>
+            <p>내 배의 내 꾸미기를 연다.</p>
+            <div class="label">확인 결과</div>
+            <p>보유한 개인 꾸밈 요소를 선택한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=rt4"
+                >내 꾸미기·보유품</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>옷이나 배를 바꿈</h3>
+            <div class="label">목표</div>
+            <p>구매한 외양을 적용한다.</p>
+            <div class="label">행동</div>
+            <p>옷을 갈아입거나 배 꾸밈 요소·보유 선체를 적용한다.</p>
+            <div class="label">확인 결과</div>
+            <p>개인의 모습에 취향이 반영된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=rt5"
+                >옷 갈아입기</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=rt6"
+                >내 배 꾸미기·선체 선택</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p><b>배 성장</b> — 뗏목 → 돛단배 → 배로 업그레이드할 수 있다.</p>
+      </div>
+    </article>
+    <article id="p08" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>축음기로 함께 듣기</h2>
+      <div class="context">
+        섬의 공동 소리를 이용하는 주민<br />시작: 함께 들을 소리를 이용하려 함 →
+        완료: 같은 섬이 선택된 소리를 함께 들음<br />시간: 축음기 건설 → 소리
+        이용 · 추가 음원은 상점 해금 후<br /><b
+          >축음기 건설과 ASMR 구매는 서로 다른 장소에서 한다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>축음기를 선택함</h3>
+            <div class="label">목표</div>
+            <p>공동 재생을 열 준비를 한다.</p>
+            <div class="label">행동</div>
+            <p>게시판 이후 회관의 다음 건물 선택에서 축음기를 고른다.</p>
+            <div class="label">확인 결과</div>
+            <p>100 마을 포인트로 건설할 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh5"
+                >다음 건물 선택</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>축음기를 건설함</h3>
+            <div class="label">목표</div>
+            <p>공동 소리를 사용할 장치를 연다.</p>
+            <div class="label">행동</div>
+            <p>마을 포인트로 축음기를 건설한다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중 화면에서도 축음기가 보인다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh5"
+                >다음 건물 선택</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=gr2"
+                >집중 화면의 축음기</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>추가 소리를 구매함</h3>
+            <div class="label">목표</div>
+            <p>함께 들을 음원을 늘린다.</p>
+            <div class="label">행동</div>
+            <p>상점이 열린 뒤 축음기 건설 상태에서 ASMR을 구매한다.</p>
+            <div class="label">확인 결과</div>
+            <p>섬이 사용할 음원을 보유한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp4"
+                >우리 섬의 소리 · ASMR</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>집중 중 함께 들음</h3>
+            <div class="label">목표</div>
+            <p>선택한 소리를 공유한다.</p>
+            <div class="label">행동</div>
+            <p>
+              그룹원 누구나 집중 화면의 축음기에서 보유 음원을 선택·변경한다.
+            </p>
+            <div class="label">확인 결과</div>
+            <p>한 사람이 바꾼 소리를 같은 섬이 함께 듣는다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=gr2"
+                >집중 화면의 축음기</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p>
+          <b>이미 건설·보유한 경우</b> — 축음기와 음원이 있으면 건설·구매를
+          반복하지 않고 공동 재생을 이용한다.
+        </p>
+        <p><b>상점이 없는 경우</b> — 추가 ASMR 구매는 상점 해금 이후다.</p>
+      </div>
+    </article>
+    <article id="p09" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>상점에서 우리 섬 외양 바꾸기</h2>
+      <div class="context">
+        공동 외양을 이용하는 주민<br />시작: 상점 해금 후 섬 분위기를 바꾸려 함
+        → 완료: 구매한 공동 외양을 적용한 섬을 경험<br />시간: 공동 상품 선택 →
+        구매·적용<br /><b
+          >전체 시설 해금 후에도 마을 포인트로 섬·건물 외양과 소리를 구매할 수
+          있다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>공동 상품을 살펴봄</h3>
+            <div class="label">목표</div>
+            <p>함께 사용할 외양을 찾는다.</p>
+            <div class="label">행동</div>
+            <p>상점에서 현재 섬 마을 포인트와 우리 섬 꾸미기 상품을 본다.</p>
+            <div class="label">확인 결과</div>
+            <p>개인 재화와 공동 재화를 구분한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp1"
+                >상점</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp3"
+                >섬·건물 테마 목록</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>외양을 구매함</h3>
+            <div class="label">목표</div>
+            <p>원하는 섬 분위기를 얻는다.</p>
+            <div class="label">행동</div>
+            <p>마을 포인트로 섬 외양 또는 건물 외양 테마를 구매한다.</p>
+            <div class="label">확인 결과</div>
+            <p>해당 섬의 공동 꾸밈 상품을 보유한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp3"
+                >섬·건물 테마 목록</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp6"
+                >구매 확인·결과</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>상점에서 적용함</h3>
+            <div class="label">목표</div>
+            <p>공동 외양을 실제로 바꾼다.</p>
+            <div class="label">행동</div>
+            <p>상점에서 보유한 공동 외양을 적용한다.</p>
+            <div class="label">확인 결과</div>
+            <p>섬 또는 선택한 건물의 모습이 바뀐다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=sp8"
+                >섬 보유품·공동 외양 적용</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>바뀐 섬을 경험함</h3>
+            <div class="label">목표</div>
+            <p>공동 구매의 결과를 본다.</p>
+            <div class="label">행동</div>
+            <p>섬에서 달라진 외양을 함께 본다.</p>
+            <div class="label">확인 결과</div>
+            <p>우리 섬의 취향이 공간에 반영된다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=plaza"
+                >섬 홈</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+    <article id="p10" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>우체통에서 그룹 전체와 대화하기</h2>
+      <div class="context">
+        우체통이 열린 섬의 주민<br />시작: 그룹의 이야기를 읽거나 글을 남기려 함
+        → 완료: 그룹 전체 대화를 읽거나 메시지를 남김<br />시간: 대화 읽기 ·
+        작성은 선택<br /><b
+          >우체통은 편지 감성의 그룹 전체 채팅방이다. 1:1 수신자 선택은 없다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>우리 섬 편지방에 들어감</h3>
+            <div class="label">목표</div>
+            <p>그룹의 대화를 찾는다.</p>
+            <div class="label">행동</div>
+            <p>우체통에서 우리 섬 편지방을 연다.</p>
+            <div class="label">확인 결과</div>
+            <p>그룹 전체가 함께 사용하는 대화 공간에 들어간다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=po1"
+                >우체통</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>전체 대화를 읽음</h3>
+            <div class="label">목표</div>
+            <p>그룹원들의 이야기를 본다.</p>
+            <div class="label">행동</div>
+            <p>편지 감성으로 표현된 그룹 메시지를 읽는다.</p>
+            <div class="label">확인 결과</div>
+            <p>전체 대화 내용을 확인한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=po1"
+                >우체통</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>글을 남김</h3>
+            <div class="label">목표</div>
+            <p>내 이야기를 그룹에 전한다.</p>
+            <div class="label">행동</div>
+            <p>글을 작성해 그룹 전체에 보낸다.</p>
+            <div class="label">확인 결과</div>
+            <p>그룹원 전체가 볼 수 있는 대화에 내 글이 더해진다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=po2"
+                >편지 쓰기</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="options">
+        <b>선택 경로 · 조건별 이용</b>
+        <p>
+          <b>읽기만 하는 경우</b> — 전체 대화를 읽는 것으로 완료할 수 있다. 글
+          작성과 응답 대기는 필수가 아니다.
+        </p>
+      </div>
+    </article>
+    <article id="p11" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>마을회관에서 두 기록 돌아보기</h2>
+      <div class="context">
+        내 기록을 확인하려는 주민<br />시작: 집중 또는 폰 사용 기록을 보고 싶음
+        → 완료: 필요한 기록을 찾아 확인<br />시간: 필요할 때 기록 조회<br /><b
+          >통계는 마을회관에 있다. 통계 조회 뒤 랭킹·퀘스트·집중을 강제로
+          연결하지 않는다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>통계에 들어감</h3>
+            <div class="label">목표</div>
+            <p>기록을 볼 장소를 찾는다.</p>
+            <div class="label">행동</div>
+            <p>마을회관에서 통계를 연다.</p>
+            <div class="label">확인 결과</div>
+            <p>집중 기록과 스크린타임 기록을 선택할 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh1"
+                >마을회관</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh2"
+                >통계</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>보고 싶은 기록을 고름</h3>
+            <div class="label">목표</div>
+            <p>확인할 기록 유형을 정한다.</p>
+            <div class="label">행동</div>
+            <p>집중 기록 또는 스크린타임 기록을 선택한다.</p>
+            <div class="label">확인 결과</div>
+            <p>선택한 유형의 기록을 본다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh2"
+                >통계</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>기록을 확인함</h3>
+            <div class="label">목표</div>
+            <p>내가 확인하려던 내용을 본다.</p>
+            <div class="label">행동</div>
+            <p>선택한 기록과 기간을 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>내 집중 또는 폰 사용 기록을 돌아본다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=vh2"
+                >통계</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+    <article id="p12" class="">
+      <a class="back" href="#top">↑ 전체 지도</a>
+      <h2>전망대에서 다른 섬 탐색하기</h2>
+      <div class="context">
+        다른 섬을 보려는 주민<br />시작: 다른 섬에 가고 싶음 → 완료: 선택한 다른
+        섬을 탐색·방문<br />시간: 목적지 탐색 → 이동<br /><b
+          >전망대가 있어야 다른 섬으로 갈 수 있다. 내 배·부두에 별도 탐색 경로를
+          추가하지 않는다.</b
+        >
+      </div>
+      <div class="scroll">
+        <div class="stages">
+          <section class="stage">
+            <h3>전망대에 들어감</h3>
+            <div class="label">목표</div>
+            <p>다른 섬을 찾을 경로에 간다.</p>
+            <div class="label">행동</div>
+            <p>전망대의 다른 섬 탐색·이동 기능을 연다.</p>
+            <div class="label">확인 결과</div>
+            <p>목적지를 탐색할 수 있다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=ob0"
+                >전망대</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>목적지를 찾음</h3>
+            <div class="label">목표</div>
+            <p>갈 섬을 선택한다.</p>
+            <div class="label">행동</div>
+            <p>내 소속 섬이나 섬 찾기에서 목적지를 확인한다.</p>
+            <div class="label">확인 결과</div>
+            <p>방문할 섬을 선택한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=hb1"
+                >내 소속 섬</a
+              >
+              ·
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=hb2"
+                >섬 찾기</a
+              >
+            </div>
+          </section>
+          <section class="stage">
+            <h3>다른 섬으로 이동함</h3>
+            <div class="label">목표</div>
+            <p>새 공간을 살펴본다.</p>
+            <div class="label">행동</div>
+            <p>선택한 섬으로 이동해 구경한다.</p>
+            <div class="label">확인 결과</div>
+            <p>다른 섬의 공간을 경험한다.</p>
+            <div class="refs">
+              <a target="_blank" rel="noopener" href="01-ia.html#focus=hb3"
+                >다른 섬 구경</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+  <script>
+    const svg = document.querySelector("#canvas svg"),
+      view = document.querySelector("#viewport"),
+      can = document.querySelector("#canvas");
+    let zoom = 1;
+    function fit() {
+      zoom = Math.min(view.clientWidth / 2480, view.clientHeight / 1140);
+      render();
+    }
+    function render() {
+      svg.style.width = 2480 * zoom + "px";
+      svg.style.height = 1140 * zoom + "px";
+      can.style.width = Math.max(view.clientWidth, 2480 * zoom) + "px";
+      can.style.height = Math.max(view.clientHeight, 1140 * zoom) + "px";
+      document.querySelector("#ratio").textContent =
+        Math.round(zoom * 100) + "%";
+    }
+    document.querySelector("#fit").onclick = fit;
+    document.querySelector("#plus").onclick = () => {
+      zoom = Math.min(2, zoom * 1.25);
+      render();
+    };
+    document.querySelector("#minus").onclick = () => {
+      zoom = Math.max(0.15, zoom / 1.25);
+      render();
+    };
+    window.addEventListener("resize", fit);
+    fit();
+  </script>
+</html>

@@ -73,11 +73,26 @@ function build(entry, i) {
     );
   }
 
+  if (entry.format === "html") {
+    const htmlPath = path.join(SRC_DIR, `${id}.html`);
+    if (!fs.existsSync(htmlPath)) {
+      throw new DiagramError(
+        `Missing diagrams/${id}.html for diagram "${id}".`,
+      );
+    }
+    fs.copyFileSync(htmlPath, path.join(OUT_DIR, `${id}.html`));
+    console.log(`[diagrams] ${id}: HTML → public/diagrams/`);
+    return entry;
+  }
+
   const xmlPath = path.join(SRC_DIR, `${id}.drawio.xml`);
   const svgPath = path.join(SRC_DIR, `${id}.svg`);
   for (const [p, hint] of [
     [xmlPath, "draw.io → File → Save as → .drawio (XML)"],
-    [svgPath, "draw.io → File → Export as → SVG (uncheck 'Include a copy of my diagram')"],
+    [
+      svgPath,
+      "draw.io → File → Export as → SVG (uncheck 'Include a copy of my diagram')",
+    ],
   ]) {
     if (!fs.existsSync(p)) {
       throw new DiagramError(
@@ -87,7 +102,10 @@ function build(entry, i) {
   }
 
   const rawSvg = fs.readFileSync(svgPath, "utf8");
-  const { graph, cellOwners } = parseDrawio(fs.readFileSync(xmlPath, "utf8"), id);
+  const { graph, cellOwners } = parseDrawio(
+    fs.readFileSync(xmlPath, "utf8"),
+    id,
+  );
   const size = readIntrinsicSize(rawSvg);
   const { svg, annotated } = annotateSvg(rawSvg, graph, id, cellOwners);
 
@@ -146,7 +164,8 @@ function parseDrawio(xml, id) {
     let owner = cell;
     const visited = new Set();
     while (owner && !owner.connectable) {
-      if (visited.has(owner.id)) throw new DiagramError(`${id}: cyclic cell parent ${owner.id}`);
+      if (visited.has(owner.id))
+        throw new DiagramError(`${id}: cyclic cell parent ${owner.id}`);
       visited.add(owner.id);
       owner = byId.get(owner.parent);
     }
@@ -162,8 +181,12 @@ function parseDrawio(xml, id) {
       edges.push({
         id: cell.id,
         label: cell.label,
-        source: cellOwners.has(cell.source) ? cellOwners.get(cell.source) : cell.source ?? null,
-        target: cellOwners.has(cell.target) ? cellOwners.get(cell.target) : cell.target ?? null,
+        source: cellOwners.has(cell.source)
+          ? cellOwners.get(cell.source)
+          : (cell.source ?? null),
+        target: cellOwners.has(cell.target)
+          ? cellOwners.get(cell.target)
+          : (cell.target ?? null),
       });
     } else if (cell.vertex && cell.connectable) {
       nodes.push({ id: cell.id, label: cell.label });
@@ -184,13 +207,23 @@ function parseDrawio(xml, id) {
     let parent = byId.get(node.id)?.parent;
     const visited = new Set([node.id]);
     while (parent && !ROOT_CELL_IDS.has(parent)) {
-      if (visited.has(parent)) throw new DiagramError(`${id}: cyclic cell parent ${parent}`);
+      if (visited.has(parent))
+        throw new DiagramError(`${id}: cyclic cell parent ${parent}`);
       visited.add(parent);
       if (nodeIds.has(parent)) (groups[parent] ??= []).push(node.id);
       parent = byId.get(parent)?.parent;
     }
   }
-  return { graph: { id, nodes, edges, adjacency: buildAdjacency(nodes, edges), groups }, cellOwners };
+  return {
+    graph: {
+      id,
+      nodes,
+      edges,
+      adjacency: buildAdjacency(nodes, edges),
+      groups,
+    },
+    cellOwners,
+  };
 }
 
 /** draw.io stores a page either as inline XML or deflate+base64 text. */
@@ -214,7 +247,10 @@ function resolveModel(diagram, parser, id) {
   }
 
   const model = parser.parse(inner)?.mxGraphModel;
-  if (!model) throw new DiagramError(`${id}.drawio.xml: inflated model had no <mxGraphModel>.`);
+  if (!model)
+    throw new DiagramError(
+      `${id}.drawio.xml: inflated model had no <mxGraphModel>.`,
+    );
   return model;
 }
 
@@ -246,10 +282,13 @@ function readCell(cell, id, value) {
     label: cleanLabel(value),
     vertex: cell["@_vertex"] === "1",
     connectable: cell["@_connectable"] !== "0",
-    parent: cell["@_parent"] !== undefined ? String(cell["@_parent"]) : undefined,
+    parent:
+      cell["@_parent"] !== undefined ? String(cell["@_parent"]) : undefined,
     edge: cell["@_edge"] === "1",
-    source: cell["@_source"] !== undefined ? String(cell["@_source"]) : undefined,
-    target: cell["@_target"] !== undefined ? String(cell["@_target"]) : undefined,
+    source:
+      cell["@_source"] !== undefined ? String(cell["@_source"]) : undefined,
+    target:
+      cell["@_target"] !== undefined ? String(cell["@_target"]) : undefined,
   };
 }
 
@@ -271,7 +310,9 @@ function cleanLabel(value) {
 
 /** Undirected 1-hop neighbours, plus the edges that justify each link. */
 function buildAdjacency(nodes, edges) {
-  const adj = Object.fromEntries(nodes.map((n) => [n.id, { nodes: [], edges: [] }]));
+  const adj = Object.fromEntries(
+    nodes.map((n) => [n.id, { nodes: [], edges: [] }]),
+  );
 
   for (const e of edges) {
     if (!e.source || !e.target) continue;
@@ -336,7 +377,10 @@ function annotateSvg(rawSvg, graph, id, cellOwners) {
 
   // Fail loudly. A diagram that renders but cannot be clicked is exactly the
   // failure mode both clones shipped, and it is invisible in a screenshot.
-  if (seen.vertices.size !== graph.nodes.length || seen.edges.size !== graph.edges.length) {
+  if (
+    seen.vertices.size !== graph.nodes.length ||
+    seen.edges.size !== graph.edges.length
+  ) {
     throw new DiagramError(
       `${id}.svg: incomplete XML join (${seen.vertices.size}/${graph.nodes.length} nodes, ${seen.edges.size}/${graph.edges.length} edges).\n` +
         `  The SVG needs data-cell-id attributes. Re-export from draw.io with\n` +
@@ -346,7 +390,10 @@ function annotateSvg(rawSvg, graph, id, cellOwners) {
   }
 
   svg = makeResponsive(svg, id);
-  return { svg, annotated: { vertices: seen.vertices.size, edges: seen.edges.size } };
+  return {
+    svg,
+    annotated: { vertices: seen.vertices.size, edges: seen.edges.size },
+  };
 }
 
 /** Merge attributes into an existing tag, adding `dg-cell` to any class. */
@@ -397,7 +444,10 @@ function readIntrinsicSize(svg) {
 
   const viewBox = /\sviewBox="([^"]*)"/.exec(tag);
   if (viewBox) {
-    const parts = viewBox[1].trim().split(/[\s,]+/).map(Number);
+    const parts = viewBox[1]
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
     if (parts.length === 4 && parts.every(Number.isFinite)) {
       return { width: Math.round(parts[2]), height: Math.round(parts[3]) };
     }
@@ -414,7 +464,8 @@ function makeResponsive(svg, id) {
     if (!viewBox) {
       const w = /\bwidth="([\d.]+)/.exec(out);
       const h = /\bheight="([\d.]+)/.exec(out);
-      if (w && h) out = out.replace(/<svg\b/, `<svg viewBox="0 0 ${w[1]} ${h[1]}"`);
+      if (w && h)
+        out = out.replace(/<svg\b/, `<svg viewBox="0 0 ${w[1]} ${h[1]}"`);
     }
     out = out
       .replace(/\swidth="[^"]*"/, "")
@@ -436,7 +487,9 @@ function makeResponsive(svg, id) {
         : out.replace(/<svg\b/, '<svg style="color-scheme: light"');
     }
 
-    return out.replace(/\s*\/?>$/, "") + ` data-diagram-id="${id}" width="100%">`;
+    return (
+      out.replace(/\s*\/?>$/, "") + ` data-diagram-id="${id}" width="100%">`
+    );
   });
 }
 
