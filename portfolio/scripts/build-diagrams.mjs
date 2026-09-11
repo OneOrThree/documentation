@@ -176,7 +176,21 @@ function parseDrawio(xml, id) {
     );
   }
 
-  return { graph: { id, nodes, edges, adjacency: buildAdjacency(nodes, edges) }, cellOwners };
+  // Keep containment separate from traffic edges. A host can be selected as
+  // a whole without turning its services into one indistinguishable node.
+  const groups = {};
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  for (const node of nodes) {
+    let parent = byId.get(node.id)?.parent;
+    const visited = new Set([node.id]);
+    while (parent && !ROOT_CELL_IDS.has(parent)) {
+      if (visited.has(parent)) throw new DiagramError(`${id}: cyclic cell parent ${parent}`);
+      visited.add(parent);
+      if (nodeIds.has(parent)) (groups[parent] ??= []).push(node.id);
+      parent = byId.get(parent)?.parent;
+    }
+  }
+  return { graph: { id, nodes, edges, adjacency: buildAdjacency(nodes, edges), groups }, cellOwners };
 }
 
 /** draw.io stores a page either as inline XML or deflate+base64 text. */

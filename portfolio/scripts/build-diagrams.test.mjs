@@ -42,3 +42,18 @@ for (const missing of ['actor','edge']) {
     assert.throws(f.run, error => error.status === 1 && error.stderr.includes('incomplete XML join'));
   });
 }
+
+test('a host includes its services while their individual traffic links remain selectable', t => {
+  const f = fixture(t, svg.replace('</svg>', '<g data-cell-id="nginx"/><g data-cell-id="app"/><g data-cell-id="internal"/></svg>'));
+  const xmlPath = path.join(f.dir, 'diagrams/test.drawio.xml');
+  writeFileSync(xmlPath, readFileSync(xmlPath, 'utf8').replace('</root>', `
+    <mxCell id="nginx" value="Nginx" vertex="1" parent="group"/>
+    <mxCell id="app" value="Spring Boot" vertex="1" parent="group"/>
+    <mxCell id="internal" edge="1" source="nginx" target="app" parent="1"/>
+  </root>`));
+  f.run();
+  const graph = JSON.parse(readFileSync(path.join(f.dir, 'public/diagrams/test.graph.json')));
+  assert.deepEqual(graph.groups.group, ['nginx', 'app']);
+  assert.deepEqual(graph.adjacency.nginx, {nodes:['app'],edges:['internal']});
+  assert.deepEqual(graph.adjacency.group, {nodes:['actor'],edges:['edge']});
+});
