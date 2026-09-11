@@ -54,13 +54,17 @@ related:
 2. draw.io에서 **File → Save as → .drawio (XML)** → `diagrams/<id>.drawio.xml`
 3. `diagrams/manifest.json` 에 `{ "id", "title", "titleEn", "summary" }` 추가
 
-> 현재 `diagrams/` 의 6개는 **자리표시**다. `scripts/make-placeholder-diagrams.mjs` 가 만든 것이고, Drive의 진짜 원본이 오면 파일을 덮어쓰고 이 스크립트는 지우면 된다.
+> `00-usecase`, `03-service`, `04-system`, `05-cloud`는 GROMO 도면으로 교체했다. `01-ia`, `02-journey`는 아직 자리표시다. `scripts/make-placeholder-diagrams.mjs`는 전체 도면을 덮어쓰므로 기존 도면을 갱신할 때 실행하지 않는다.
 
 `npm run build` 가 `scripts/build-diagrams.mjs` 를 돌려 `public/diagrams/` 에 셋을 만든다: 주석이 주입된 SVG, 연결 그래프 JSON, 다운로드용 원본 XML.
 
 **왜 XML도 필요한가.** draw.io의 SVG export는 셀마다 `data-cell-id` 는 남기지만 **어느 엣지가 무엇을 잇는지는 남기지 않는다** (FillMap 클론의 export 실측: `data-cell-id` 104개, source/target 0개). 연결 관계는 XML의 `<mxCell edge="1" source= target=>` 에만 있다. 빌드 단계가 이 둘을 `data-cell-id` ↔ `mxCell/@id` 로 조인해서 SVG에 연결 정보를 심고, 그래야 "요소를 클릭하면 연결된 것만 남는" 동작이 가능하다.
 
 조인이 실패하면 **빌드를 실패시킨다.** 클릭이 안 되는 다이어그램은 스크린샷으로는 멀쩡해 보이기 때문이다.
+
+**기능 영역 단위로 묶기.** `00-usecase`의 연결선은 개별 행위가 아니라 기능 영역을 잇는다. XML에서 영역의 배경 셀을 부모로 두고 제목·행위 도형을 그 자식으로 묶는다. 자식은 `connectable="0"`, 좌표는 부모 기준이며, 부모의 `value`가 문서 보기와 접근성 이름이다(`noLabel=1`로 중복 표시는 숨김). 빌드가 자식 SVG 셀의 클릭과 강조를 부모에 연결하므로 영역 안의 글자를 클릭해도 영역 전체가 선택된다. 독립적인 배경·장식도 `connectable="0"`으로 두면 연결 그래프에서 제외된다. 원래 SVG 셀 ID는 `data-drawio-cell-id`에 보존한다.
+
+그룹 처리와 누락된 SVG 요소의 빌드 실패 회귀 검증: `node --test scripts/build-diagrams.test.mjs`.
 
 **다이어그램에는 목록 페이지가 없다.** 헤더의 "다이어그램"은 첫 다이어그램으로 바로 간다(`/diagrams` 는 리다이렉트만 한다). 전환은 그림 위의 번호 선택 pill이 제자리에서 처리한다.
 

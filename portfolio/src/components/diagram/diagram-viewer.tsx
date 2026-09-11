@@ -138,6 +138,15 @@ export function DiagramViewer({
     const adjacent = graph.adjacency[focusId];
     const hotNodes = new Set([focusId, ...(adjacent?.nodes ?? [])]);
     const hotEdges = new Set(adjacent?.edges ?? []);
+    const members = graph.groups?.[focusId] ?? [];
+    for (const member of members) hotNodes.add(member);
+    if (members.length) {
+      for (const edge of graph.edges) {
+        if (edge.source && edge.target && hotNodes.has(edge.source) && hotNodes.has(edge.target)) {
+          hotEdges.add(edge.id);
+        }
+      }
+    }
 
     root.setAttribute("data-focus", focusId);
     for (const cell of cells) {
@@ -271,6 +280,7 @@ export function DiagramViewer({
 
   const focused = focusId ? graph.nodes.find((n) => n.id === focusId) : undefined;
   const linkCount = focusId ? (graph.adjacency[focusId]?.nodes.length ?? 0) : 0;
+  const memberCount = focusId ? (graph.groups?.[focusId]?.length ?? 0) : 0;
 
   async function toggleFullscreen() {
     if (document.fullscreenElement) await document.exitFullscreen();
@@ -400,8 +410,8 @@ export function DiagramViewer({
             <strong className="font-semibold text-foreground">
               {focused.label || focused.id}
             </strong>
-            {" 기준 직접 연결 "}
-            <span className="font-mono tabular-nums">{linkCount}</span>
+            {memberCount ? " 내부 구성 요소 " : " 기준 직접 연결 "}
+            <span className="font-mono tabular-nums">{memberCount || linkCount}</span>
             개. 다시 클릭하거나 Esc로 해제합니다.
           </>
         ) : (
