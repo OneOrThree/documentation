@@ -3,7 +3,7 @@
     "id": "00-usecase",
     "title": "유스케이스",
     "titleEn": "Use Case",
-    "summary": "누가 이 서비스로 무엇을 하는지. 사용자와 관리자의 행위, 그리고 외부에 위임하는 것."
+    "summary": "사용자·그룹장과 외부 시스템이 참여하는 74개 행위. 개인 루프, 소셜 루프, 지원·운영의 9개 기능 영역으로 정리했습니다."
   },
   {
     "id": "01-ia",
@@ -33,6 +33,6 @@
     "id": "05-cloud",
     "title": "클라우드 아키텍처 · AWS",
     "titleEn": "Cloud Architecture",
-    "summary": "서울 리전 기준 실제 배치. 어떤 것이 관리형이고 어떤 것을 우리가 운영하는지 구분합니다."
+    "summary": "서울 리전의 요청 경로: Cloudflare → Nginx·Spring Boot를 실행하는 단일 EC2 → 프라이빗 RDS PostgreSQL. Datadog Agent가 로그·메트릭·APM을 수집합니다."
   }
 ]

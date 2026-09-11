@@ -87,9 +87,9 @@ function build(entry, i) {
   }
 
   const rawSvg = fs.readFileSync(svgPath, "utf8");
-  const graph = parseDrawio(fs.readFileSync(xmlPath, "utf8"), id);
+  const { graph, cellOwners } = parseDrawio(fs.readFileSync(xmlPath, "utf8"), id);
   const size = readIntrinsicSize(rawSvg);
-  const { svg, annotated } = annotateSvg(rawSvg, graph, id);
+  const { svg, annotated } = annotateSvg(rawSvg, graph, id, cellOwners);
 
   fs.writeFileSync(path.join(OUT_DIR, `${id}.svg`), svg);
   fs.writeFileSync(
@@ -137,8 +137,23 @@ function parseDrawio(xml, id) {
 
   const nodes = [];
   const edges = [];
+  const cells = collectCells(model);
+  const byId = new Map(cells.map((cell) => [cell.id, cell]));
+  // Group labels and artwork marked non-connectable select their owning
+  // draw.io group. Standalone decoration stays outside the graph.
+  const cellOwners = new Map();
+  for (const cell of cells.filter((cell) => cell.vertex)) {
+    let owner = cell;
+    const visited = new Set();
+    while (owner && !owner.connectable) {
+      if (visited.has(owner.id)) throw new DiagramError(`${id}: cyclic cell parent ${owner.id}`);
+      visited.add(owner.id);
+      owner = byId.get(owner.parent);
+    }
+    cellOwners.set(cell.id, owner?.vertex ? owner.id : null);
+  }
 
-  for (const cell of collectCells(model)) {
+  for (const cell of cells) {
     if (ROOT_CELL_IDS.has(cell.id)) continue;
 
     if (cell.edge) {
@@ -147,10 +162,10 @@ function parseDrawio(xml, id) {
       edges.push({
         id: cell.id,
         label: cell.label,
-        source: cell.source ?? null,
-        target: cell.target ?? null,
+        source: cellOwners.has(cell.source) ? cellOwners.get(cell.source) : cell.source ?? null,
+        target: cellOwners.has(cell.target) ? cellOwners.get(cell.target) : cell.target ?? null,
       });
-    } else if (cell.vertex) {
+    } else if (cell.vertex && cell.connectable) {
       nodes.push({ id: cell.id, label: cell.label });
     }
   }
@@ -161,7 +176,7 @@ function parseDrawio(xml, id) {
     );
   }
 
-  return { id, nodes, edges, adjacency: buildAdjacency(nodes, edges) };
+  return { graph: { id, nodes, edges, adjacency: buildAdjacency(nodes, edges) }, cellOwners };
 }
 
 /** draw.io stores a page either as inline XML or deflate+base64 text. */
@@ -216,6 +231,8 @@ function readCell(cell, id, value) {
     id: id === undefined ? undefined : String(id),
     label: cleanLabel(value),
     vertex: cell["@_vertex"] === "1",
+    connectable: cell["@_connectable"] !== "0",
+    parent: cell["@_parent"] !== undefined ? String(cell["@_parent"]) : undefined,
     edge: cell["@_edge"] === "1",
     source: cell["@_source"] !== undefined ? String(cell["@_source"]) : undefined,
     target: cell["@_target"] !== undefined ? String(cell["@_target"]) : undefined,
@@ -262,7 +279,7 @@ function buildAdjacency(nodes, edges) {
 /* SVG annotation                                                             */
 /* -------------------------------------------------------------------------- */
 
-function annotateSvg(rawSvg, graph, id) {
+function annotateSvg(rawSvg, graph, id, cellOwners) {
   const vertexIds = new Set(graph.nodes.map((n) => n.id));
   const labels = new Map(graph.nodes.map((n) => [n.id, n.label]));
   const edges = new Map(graph.edges.map((e) => [e.id, e]));
@@ -277,14 +294,17 @@ function annotateSvg(rawSvg, graph, id) {
     const cellId = m[1];
     if (ROOT_CELL_IDS.has(cellId)) return tag;
 
-    if (vertexIds.has(cellId)) {
-      seen.vertices.add(cellId);
-      const label = labels.get(cellId) || `요소 ${cellId}`;
+    const ownerId = cellOwners.get(cellId);
+    if (ownerId && vertexIds.has(ownerId)) {
+      seen.vertices.add(ownerId);
+      const label = labels.get(ownerId) || `요소 ${ownerId}`;
       return withAttrs(tag, {
+        "data-cell-id": ownerId,
+        "data-drawio-cell-id": cellId,
         "data-cell-kind": "vertex",
-        tabindex: "0",
-        role: "button",
-        "aria-label": escapeAttr(label),
+        tabindex: cellId === ownerId ? "0" : "-1",
+        role: cellId === ownerId ? "button" : "presentation",
+        ...(cellId === ownerId ? { "aria-label": escapeAttr(label) } : {}),
       });
     }
 
@@ -302,9 +322,9 @@ function annotateSvg(rawSvg, graph, id) {
 
   // Fail loudly. A diagram that renders but cannot be clicked is exactly the
   // failure mode both clones shipped, and it is invisible in a screenshot.
-  if (seen.vertices.size === 0) {
+  if (seen.vertices.size !== graph.nodes.length || seen.edges.size !== graph.edges.length) {
     throw new DiagramError(
-      `${id}.svg: no cell group matched a vertex from ${id}.drawio.xml.\n` +
+      `${id}.svg: incomplete XML join (${seen.vertices.size}/${graph.nodes.length} nodes, ${seen.edges.size}/${graph.edges.length} edges).\n` +
         `  The SVG needs data-cell-id attributes. Re-export from draw.io with\n` +
         `  "Include a copy of my diagram" unchecked, and make sure the SVG and\n` +
         `  the XML come from the same page of the same file.`,
