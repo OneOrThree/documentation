@@ -14,8 +14,9 @@ export interface DiagramEntry {
   /** Monospace uppercase label beside the Korean title, as both clones had. */
   titleEn?: string;
   summary?: string;
-  nodeCount: number;
-  edgeCount: number;
+  format?: "html";
+  nodeCount?: number;
+  edgeCount?: number;
 }
 
 const INDEX_PATH = path.join(process.cwd(), "public", "diagrams", "index.json");
@@ -37,7 +38,12 @@ export function getDiagram(id: string): DiagramEntry | undefined {
 export interface DiagramGraph {
   id: string;
   nodes: { id: string; label: string }[];
-  edges: { id: string; label: string; source: string | null; target: string | null }[];
+  edges: {
+    id: string;
+    label: string;
+    source: string | null;
+    target: string | null;
+  }[];
   adjacency: Record<string, { nodes: string[]; edges: string[] }>;
   /** Selectable descendants of a container, separate from traffic links. */
   groups?: Record<string, string[]>;
@@ -52,7 +58,12 @@ export interface DiagramGraph {
  * the point of offering it.
  */
 export function getDiagramGraph(id: string): DiagramGraph | undefined {
-  const file = path.join(process.cwd(), "public", "diagrams", `${id}.graph.json`);
+  const file = path.join(
+    process.cwd(),
+    "public",
+    "diagrams",
+    `${id}.graph.json`,
+  );
   if (!fs.existsSync(file)) return undefined;
   return JSON.parse(fs.readFileSync(file, "utf8")) as DiagramGraph;
 }

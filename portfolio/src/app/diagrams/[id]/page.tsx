@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { findSection } from "@root/site.config";
 import { getDiagram, getDiagramGraph, getDiagrams } from "@/lib/diagrams";
+import { HtmlDiagramPanel } from "@/components/diagram/html-diagram-panel";
 import { DiagramPanel } from "@/components/diagram/diagram-panel";
 import { DiagramTextView } from "@/components/diagram/diagram-text-view";
 import { Kicker } from "@/components/kicker";
@@ -42,8 +43,9 @@ export default async function DiagramPage({
 }) {
   const { id } = await params;
   const diagram = getDiagram(id);
-  const graph = getDiagramGraph(id);
-  if (!diagram || !graph) notFound();
+  if (!diagram) notFound();
+  const graph = diagram.format === "html" ? undefined : getDiagramGraph(id);
+  if (diagram.format !== "html" && !graph) notFound();
 
   const all = getDiagrams();
   const index = all.findIndex((d) => d.id === id);
@@ -65,7 +67,9 @@ export default async function DiagramPage({
           >
             <span
               className={`grid size-[1.65rem] place-items-center rounded-pill font-mono text-[0.8125rem] font-bold ${
-                active ? "bg-background text-foreground" : "bg-surface-2 text-foreground"
+                active
+                  ? "bg-background text-foreground"
+                  : "bg-surface-2 text-foreground"
               }`}
             >
               {i}
@@ -91,22 +95,26 @@ export default async function DiagramPage({
         </p>
       </header>
 
-      <DiagramPanel
-        id={diagram.id}
-        index={index}
-        title={diagram.title}
-        titleEn={diagram.titleEn}
-        graph={graph}
-        selector={selector}
-        textView={
-          <DiagramTextView
-            graph={graph}
-            index={index}
-            title={diagram.title}
-            titleEn={diagram.titleEn}
-          />
-        }
-      />
+      {diagram.format === "html" ? (
+        <HtmlDiagramPanel diagram={diagram} index={index} selector={selector} />
+      ) : graph ? (
+        <DiagramPanel
+          id={diagram.id}
+          index={index}
+          title={diagram.title}
+          titleEn={diagram.titleEn}
+          graph={graph}
+          selector={selector}
+          textView={
+            <DiagramTextView
+              graph={graph}
+              index={index}
+              title={diagram.title}
+              titleEn={diagram.titleEn}
+            />
+          }
+        />
+      ) : null}
 
       {diagram.summary && (
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
@@ -114,7 +122,10 @@ export default async function DiagramPage({
         </p>
       )}
 
-      <nav aria-label="다이어그램 이동" className="mt-12 flex justify-between gap-3">
+      <nav
+        aria-label="다이어그램 이동"
+        className="mt-12 flex justify-between gap-3"
+      >
         {index > 0 ? (
           <Link
             href={`/diagrams/${all[index - 1]!.id}`}

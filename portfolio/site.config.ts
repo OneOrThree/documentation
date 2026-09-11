@@ -34,8 +34,7 @@ export const sections: SectionConfig[] = [
     label: "다이어그램",
     kicker: "ARCHITECTURE DIAGRAMS",
     title: "다이어그램",
-    description:
-      "유스케이스부터 클라우드 구성까지, 시스템을 그림 한 장씩으로 설명합니다. 원본은 draw.io이고 각 다이어그램에서 그대로 내려받을 수 있습니다. 요소를 클릭하면 연결된 것만 남고 나머지는 흐려집니다.",
+    description: "서비스의 정보 구조와 시스템 구성을 한눈에 살펴봅니다.",
     kind: "diagrams",
   },
   {
@@ -104,7 +103,11 @@ export const site = {
     subline: "우리가 만든 것과, 그렇게 만든 이유.",
     lede: "화면 한 장이 아니라 그 뒤의 판단을 보여주는 포트폴리오입니다. 아키텍처 다이어그램, 확정 명세, 기각한 대안까지 그대로 공개합니다.",
     actions: [
-      { label: "다이어그램 보기", href: "/diagrams", variant: "solid" as const },
+      {
+        label: "다이어그램 보기",
+        href: "/diagrams",
+        variant: "solid" as const,
+      },
       { label: "설계 결정 읽기", href: "/adr", variant: "outline" as const },
     ],
   },
