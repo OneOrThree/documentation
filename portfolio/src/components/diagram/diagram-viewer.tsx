@@ -29,12 +29,14 @@ export function DiagramViewer({
   index,
   title,
   titleEn,
+  fitOnOpen = false,
   graph,
 }: {
   id: string;
   index: number;
   title: string;
   titleEn?: string;
+  fitOnOpen?: boolean;
   // Read at build time and passed down, so only the artwork is fetched here.
   graph: DiagramGraph;
 }) {
@@ -96,6 +98,11 @@ export function DiagramViewer({
    * re-deriving it while the reader is panning fights the zoom controls.
    */
   useEffect(() => {
+    if (fitOnOpen) {
+      setZoomIndex(FIT_ZOOM_INDEX);
+      setHomeZoomIndex(FIT_ZOOM_INDEX);
+      return;
+    }
     const artwork = graph.width ?? 0;
     const frame = scrollRef.current;
     if (!svg || !artwork || !frame) return;
@@ -114,7 +121,7 @@ export function DiagramViewer({
 
     setZoomIndex(opening);
     setHomeZoomIndex(opening);
-  }, [svg, graph.width, id]);
+  }, [svg, graph.width, id, fitOnOpen]);
 
   // Paint the focus state onto the injected SVG. Classes rather than inline
   // styles so the transition lives in CSS with the rest of the design.

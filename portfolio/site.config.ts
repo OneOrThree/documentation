@@ -118,7 +118,8 @@ export const site = {
     { name: "Next.js", role: "웹 · 문서" },
     { name: "Spring Boot", role: "코어 API" },
     { name: "PostgreSQL", role: "주 저장소" },
-    { name: "Redis", role: "집계 · 캐시" },
+    { name: "Redis", role: "채팅 · 상태 · 캐시" },
+    { name: "Kafka", role: "이벤트 · 통합 진행" },
     { name: "AWS", role: "인프라" },
   ],
 

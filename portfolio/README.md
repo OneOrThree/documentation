@@ -58,7 +58,7 @@ related:
 2. draw.io에서 **File → Save as → .drawio (XML)** → `diagrams/<id>.drawio.xml`
 3. `diagrams/manifest.json` 에 `{ "id", "title", "titleEn", "summary" }` 추가
 
-> `00-usecase`, `03-service`, `04-system`, `05-cloud`는 GROMO 도면으로 교체했다. `01-ia`, `02-journey`는 아직 자리표시다. `scripts/make-placeholder-diagrams.mjs`는 전체 도면을 덮어쓰므로 기존 도면을 갱신할 때 실행하지 않는다.
+> `00-usecase`, `03-service`, `04-system`, `05-cloud`는 GROMO 도면이다. `01-ia`, `02-journey`는 R61 HTML을 표시한다. `scripts/make-placeholder-diagrams.mjs`는 전체 도면을 덮어쓰므로 기존 도면을 갱신할 때 실행하지 않는다.
 
 `npm run build` 가 `scripts/build-diagrams.mjs` 를 돌려 `public/diagrams/` 에 셋을 만든다: 주석이 주입된 SVG, 연결 그래프 JSON, 다운로드용 원본 XML.
 
@@ -74,7 +74,20 @@ related:
 
 **`다이어그램 / 문서 보기` 토글.** 문서 보기는 같은 그래프를 텍스트로 렌더한다 — 요소마다 나가는/들어오는 연결과 엣지 라벨. 별도로 쓰는 내용이 아니라 `.drawio.xml` 에서 뽑은 그래프 그대로다.
 
-## HTML 다이어그램
+## Gromo 아키텍처 갱신
+
+서비스·시스템 도면은 `scripts/make-architecture-diagrams.py`의 같은 셀·좌표·연결 정의에서 SVG와 draw.io XML을 생성한다.
+
+```bash
+python3 scripts/make-architecture-diagrams.py
+npm run build
+```
+
+이 생성기는 `03-service`, `04-system` 두 쌍만 갱신한다. 원본 근거·고정 커밋·구현 단계는 `content/spec/architecture.mdx`와 서비스·시스템 상세 문서에 기록한다. 상자를 더할 때는 구현 상태와 소유자를 함께 확인하며, main의 dev 설정을 목표 prod 배치의 운영 실적으로 바꾸지 않는다.
+
+manifest의 `detailHref`는 다이어그램 아래에 근거 문서 링크를 표시한다. 다이어그램의 연결 강조와 문서 보기, 원본 다운로드는 기존 빌드 파이프라인을 사용한다.
+
+## HTML 다이어그램의 표시
 
 IA와 유저 저니는 검토한 R61 HTML을 그대로 표시합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 원본이며, manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 원본을 `public/diagrams/`에 복사하고 기존 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 새 창에서도 열 수 있습니다.
 

@@ -22,18 +22,23 @@
     "id": "03-service",
     "title": "서비스 아키텍처",
     "titleEn": "Service Architecture",
-    "summary": "클라이언트부터 Repository·테이블까지 여섯 띠로 끊은 현재 운영 기준(2026.08) 계약 맵. 화면 · 엔드포인트 · 저장소가 한 줄로 이어집니다."
+    "summary": "2026.09.13 · phone/docs 기반. Business·Data의 원자 명령, Kafka·outbox·알림, Realtime과 Redis의 소유권을 연결합니다. main·통합 PR·후속 설계를 구분합니다.",
+    "detailHref": "/spec/service-architecture",
+    "fitOnOpen": true
   },
   {
     "id": "04-system",
     "title": "시스템 아키텍처",
     "titleEn": "System Architecture",
-    "summary": "역할과 시스템 경계만 남긴 운영 오버뷰. 백엔드는 단일 Spring Boot 모듈러 모놀리스이고, 실선은 요청·배포 · 점선은 외부 연동·관측입니다."
+    "summary": "2026.09.13 · Target-1의 AWS·Vercel 배치 목표와 main에 추가된 dev Realtime·Redis·미리보기 구성을 표시합니다. 목표 포트와 현재 설정, 운영 전환 단계를 구분합니다.",
+    "detailHref": "/spec/system-architecture",
+    "fitOnOpen": true
   },
   {
     "id": "05-cloud",
     "title": "클라우드 아키텍처 · AWS",
     "titleEn": "Cloud Architecture",
-    "summary": "서울 리전의 요청 경로: Cloudflare → Nginx·Spring Boot를 실행하는 단일 EC2 → 프라이빗 RDS PostgreSQL. Datadog Agent가 로그·메트릭·APM을 수집합니다."
+    "summary": "2026.08 구성 기록. Cloudflare → Nginx·Spring Boot를 실행하는 단일 EC2 → 프라이빗 RDS PostgreSQL과 Datadog 수집 경로입니다. 9월 서비스 분리 목표는 시스템 아키텍처와 상세 문서를 확인해 주세요.",
+    "detailHref": "/spec/system-architecture"
   }
 ]
