@@ -1,0 +1,102 @@
+---
+title: "서비스 아키텍처 — 명령·이벤트·데이터 소유권"
+summary: "Data의 원자 트랜잭션에서 시작해 Kafka·Notification과 Realtime으로 전달되는 구조. Redis를 내구 이벤트·데이터 정본과 구분합니다."
+status: "설계 확정 · 구현 진행"
+date: "2026-09-13"
+order: 2
+keywords: [Kafka, Redis, outbox, Idempotency-Key, Realtime, Notification, BFF]
+related:
+  - label: "상호작용 다이어그램"
+    href: "/diagrams/03-service"
+  - label: "구현 단계와 출처"
+    href: "/spec/architecture"
+  - label: "물리 배치와 운영"
+    href: "/spec/system-architecture"
+---
+
+<div className="architecture-doc">
+
+## 서비스 구조
+
+[크게 보기·연결 강조·draw.io 다운로드](/diagrams/03-service)
+
+![Gromo 서비스 아키텍처 — 코어 명령, 실시간 전달, Kafka 알림, Redis 역할과 Target-2](/diagrams/03-service.svg)
+
+아래 표와 그림은 목표 책임을 설명한다. 코드 대조 시점은 2026-09-13이며 main·통합 PR·후속 단계는 [개요의 구현 상태 표](/spec/architecture)에 고정했다.
+
+| 서비스 | 소유하는 일과 데이터 | 호출 경계 |
+| --- | --- | --- |
+| Business API | 공개 인증·응답 봉투·BFF·내부 호출 조합. 영속 DB 없음 | 검증한 주체·서비스 토큰·deadline으로 Data 명령/조회를 호출. 알림·링크에는 허용된 HTTP 계약만 호출 |
+| Data API | 코어 PostgreSQL, 권한·잠금·정산·원장·명령 receipt·outbox·relay | 쓰기 불변식은 단일 TX에서 확정. 위성 데이터베이스에 직접 쓰지 않음 |
+| Realtime | STOMP 세션·목적지·현재 수신자 인가, 편지 DB `gromo_chat` | 채팅 Redis fanout. presence는 읽기 전용. 개인 재화·소유권은 결정하지 않음 |
+| Notification | `gromo_notification`, 이벤트 소비·투영·템플릿·스케줄·발송 이력 | FCM 발송. Data 읽기는 리컨실·ack 수렴·발송 적격 조회 3종으로 제한 |
+| Link·MMP | 링크·클릭·귀속 원장, 랜딩과 캠페인 콘솔 | 코어가 발급·claim·revoke·withdraw·귀속을 HTTP로 전달. Kafka에 연결하지 않음 |
+
+Notification 콘솔은 허용된 admin API를 호출한다. 링크 도메인 로직이 코어를 역호출한다는 뜻은 아니다. Data relay는 실패한 위성 HTTP 전달도 이어받는다.
+
+## 명령 성공과 이벤트 전달
+
+1. 앱이 같은 의도를 재시도할 때 보존하는 `Idempotency-Key`를 보낸다. Business는 외부 주체를 검증하고 Data에 키와 정규화한 명령을 넘긴다.
+2. Data가 현재 권한과 상태를 확인하고 필요한 aggregate를 잠근다. **상태 변경·원장·version·명령 receipt·outbox를 같은 TX에 저장**한다.
+3. 응답이 사라져도 동일 키·동일 fingerprint·유효한 재생 권한이면 저장된 원 결과를 재생한다. HTTP 시도별 requestId와 비즈니스 eventId는 별개다.
+4. relay가 미전달 outbox를 lease로 선점하고 목적지에 보낸다. Kafka ACK 후 완료 표시 전에 죽으면 같은 eventId가 다시 갈 수 있다.
+5. 소비자는 eventId로 중복을 접고 aggregate version으로 오래된 적용을 거부한다. 수신에 성공했다는 사실은 모든 기기의 화면 표시가 끝났다는 뜻이 아니다.
+
+Business의 즉시 발행도 Data가 커밋한 봉투를 재사용한다. 별도 시각·새 eventId로 사건을 다시 만들지 않는다. Data가 소유한 정산·정리 잡과 코어 이력에 의존하는 알림 대상 판정도 Data에 남긴다.
+
+## Kafka 계약과 현재 코드
+
+| 항목 | 확인한 계약·구현 |
+| --- | --- |
+| 브로커 | 통합 PR의 `apache/kafka:3.8.1`, KRaft 단일 노드, 외부 포트 미공개 |
+| 내구성 범위 | replication factor 1, 내부 토픽도 1. 영속 볼륨과 7일 보존을 사용하나 다중 브로커 장애 내성은 제공하지 않음 |
+| 알림 토픽 | `notification-events`, 3 partitions, 키 `userId`. 같은 유저의 브로커 도착 순서를 모으되 DB 커밋 순서를 대신 보장하지 않음 |
+| 소비자 | `notification-v1`, ACK 모드 RECORD. 수신 서비스의 DB 커밋 뒤 반환 |
+| 소비 실패 | 현재 PR 코드에서 1초 간격 추가 재시도 3회 후 `notification-events.DLT`. 원본 파티션 번호를 유지하므로 DLT도 3 partitions |
+| DLT 발행 실패 | recoverer가 실패를 예외로 돌려주고 복구 실패를 성공 처리하지 않음 |
+| 발행 실패 | outbox의 목적지 상태를 남겨 relay가 재시도. 브로커 장애를 HTTP 자동 폴백으로 처리하는 정책은 A18 미결 |
+| 활성화 | Kafka overlay·relay·Notification 소비/스케줄은 별도 활성화 단계. 코드를 배포하는 것과 전환 완료를 구분 |
+
+알림 봉투의 `schemaVersion`은 스키마 호환성, `version`은 상태 적용 순서, `eventId`는 사건 중복 제거를 담당한다. aggregate version은 상태와 같은 잠금 아래 증가시키며 DB sequence 할당 순서를 커밋 순서로 사용하지 않는다.
+
+기존 결정 장부는 `.DLT`를 프레임워크 기본값으로 설명한다. **확인한 Notification 코드는 resolver에서 `.DLT` 접미사를 명시적으로 고정**한다. 공개 문서도 구현된 resolver를 기준으로 설명하며 버전별 기본 접미사에 기대지 않는다. [KafkaInbound.java](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/notification/src/main/java/com/oneorthree/notification/KafkaInbound.java)
+
+## Redis의 세 가지 용도
+
+| 구분 | 데이터·채널 | 작성·사용 주체 | 손실·장애 시 |
+| --- | --- | --- | --- |
+| 채팅·집중 Redis — main | `chat:fanout`, `cache:chat:member:*`, `presence:focus:*` | Data가 presence 작성, Realtime은 presence 읽기와 채팅 fanout | Pub/Sub는 재생 불가. 편지는 DB 히스토리로 복구. Data의 presence 쓰기는 커밋 후 best effort·재조정 |
+| 미리보기 전용 Redis — main | `cache:business:preview:*`, 사용자별 상태·메타데이터·PNG | Business 전용 인스턴스 | PENDING 90초, READY 300초, FAILED 30초. 만료 후 POST로 재생성. Redis 장애는 API 503 |
+| 랭킹 Redis — Target-2 | `league:*` ZSET, `presence:*` 및 소유 서비스별 캐시·락 | 랭킹 컨슈머/Data가 projection 작성, Business가 조회 | 절대 점수+version으로 재적용. DB 정본의 같은 스냅샷에서 점수와 version을 읽어 재구축 |
+
+채팅과 미리보기 Redis를 한 인스턴스로 합치지 않는다. 미리보기는 128 MiB·allkeys-lru·비영속으로 설정되어 있으며 재생 가능한 캐시만 담는다.
+
+목표 A19는 서비스별 Redis ACL과 읽기 전용 selector를 요구한다. **main의 dev Redis에는 그 ACL 배포가 아직 없다.** 현재 코드의 키 소유 규칙과 저장소가 강제하는 권한을 같은 것으로 표현하지 않는다. [RedisKeys.java의 소유·ACL 상태](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/server/realtime/src/main/java/com/oneorthree/realtime/common/redis/RedisKeys.java)
+
+## 실시간 채널과 복구
+
+| 경로 | 계약 |
+| --- | --- |
+| `/ws/chat` · `/ws/realtime` | 인증된 STOMP 세션. CONNECT의 Bearer를 검증하며 토큰을 URL에 넣지 않음 |
+| `/topic/islands/{id}/…` | 일반 상태·음악·편지·응원을 권한에 맞춰 분리 |
+| `/user/queue/events` | 개인 재화·인벤토리·가입 요청 등 허용된 개인 사건. 공개 섬 토픽에 실은 뒤 앱 필터에 의존하지 않음 |
+| `chat:fanout` | 기존 채팅용 Redis wire 유지 |
+| `chat:events:v1` | 신규 14종의 후속 fanout 계약. 현재 main에 활성화된 채널로 표시하지 않음 |
+
+목표 복구 순서는 **등록 완료 확인 → 이벤트 버퍼링 → 동일 스냅샷의 값·watermark 조회 → aggregate별 version 병합**이다. 연결 끊김·버퍼 초과·권한 변경 시 REST로 다시 읽는다. SUBSCRIBE 때만 검사하지 않고 전달 직전 현재 권한과 만료도 확인하는 것이 후속 활성화 조건이다.
+
+기존 편지에는 after-commit fanout과 DB 히스토리 경로가 있다. 편지에 아직 없는 outbox를 이미 있다고 표현하지 않으며, 휘발 응원은 outbox·히스토리를 갖지 않는다. [실시간 HLD와 구현 경계](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/prd/realtime-events/high-level-design.md)
+
+## Target-2 랭킹
+
+랭킹은 알림과 분리된 `score-events` 및 `score-events.DLT`, 별도 컨슈머를 사용한다. 주차별 **절대 점수+단조 version**으로 통일해 delta 재가산을 피한다. 완료 점수와 같은 세션의 presence 종결은 명시한 계약에 따라 Lua로 적용한다.
+
+조회는 완료 ZSET과 진행 중 presence를 합산한다. 상위 N만 미리 잘라 라이브 후보를 놓치지 않도록 활성 사용자와 경계 동점자를 포함하고, 최종 정렬은 `score DESC, uuid ASC`를 따른다. 이 설계와 관리형 Kafka·워커 분리는 [운영 지표 조건](/spec/system-architecture) 충족 후 추진한다.
+
+## 근거
+
+- [서비스 아키텍처 정본·허용 호출 표](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture/service-architecture.md) · [결정 장부 A19·A20·A21](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture/decisions.md)
+- [API 플랫폼 HLD](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/prd/api-platform/high-level-design.md) · [미리보기 구현과 TTL](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/server/business-api/README.md)
+- [Kafka overlay](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/scripts/docker-compose.kafka.yml) · [outbox Kafka 전송](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/data-api/src/main/java/com/oneorthree/phone/outbox/client/KafkaOutboxTransport.java) · [Notification 설정](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/notification/src/main/resources/application.yml)
+
+</div>

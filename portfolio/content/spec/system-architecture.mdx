@@ -1,0 +1,102 @@
+---
+title: "시스템 아키텍처 — 배치·노출면·배포 경계"
+summary: "AWS·GCP·Vercel에 걸친 배치 목표와 현재 main의 Compose 구성을 구분합니다. Kafka·Redis·DB의 경계와 서비스별 배포 순서를 정리합니다."
+status: "설계 확정 · 구현 진행"
+date: "2026-09-13"
+order: 3
+keywords: [Docker Compose, Kafka, Redis, AWS, GCP, Vercel, CI/CD, Datadog]
+related:
+  - label: "상호작용 다이어그램"
+    href: "/diagrams/04-system"
+  - label: "구현 단계와 출처"
+    href: "/spec/architecture"
+  - label: "서비스 책임과 전달 계약"
+    href: "/spec/service-architecture"
+---
+
+<div className="architecture-doc">
+
+## 배치 구조
+
+[크게 보기·연결 강조·draw.io 다운로드](/diagrams/04-system)
+
+![Gromo 시스템 아키텍처 — Target-1 prod 목표와 main의 Realtime·Redis·미리보기 dev 구성](/diagrams/04-system.svg)
+
+위쪽은 `phone/docs/architecture`의 Target-1 배치 목표이며, 아래쪽은 최신 main에 추가된 dev overlay다. 이번 문서 갱신은 코드를 대조한 결과로, AWS·GCP 호스트의 실행 상태를 새로 실측한 기록이 아니다.
+
+## 현재 설정과 목표 포트
+
+| 서비스 | 확인한 main 설정 | Target-1 문서의 계획 |
+| --- | --- | --- |
+| Data API | dev의 `app` :8080. 기존 prod Compose도 `app` 중심 | :8081, Compose 내부망만. 공개 REST는 Business 경유 |
+| Business API | 미리보기 서버 :8082, dev 전용 overlay·수동 활성화 | :8080, 인증·공개 REST·BFF 진입점 |
+| Realtime | :8081, `docker-compose.realtime.yml`은 dev 전용 | 기존 Target-1 자원표에 없음. prod 라우팅·DB·Redis 배선은 후속 |
+| Notification | main에 없음. 통합 PR에 서비스·설정 있음 | :8082, 전용 DB와 admin 제한 노출 |
+| Kafka | 통합 PR의 별도 overlay, :9092 내부망 | 동일 Compose의 KRaft 단일 노드 |
+| Redis | dev의 채팅·presence Redis + Business 전용 Redis | Realtime 편입에 맞춰 자원·ACL·prod 구성을 갱신. 랭킹 projection은 Target-2 |
+
+**이 두 포트 표를 섞어 한 Compose에 그대로 붙이지 않는다.** 현재 dev Realtime의 :8081은 목표 Data의 :8081과 겹친다. 실제 전환에는 내부 포트와 공개 라우팅을 함께 조정한 환경별 배포 정의가 필요하다.
+
+## 컴퓨트와 저장소
+
+기존 문서의 2026-09-09 실측은 prod EC2 t4g.medium 4 GB, dev e2-medium 4 GB다. Target-1은 각각 t4g.large 8 GB와 e2-standard-2 8 GB로 증설하는 계획이다. **증설 완료로 표기하지 않는다.**
+
+| 저장소 | 소유·배치 | 배포 전제 |
+| --- | --- | --- |
+| `gromo` | 코어 Data API. prod RDS PostgreSQL, dev PostgreSQL 컨테이너 | 코어 전용 DB 자격·Flyway |
+| `gromo_notification` | 같은 prod RDS 인스턴스 안의 별도 database가 Target-1 | DB·유저·권한을 먼저 생성한 뒤 Notification Flyway 실행 |
+| `gromo_chat` | 현재 main의 dev PostgreSQL에 별도 database | 멱등 DB init 잡 뒤 Realtime 실행. prod overlay는 아직 정의되지 않음 |
+| Neon PostgreSQL | Vercel Link·MMP 전용 | 링크·클릭·귀속 데이터 소유, 코어 DB와 분리 |
+| Kafka 볼륨 | 브로커의 로그·KRaft 메타데이터 영속화 | 단일 노드 RF 1. 볼륨 보존과 다중 노드 가용성은 별개 |
+| Redis | 채팅·집중과 미리보기는 다른 인스턴스 | 서비스별 ACL·메모리·eviction 정책을 용도별 적용 |
+
+원래 Target-1의 JVM 3개·컨테이너 6개 계산에는 Realtime, 채팅 Redis, 미리보기 Redis가 없다. 이들을 운영에 편입할 때는 **전체 힙·비힙·버퍼·페이지 캐시를 다시 산정**한다. 기존 8 GB 계획을 확장 구성 전체의 검증 결과로 사용하지 않는다.
+
+## 공인 노출면
+
+| 진입 | 목표 라우팅·인증 |
+| --- | --- |
+| 앱 REST | Cloudflare → Nginx TLS → Business. 기존 `/api/v1/**` 호환 경로와 신규 API 계약을 구분 |
+| 내부 Data | Compose 내부 DNS·서비스 토큰. 외부가 보낸 사용자 헤더를 Business가 그대로 신뢰하지 않음 |
+| 알림 admin | Nginx가 허용된 `/internal/admin/**`만 Notification으로 연결. 콘솔 전용 자격 |
+| 실시간 소켓 | 현재 `/ws/chat`·`/ws/realtime` 계약 유지. prod WSS 라우팅·현재 인가 활성화는 후속 배포 조건 |
+| 링크·매치 | Link의 Vercel 호스트. 기존 앱의 `/l/match`·`/l/referrer` 호환 프록시는 원본 IP를 검증해 전달 |
+| Kafka·Redis·DB·관리 포트 | 공개 API 경로에 포함하지 않음. 서비스별 내부 자격과 최소 권한 |
+
+Data는 코어 DB 자격, Notification은 알림 DB·FCM 자격, Business는 목표 인증 서명 책임을 갖는다. **현재 Realtime은 JWT 검증 계약을 유지한다.** 기존 “JWT 키는 Business만 보유” 목표 문구를 모든 현행 서비스에 적용 완료했다고 쓰지 않는다.
+
+## 배포와 관측
+
+현재 서버 CI는 `server/data-api/**`, `server/realtime/**`, `server/business-api/**` 경로별로 나뉜다. Data dev는 CI 뒤 CD로 이어지고, Realtime·Business는 main에서 이미지를 빌드해 GAR에 올리며 overlay 활성화는 별도다. prod Data 이미지는 release 경로에서 ECR을 사용한다.
+
+목표는 서비스별 이미지 digest와 환경 매니페스트로 배포·롤백을 재현하는 것이다. 서버 저장소 분리와 `services/<name>` 경로는 A17의 계획이며 현재 `phone/server/<name>`와 구분한다.
+
+- 내부 HTTP 변경은 제공자 선배포·소비자 후배포, 제거는 롤백 기간 밖에서 한다.
+- 이벤트 스키마는 호환 소비자를 먼저 준비한다. 신규 실시간 활성화는 Data 명령·스냅샷 → Realtime 권한·전달 → Business → 앱 순서를 따른다.
+- 서비스별 Datadog APM·로그·메트릭에 HTTP requestId와 eventId를 연결한다. Kafka lag, outbox 재시도, DLT, 알림 지연을 별도 관측한다.
+- 이미지 롤백과 DB rollback을 같은 것으로 취급하지 않는다. 파괴적 DDL이 포함된 변경은 expand/contract 또는 roll-forward 절차를 따른다.
+
+**이 문서 사이트의 배포는 Gromo 런타임과 독립적이다.** `OneOrThree/documentation`의 `portfolio`를 Vercel이 빌드하며, main의 Production 배포가 `docs.oneorthree.world`에 연결된다. 다이어그램 원본·SVG·설명 문서가 같은 커밋으로 배포된다.
+
+## 다음 확장의 기준
+
+아래는 시스템 정본이 정한 초기 임계값이다. 이번 작업에서 측정한 성능 결과가 아니다.
+
+| 확장 | 정본의 시작 조건 |
+| --- | --- |
+| 관리형 Kafka | 브로커 장애로 30분 이상 발송 지연이 월 1회 이상, 또는 디스크·업그레이드 수작업이 월 1회 이상 |
+| 랭킹 Redis | 리그 화면 p95 1.5초 초과, `findRankOf` p95 500ms 초과, 또는 Business 다중 인스턴스 필요 |
+| 알림 워커 분리 | fanout 잡 5분 초과 또는 대상 2,000명 초과 |
+| 알림 DB 별도 인스턴스 | 알림 DB가 RDS CPU 30% 이상 지속 사용 또는 Hikari pending이 일 1회 이상 발생 |
+| Business 다중 인스턴스 | 앱 API p95 1초 초과가 일 3회 이상, 또는 CPU 70% 이상이 10분 지속 |
+
+Kafka 이관은 새 주소만 바꾸는 작업이 아니다. 기존 토픽과 DLT의 backlog를 drain·처리 또는 보존하고, 생산자·소비자·relay의 전환 경계를 함께 맞춘다. 랭킹 스트림 도입 후에는 `score-events`와 그 DLT도 같은 절차에 포함한다.
+
+## 근거
+
+- [시스템 정본 — 환경 실측·Target-1·Target-2](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture/system-architecture.md)
+- [main의 환경별 Compose](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/server/scripts) · [현재 CI/CD 정의](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/.github/workflows)
+- [Kafka overlay의 포트·볼륨·기동 조건](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/scripts/docker-compose.kafka.yml)
+- [Realtime HLD — 활성화와 다중 인스턴스](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/prd/realtime-events/high-level-design.md)
+
+</div>

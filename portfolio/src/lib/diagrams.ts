@@ -14,6 +14,10 @@ export interface DiagramEntry {
   /** Monospace uppercase label beside the Korean title, as both clones had. */
   titleEn?: string;
   summary?: string;
+  /** 그림의 구현 단계·계약·근거를 설명하는 문서. */
+  detailHref?: string;
+  /** 큰 글자로 작성한 개요 도면은 처음에 전체 너비로 보여 준다. */
+  fitOnOpen?: boolean;
   format?: "html";
   nodeCount?: number;
   edgeCount?: number;

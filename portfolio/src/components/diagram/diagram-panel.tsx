@@ -21,6 +21,7 @@ export function DiagramPanel({
   index,
   title,
   titleEn,
+  fitOnOpen,
   graph,
   selector,
   textView,
@@ -29,6 +30,7 @@ export function DiagramPanel({
   index: number;
   title: string;
   titleEn?: string;
+  fitOnOpen?: boolean;
   graph: DiagramGraph;
   selector?: React.ReactNode;
   textView: React.ReactNode;
@@ -60,6 +62,7 @@ export function DiagramPanel({
           index={index}
           title={title}
           titleEn={titleEn}
+          fitOnOpen={fitOnOpen}
           graph={graph}
         />
       ) : (

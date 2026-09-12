@@ -1,52 +1,67 @@
 ---
-title: "시스템 아키텍처 개요"
-summary: "앱에서 출발한 요청이 API를 거쳐 저장소와 워커로 갈라지는 경로. 다이어그램 1번과 같은 내용을 글로 옮긴 것입니다."
-status: "유효"
-date: "2026-08-08"
+title: "Gromo 아키텍처 개요"
+summary: "Business·Data·Realtime·Notification의 책임, Kafka의 내구 이벤트, Redis의 세 가지 용도를 연결합니다. phone/docs의 목표 설계와 main·통합 PR의 구현 상태를 함께 표시합니다."
+status: "설계 확정 · 구현 진행"
+date: "2026-09-13"
 order: 1
-keywords:
-  - 아키텍처
-  - 데이터 흐름
+keywords: [Gromo, Kafka, Redis, outbox, 서비스 분리, Realtime, BFF]
 related:
-  - label: "다이어그램 — 서비스 아키텍처"
-    href: "/diagrams/01-service"
-  - label: "ADR-002 주 저장소"
-    href: "/adr/adr-002-postgres"
+  - label: "서비스 아키텍처 — 책임과 데이터 흐름"
+    href: "/spec/service-architecture"
+  - label: "시스템 아키텍처 — 배치와 배포"
+    href: "/spec/system-architecture"
 ---
 
-## 구성 요소
+<div className="architecture-doc">
 
-| 이름 | 역할 | 스택 |
+## 구조가 바뀐 이유
+
+집중·정산·재화를 확정하는 트랜잭션과, 화면 조합·실시간 연결·푸시 발송은 실패와 확장의 단위가 다르다. Gromo는 이 경계를 Business API, Data API, Realtime, Notification으로 나누고 링크·어트리뷰션을 별도 위성으로 둔다.
+
+**공개 REST는 Business, 코어 데이터의 쓰기는 Data, 편지는 Realtime, 알림 전달은 Notification이 소유하는 것이 목표다.** 앱은 STOMP로 Realtime에 연결하고 초대·매치는 Link에도 접근한다. 따라서 “앱은 Business 하나만 본다”는 원칙은 공개 REST 경계에 적용한다.
+
+| 그림 | 읽을 내용 | 상세 문서 |
 | --- | --- | --- |
-| 모바일 앱 | 촬영·업로드·조회 | TypeScript |
-| API 서버 | 인증, 조회, 업로드 승인 | Spring Boot |
-| 인코딩 워커 | 업로드된 원본 트랜스코딩 | Java |
-| PostgreSQL | 원본 데이터 | PostgreSQL 16 |
-| Redis | 집계·캐시 | Redis 7 |
-| S3 | 원본·결과물 보관 | AWS S3 |
+| [서비스 아키텍처](/diagrams/03-service) | 명령·정본·outbox·Kafka·실시간 전달과 데이터 소유권 | [책임과 계약](/spec/service-architecture) |
+| [시스템 아키텍처](/diagrams/04-system) | Target-1 배치와 현재 main의 dev 구성, 외부 서비스·문서 배포 경계 | [배치와 운영](/spec/system-architecture) |
 
-## 업로드 경로
+그림의 상자를 선택하면 연결된 요소를 강조하고, **문서 보기**로 같은 연결 그래프를 읽을 수 있다. 각 그림에서 편집 가능한 draw.io 원본을 내려받을 수 있다.
 
-앱은 파일을 API로 보내지 않는다. API에서 presigned URL을 받아 S3에 직접 올리고, 완료를 커밋한다.
+## 확인한 구현 단계
 
-```java
-// 업로드 승인만 API가 담당하고, 바이트는 S3로 직행한다
-public PresignedUpload authorize(UploadRequest req, UserId user) {
-    quota.assertWithin(user, req.sizeBytes());
-    var key = ObjectKey.forUpload(user, req.contentType());
-    return s3.presignPut(key, Duration.ofMinutes(10));
-}
-```
+2026-09-13에 원격 main `875a9fd8952a96d0031eabe455c627cddb6a643d`와 알림 기반 PR의 `c015b2aa68115ca8c454cacdb3d9d2bfcf886b48`를 고정해 대조했다. “main”은 해당 커밋에 코드가 있다는 뜻이며 운영 활성화를 뜻하지 않는다.
 
-커밋을 받은 API가 큐에 작업을 넣고, 워커가 집어 간다. **API는 인코딩 완료를 기다리지 않는다.**
+| 구성 | 확인한 상태 | 경계 |
+| --- | --- | --- |
+| Data API | main에 도메인 정산·원장·집중 presence 사본 구현 | 신규 명령 receipt·outbox 기반은 알림 통합 PR에서 확인 |
+| Business API | main에 공개 파일 미리보기와 전용 Redis 구현 | 인증 이관·전체 공개 REST·화면 BFF는 통합 및 기능별 구현 단계 |
+| Realtime | main에 기존 채팅·Redis fanout·`gromo_chat`과 새 14종 EventRouter 구현 | `DisabledRealtimeDelivery`가 신규 도메인 전달을 거절한다. router 존재만으로 전체 실시간 기능 완료가 아니다 |
+| Kafka·Notification | [통합 PR #745](https://github.com/OneOrThree/phone/pull/745)에 브로커 overlay·outbox relay·소비·알림 DB 구현 | relay와 Kafka 소비·스케줄링의 활성화 기본값은 OFF |
+| Redis 랭킹 | Target-2 설계 | `score-events`·랭킹 컨슈머·ZSET projection은 조건 충족 후 도입 |
 
-## 조회 경로
+## Kafka와 Redis의 역할
 
-- 단건·목록 조회는 PostgreSQL을 직접 읽는다.
-- 집계 조회는 Redis Sorted Set을 읽고, 미스일 때만 Postgres에서 재계산한다. 근거는 [ADR-002](/adr/adr-002-postgres)에 있다.
+**Kafka는 커밋된 사건의 재전달 경로다.** Data의 상태 변경과 outbox를 같은 트랜잭션에 저장하고, relay는 전송이 확인된 목적지만 완료 처리한다. `notification-events`는 userId를 키로 사용하며 실패 레코드는 같은 파티션 수의 `.DLT`로 이동한다. 중복은 eventId, 역순 적용은 version으로 다룬다.
 
-## 경계에서의 약속
+**Redis는 용도와 수명에 따라 나눈다.**
 
-1. 워커는 API의 DB 스키마를 직접 읽지 않는다. 필요한 값은 작업 메시지에 담는다.
-2. 앱은 S3 키를 직접 만들지 않는다. 언제나 API가 발급한다.
-3. Redis에 있는 값은 언제든 사라질 수 있다고 가정한다.
+- 채팅·집중 Redis: `chat:fanout`은 휘발 Pub/Sub이고, `presence:focus:*`는 Data가 만드는 상태 사본이다. 편지 정본은 PostgreSQL에 있다.
+- 미리보기 Redis: Business 전용 인스턴스에 메타데이터·축소 PNG를 TTL로 저장한다. 손실 후 재생성할 수 있다.
+- 랭킹 Redis: Target-2의 projection이다. 완료 점수 ZSET과 진행 중 presence를 함께 읽고, 코어 DB를 정본으로 유지한다.
+
+실시간 신규 이벤트를 기존 `notification-events`에 얹는 연결은 확정하지 않았다. 전송 어댑터·채널·현재 인가를 통합하는 후속 계약으로 표시한다.
+
+## 자료가 어긋날 때
+
+`docs/architecture`의 9월 10일 Target-1 도식에는 Realtime과 최근 미리보기 서비스가 빠져 있고 “Redis 없음”이 남아 있다. 9월 12일 API·실시간 HLD와 main에는 이미 채팅·집중 Redis 및 미리보기 전용 Redis가 있다. 이 사이트는 **기존 Target-1을 배치 목표로 보존하면서, 추가된 main 구성을 분리해 표시**한다. 두 Redis를 랭킹 ZSET 도입과 같은 단계로 묶지 않는다.
+
+목표 포트·인스턴스 증설 계획도 현재 dev overlay의 포트·기동 사실과 구분한다. [기존 AWS 그림](/diagrams/05-cloud)은 8월 구성 기록이며, 9월 목표 배치는 새 시스템 그림을 따른다.
+
+## 근거
+
+- [phone/docs/architecture — 책임·배치·결정 장부](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture)
+- [공통 API HLD — Business·Data의 원자 명령과 복구](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/prd/api-platform/high-level-design.md)
+- [실시간 HLD — 채널·인가·스냅샷·후속 fanout](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/prd/realtime-events/high-level-design.md)
+- [main의 서버 코드](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/server) · [알림 통합 PR의 확인 커밋](https://github.com/OneOrThree/phone/commit/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48)
+
+</div>

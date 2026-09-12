@@ -103,6 +103,7 @@ export default async function DiagramPage({
           index={index}
           title={diagram.title}
           titleEn={diagram.titleEn}
+          fitOnOpen={diagram.fitOnOpen}
           graph={graph}
           selector={selector}
           textView={
@@ -120,6 +121,14 @@ export default async function DiagramPage({
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
           {diagram.summary}
         </p>
+      )}
+      {diagram.detailHref && (
+        <Link
+          href={diagram.detailHref}
+          className="mt-3 inline-block text-sm text-primary no-underline hover:underline"
+        >
+          구현 단계·설계 근거 읽기 →
+        </Link>
       )}
 
       <nav

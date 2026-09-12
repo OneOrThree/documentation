@@ -1,728 +1,224 @@
-<mxfile host="app.diagrams.net" scale="1" border="0">
-  <diagram id="t4uGSB_kSxa4Q3LAsm67" name="3.서비스 아키텍처">
-    <mxGraphModel dx="3080" dy="2823" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="31.4.5">
+  <diagram id="03-service" name="Gromo · 서비스 아키텍처">
+    <mxGraphModel dx="1760" dy="1490" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1760" pageHeight="1490">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="fvxlyuOKosK0JaqqW__E-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F2F4;strokeColor=none;" value="" vertex="1">
-          <mxGeometry height="1920" width="2420" x="360" y="740" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-2" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontColor=#20252B;" value="&lt;b&gt;GroMo · System Architecture Overview&lt;/b&gt; &lt;span style=&quot;color:#66707A;&quot;&gt;(현재 운영 기준 · 2026.08)&lt;/span&gt;" vertex="1">
-          <mxGeometry height="34" width="1500" x="420" y="768" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-3" parent="1" style="text;html=1;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#66707A;" value="한 장 요약 · 클라이언트 → API/서비스/데이터 런타임과 외부 연동, 배포·관측, 모바일 릴리즈 경계를 함께 표시합니다." vertex="1">
-          <mxGeometry height="26" width="1030" x="1660" y="772" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-4" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="390" x="420" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-5" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="840" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-6" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="1300" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-7" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="1760" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-8" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="500" x="2220" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-9" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="① 클라이언트" vertex="1">
-          <mxGeometry height="26" width="170" x="420" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-10" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="② REST API · /api/v1" vertex="1">
-          <mxGeometry height="26" width="210" x="840" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-11" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="③ 서비스 계약" vertex="1">
-          <mxGeometry height="26" width="170" x="1300" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-12" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="④ Repository · 테이블" vertex="1">
-          <mxGeometry height="26" width="210" x="1760" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-13" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="⑤ 런타임 · 저장소 · 외부 연동" vertex="1">
-          <mxGeometry height="26" width="260" x="2220" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-14" parent="1" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5F6873;fontSize=11;fontStyle=1;" value="사용자&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;iOS · Android · Web&lt;/span&gt;" vertex="1">
-          <mxGeometry height="72" width="105" x="555" y="872" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-15" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;strokeWidth=1.5;fontSize=11;align=left;spacingLeft=12;" value="&lt;b&gt;React Native 0.86 · Expo SDK 57&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;Axios(JWT/401 refresh) · SecureStore 토큰 · AsyncStorage 설정&lt;/span&gt;" vertex="1">
-          <mxGeometry height="66" width="330" x="450" y="965" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-16" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;로그인 · 온보딩 · 프로필&lt;/b&gt;&lt;br&gt;게스트 및 5종 소셜 로그인&lt;br&gt;access/refresh 단일 보안 레코드&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;기기 전용 · Android 백업 제외&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="330" x="450" y="1050" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-17" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;집중 · 스크린타임 · 통계&lt;/b&gt;&lt;br&gt;타이머·포모도로·태그&lt;br&gt;FamilyControls · DeviceActivity&lt;br&gt;캘린더·히트맵·스트릭" vertex="1">
-          <mxGeometry height="125" width="330" x="450" y="1175" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-18" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;친구 · 고정 친구&lt;/b&gt;&lt;br&gt;검색·요청·수락·거절·차단&lt;br&gt;집중 상태 조회" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1320" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-19" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;그룹 · 챌린지 · 내기&lt;/b&gt;&lt;br&gt;그룹 생성·가입·공지&lt;br&gt;챌린지 회차·베팅·정산&lt;br&gt;초대 링크·Universal Link" vertex="1">
-          <mxGeometry height="125" width="330" x="450" y="1432" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-20" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;리그&lt;/b&gt;&lt;br&gt;티어·랭킹·일정·주간 결과&lt;br&gt;직업 카테고리 순위" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1577" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-21" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;캐릭터 · 재화 · 아이템&lt;/b&gt;&lt;br&gt;누끼 생성 쿼터·이미지 모더레이션&lt;br&gt;서버 재화 · 서버 인벤토리 조회/장착&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;legacy 구매 소유권은 AsyncStorage&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="330" x="450" y="1689" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-22" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;푸시 · 분석&lt;/b&gt;&lt;br&gt;FCM/APNs 알림 수신&lt;br&gt;Firebase Analytics typed events" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1814" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-23" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;네이티브 Device Control&lt;/b&gt;&lt;br&gt;iOS · 앱 선택/차단 · DeviceActivity · Widget&lt;br&gt;Android M1 · 권한 · 오늘/어제 사용량 · 목표 저장&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;Android는 iOS와 기능 대칭이 아님&lt;/span&gt;" vertex="1">
-          <mxGeometry height="130" width="330" x="450" y="1926" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-24" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4A78A8;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Auth · User API&lt;/b&gt;&lt;br&gt;POST /auth/{provider|guest|refresh|logout}&lt;br&gt;GET·POST·PATCH·DELETE /users/me&lt;br&gt;GET /users/{id}/profile · /occupations" vertex="1">
-          <mxGeometry height="120" width="370" x="870" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-25" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3F8C5A;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Focus · ScreenTime · Stats API&lt;/b&gt;&lt;br&gt;/tag · /focus-session · /screen-time&lt;br&gt;/stats/{today|heatmap|focus|screen-time}&lt;br&gt;/stats/streak · /stats/by-category" vertex="1">
-          <mxGeometry height="130" width="370" x="870" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-26" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C48A20;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Friend · Pin API&lt;/b&gt;&lt;br&gt;/friends · /friends/requests · /friends/search&lt;br&gt;/pins/{userId} · /pins" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-27" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B85450;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Group · Challenge · Bet API&lt;/b&gt;&lt;br&gt;/groups · /groups/{id}/announcements&lt;br&gt;/groups/{id}/challenges · /bets · /sessions&lt;br&gt;/me/bet-sessions · /challenge-results" vertex="1">
-          <mxGeometry height="135" width="370" x="870" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-28" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7452A5;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;League API&lt;/b&gt;&lt;br&gt;/league/me/{tier|ranking|rank|schedule}&lt;br&gt;/league/ranking · /league/me/last-result" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-29" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2F8F83;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Character · Currency · Item API&lt;/b&gt;&lt;br&gt;/character/{quota|generation|moderation}&lt;br&gt;/currency · /inventory · /equipment&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;원자적 구매 API는 아직 없음&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-30" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7A828A;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Notification API · Scheduler Entry&lt;/b&gt;&lt;br&gt;/notifications/* · /groups/*/notify-* &lt;br&gt;리그·챌린지·복귀·추월 알림 배치" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1710" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-31" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#59636E;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Invite · Analytics · Public Link&lt;/b&gt;&lt;br&gt;/groups/{id}/invite-link · /invite-links/claim&lt;br&gt;/analytics/events · /l/{slug} · /l/match&lt;br&gt;/.well-known/apple-app-site-association" vertex="1">
-          <mxGeometry height="135" width="370" x="870" y="1835" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-32" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="공통 계약 · JWT access/refresh · @Valid · RFC형 오류 응답 · cursor/page 조회" vertex="1">
-          <mxGeometry height="66" width="370" x="870" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-33" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;AuthService · UserService&lt;/b&gt;&lt;br&gt;ProfileService · OccupationService&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;JWT 발급·갱신 · 계정 연결 · 활동 갱신&lt;/span&gt;" vertex="1">
-          <mxGeometry height="120" width="370" x="1330" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-34" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;FocusService · ScreenTimeService&lt;/b&gt;&lt;br&gt;StatsService · UserStreakService&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;세션 수명주기 · 목표 보상 · 기간 집계&lt;/span&gt;" vertex="1">
-          <mxGeometry height="130" width="370" x="1330" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-35" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;FriendService&lt;/b&gt;&lt;br&gt;친구·요청·차단·핀·라이브 상태 주입&lt;br&gt;FriendNotificationService" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-36" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;GroupService · GroupMemberService&lt;/b&gt;&lt;br&gt;GroupChallengeService · GroupBetService&lt;br&gt;Join · Query · Window · Settlement Services&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;트랜잭션·행 잠금·멱등 정산&lt;/span&gt;" vertex="1">
-          <mxGeometry height="135" width="370" x="1330" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-37" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;LeagueService · LeagueBatchService&lt;/b&gt;&lt;br&gt;랭킹 쿼리 · 주간 스냅샷 · 티어 이동&lt;br&gt;월요일 00:00 KST 배치" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-38" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;CharacterGeneration · ImageModeration&lt;/b&gt;&lt;br&gt;InGameCurrency · CurrencyLedger&lt;br&gt;InventoryService · EquipmentService" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-39" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;PushNotificationService&lt;/b&gt;&lt;br&gt;League · Challenge · Bet · Friend 알림&lt;br&gt;FCM HTTP v1 · event claim/dedupe" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1710" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-40" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;InviteLinkService · Match · Click&lt;/b&gt;&lt;br&gt;AnalyticsService · Ga4MeasurementClient&lt;br&gt;OpenAiModerationClient&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;RestClient timeout · 실패 격리/차단 정책&lt;/span&gt;" vertex="1">
-          <mxGeometry height="135" width="370" x="1330" y="1835" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-41" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="공통 실행 · @Scheduled가 작업 트리거 · TaskScheduler(6+3 threads) · ShedLock(JDBC)은 중복 실행 가드 · JPA transaction · Flyway · Actuator :9091" vertex="1">
-          <mxGeometry height="66" width="370" x="1330" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-42" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;User · SocialAccount Repositories&lt;/b&gt;&lt;br&gt;users · social_accounts · occupations&lt;br&gt;user_*_settings · user_streaks" vertex="1">
-          <mxGeometry height="120" width="370" x="1790" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-43" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Focus · Stats Repositories&lt;/b&gt;&lt;br&gt;focus_sessions · focus_tags · pomodoros&lt;br&gt;daily_focus_stats · daily_screen_time_stats&lt;br&gt;weekly_feedbacks" vertex="1">
-          <mxGeometry height="130" width="370" x="1790" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-44" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Friendship · Pinned Repositories&lt;/b&gt;&lt;br&gt;friendships · pinned_friends · user_blocks" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-45" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Group · Challenge · Bet Repositories&lt;/b&gt;&lt;br&gt;groups · group_members · announcements&lt;br&gt;group_challenges · windows · durations · members&lt;br&gt;group_challenge_bets · sessions · participants" vertex="1">
-          <mxGeometry height="135" width="370" x="1790" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-46" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;League Repositories&lt;/b&gt;&lt;br&gt;league_arenas · league_arena_users&lt;br&gt;league_rank_snapshots · weekly_results · tier_configs" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-47" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Currency · Item · Character Repositories&lt;/b&gt;&lt;br&gt;user_wallets · currency_transactions&lt;br&gt;items · user_items · character_equipment&lt;br&gt;character_generation&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;legacy 구매 로컬 기록과 원자화되지 않음&lt;/span&gt;" vertex="1">
-          <mxGeometry height="125" width="370" x="1790" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-48" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Notification · Invite Repositories&lt;/b&gt;&lt;br&gt;notification_sent_logs · group_invite_links&lt;br&gt;invite_link_clicks · share_cards" vertex="1">
-          <mxGeometry height="115" width="370" x="1790" y="1730" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-49" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;동시성·마이그레이션&lt;/b&gt;&lt;br&gt;shedlock · Flyway schema history&lt;br&gt;PostgreSQL row/advisory lock · SKIP LOCKED" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1865" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-50" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="DB 스키마의 진실원본은 back/src/main/resources/db/migration/ Flyway 체인입니다." vertex="1">
-          <mxGeometry height="66" width="370" x="1790" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-51" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;strokeWidth=2;fontSize=10;align=left;spacingLeft=14;" value="&lt;b&gt;AWS EC2 · Docker Compose (단일 인스턴스)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Cloudflare DNS/Proxy → Nginx 1.28&lt;br&gt;TLS 종단 → Spring Boot app:8080&lt;br&gt;Actuator 관리 포트 :9091은 내부 네트워크 전용&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;app · nginx · datadog-agent / app-network&lt;/span&gt;" vertex="1">
-          <mxGeometry height="230" width="440" x="2250" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-52" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F3ECFF;strokeColor=#7452A5;strokeWidth=2;fontSize=10;align=left;spacingLeft=18;" value="&lt;b&gt;PostgreSQL (AWS RDS)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Spring Data JPA · Hibernate validate&lt;br&gt;Flyway baseline + forward migration&lt;br&gt;JDBC ShedLock · 트랜잭션 락&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;운영 데이터 저장소 1종 · Redis 미사용&lt;/span&gt;" vertex="1">
-          <mxGeometry height="235" width="320" x="2310" y="1170" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-53" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#66707A;strokeColor=none;fontSize=10;fontStyle=1;fontColor=#FFFFFF;" value="외부 서비스" vertex="1">
-          <mxGeometry height="24" width="130" x="2250" y="1450" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-54" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;소셜 ID Provider&lt;/b&gt;&lt;br&gt;Apple JWKS · Google JWKS&lt;br&gt;Kakao API · LINE API · Meta/Instagram" vertex="1">
-          <mxGeometry height="120" width="210" x="2250" y="1490" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-55" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Firebase Cloud Messaging&lt;/b&gt;&lt;br&gt;FCM HTTP v1&lt;br&gt;→ APNs / Android Push" vertex="1">
-          <mxGeometry height="120" width="210" x="2480" y="1490" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-56" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Firebase Analytics · GA4&lt;/b&gt;&lt;br&gt;앱 SDK typed events&lt;br&gt;서버 Measurement Protocol" vertex="1">
-          <mxGeometry height="120" width="210" x="2250" y="1630" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-57" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;OpenAI API&lt;/b&gt;&lt;br&gt;omni-moderation-latest&lt;br&gt;이미지 미저장 · 실패 시 fail-closed" vertex="1">
-          <mxGeometry height="120" width="210" x="2480" y="1630" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-58" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Datadog&lt;/b&gt;&lt;br&gt;Metrics · container logs · APM(20% sample)&lt;br&gt;dd-java-agent → local Agent → HTTPS" vertex="1">
-          <mxGeometry height="115" width="440" x="2250" y="1770" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-59" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;모바일 플랫폼 · OTA&lt;/b&gt;&lt;br&gt;Apple OS Frameworks · App Store Connect · TestFlight&lt;br&gt;Google Play Console · Hot Updater(Supabase Edge/Storage)" vertex="1">
-          <mxGeometry height="105" width="440" x="2250" y="1905" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-60" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="AWS Secrets Manager gromo/prod/env · 배포 시 .env.prod 생성 후 삭제" vertex="1">
-          <mxGeometry height="36" width="440" x="2250" y="2030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-61" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="430" width="2300" x="420" y="2150" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-62" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="⑥ 빌드 · 배포 · 관측" vertex="1">
-          <mxGeometry height="26" width="200" x="420" y="2116" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-63" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#59636E;fontSize=10;" value="&lt;b&gt;GitHub&lt;/b&gt;&lt;br&gt;release push · back/** 또는 compose 변경&lt;br&gt;workflow_dispatch" vertex="1">
-          <mxGeometry height="82" width="210" x="465" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-64" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;" value="&lt;b&gt;GitHub Actions · prod-ci&lt;/b&gt;&lt;br&gt;GCE self-hosted spot runner&lt;br&gt;buildx linux/arm64 · GAR cache" vertex="1">
-          <mxGeometry height="82" width="240" x="740" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-65" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;" value="&lt;b&gt;ECR · S3&lt;/b&gt;&lt;br&gt;SHA/SemVer image · Compose artifact" vertex="1">
-          <mxGeometry height="82" width="210" x="1045" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-66" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;" value="&lt;b&gt;SSM Run Command&lt;/b&gt;&lt;br&gt;Secrets Manager → .env.prod&lt;br&gt;Infra 저장소 문서 · compose up" vertex="1">
-          <mxGeometry height="82" width="250" x="1320" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-67" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;" value="&lt;b&gt;EC2 t4g · Docker Compose&lt;/b&gt;&lt;br&gt;nginx → Spring Boot&lt;br&gt;무중단 아님 · 단일 호스트" vertex="1">
-          <mxGeometry height="82" width="250" x="1635" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-68" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;" value="&lt;b&gt;Datadog Agent&lt;/b&gt;&lt;br&gt;Docker metrics/logs&lt;br&gt;APM :8126 · runtime metrics" vertex="1">
-          <mxGeometry height="82" width="250" x="1950" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-69" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;" value="&lt;b&gt;Datadog SaaS&lt;/b&gt;&lt;br&gt;Dashboard · Logs · APM&lt;br&gt;서비스/env/version 상관" vertex="1">
-          <mxGeometry height="82" width="250" x="2265" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-70" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;iOS 네이티브&lt;/b&gt; · app/ios/testflight.sh · Fastlane → App Store Connect → TestFlight" vertex="1">
-          <mxGeometry height="58" width="650" x="465" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-71" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Android 네이티브&lt;/b&gt; · android-release.sh → bundleRelease → AAB → Play Console 수동 업로드" vertex="1">
-          <mxGeometry height="58" width="650" x="1135" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-72" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;JS OTA&lt;/b&gt; · Hot Updater → Supabase · 네이티브 빌드 선배포 후 호환되는 JS만 publish" vertex="1">
-          <mxGeometry height="58" width="710" x="1805" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-73" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;롤백 경계&lt;/b&gt; · ECR 이전 이미지 태그만 재배포 · Compose와 Flyway 적용 DB 스키마는 되돌리지 않음" vertex="1">
-          <mxGeometry height="58" width="900" x="465" y="2425" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-74" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;헬스·관측 경로&lt;/b&gt; · /health · /actuator/health|prometheus(:9091 내부) · nginx/app stdout · /var/log/springboot · Datadog/Sentry" vertex="1">
-          <mxGeometry height="58" width="1125" x="1390" y="2425" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-75" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#4A5560;" value="&lt;b&gt;도메인 색상&lt;/b&gt;　&lt;font color=&quot;#4A78A8&quot;&gt;■ 인증·사용자&lt;/font&gt;　&lt;font color=&quot;#3F8C5A&quot;&gt;■ 집중·통계&lt;/font&gt;　&lt;font color=&quot;#C48A20&quot;&gt;■ 친구&lt;/font&gt;　&lt;font color=&quot;#B85450&quot;&gt;■ 그룹·챌린지/위험 경계&lt;/font&gt;　&lt;font color=&quot;#7452A5&quot;&gt;■ 리그&lt;/font&gt;　&lt;font color=&quot;#2F8F83&quot;&gt;■ 게임·캐릭터&lt;/font&gt;　&lt;font color=&quot;#59636E&quot;&gt;■ 공통·운영&lt;/font&gt;" vertex="1">
-          <mxGeometry height="34" width="1770" x="690" y="2525" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-76" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-15">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-77" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-24">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-78" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-25">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-79" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-26">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-80" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-27">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-81" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-28">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-82" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-29">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-83" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-30">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-84" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-31">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-85" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-33">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-86" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-34">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-87" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-35">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-88" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-36">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-89" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-37">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-90" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-38">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-91" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-39">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-92" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-40">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-93" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-42">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-94" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-43">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-95" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-44">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-96" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-45">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-97" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-46">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-98" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-47">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-99" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-48">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-100" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-48">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-101" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-102" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-103" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-104" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-105" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-106" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-48" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-107" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-108" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;fontSize=9;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-52" value="JDBC/TLS">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-109" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-54">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-110" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-55">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-111" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-56">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-112" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-57">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-113" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-56">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-114" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-59">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-115" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-64">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-116" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-65">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-117" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-65" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-66">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-118" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-66" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-67">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-119" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-67" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-68">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-120" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-68" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-69">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-121" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F1F2F4;strokeColor=none;" value="" vertex="1">
-          <mxGeometry height="1920" width="2420" x="360" y="740" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-122" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontColor=#20252B;" value="&lt;b&gt;GroMo · System Architecture Overview&lt;/b&gt; &lt;span style=&quot;color:#66707A;&quot;&gt;(현재 운영 기준 · 2026.08)&lt;/span&gt;" vertex="1">
-          <mxGeometry height="34" width="1500" x="420" y="768" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-123" parent="1" style="text;html=1;align=right;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#66707A;" value="한 장 요약 · 클라이언트 → API/서비스/데이터 런타임과 외부 연동, 배포·관측, 모바일 릴리즈 경계를 함께 표시합니다." vertex="1">
-          <mxGeometry height="26" width="1030" x="1660" y="772" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-124" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="390" x="420" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-125" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="840" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-126" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="1300" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-127" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="430" x="1760" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-128" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="1240" width="500" x="2220" y="850" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-129" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="① 클라이언트" vertex="1">
-          <mxGeometry height="26" width="170" x="420" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-130" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="② REST API · /api/v1" vertex="1">
-          <mxGeometry height="26" width="210" x="840" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-131" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="③ 서비스 계약" vertex="1">
-          <mxGeometry height="26" width="170" x="1300" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-132" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="④ Repository · 테이블" vertex="1">
-          <mxGeometry height="26" width="210" x="1760" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-133" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="⑤ 런타임 · 저장소 · 외부 연동" vertex="1">
-          <mxGeometry height="26" width="260" x="2220" y="816" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-134" parent="1" style="shape=mxgraph.basic.person;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#5F6873;fontSize=11;fontStyle=1;" value="사용자&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;iOS · Android · Web&lt;/span&gt;" vertex="1">
-          <mxGeometry height="72" width="105" x="555" y="872" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-135" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;strokeWidth=1.5;fontSize=11;align=left;spacingLeft=12;" value="&lt;b&gt;React Native 0.86 · Expo SDK 57&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;Axios(JWT/401 refresh) · SecureStore 토큰 · AsyncStorage 설정&lt;/span&gt;" vertex="1">
-          <mxGeometry height="66" width="330" x="450" y="965" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-136" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;로그인 · 온보딩 · 프로필&lt;/b&gt;&lt;br&gt;게스트 및 5종 소셜 로그인&lt;br&gt;access/refresh 단일 보안 레코드&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;기기 전용 · Android 백업 제외&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="330" x="450" y="1050" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-137" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;집중 · 스크린타임 · 통계&lt;/b&gt;&lt;br&gt;타이머·포모도로·태그&lt;br&gt;FamilyControls · DeviceActivity&lt;br&gt;캘린더·히트맵·스트릭" vertex="1">
-          <mxGeometry height="125" width="330" x="450" y="1175" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-138" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;친구 · 고정 친구&lt;/b&gt;&lt;br&gt;검색·요청·수락·거절·차단&lt;br&gt;집중 상태 조회" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1320" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-139" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;그룹 · 챌린지 · 내기&lt;/b&gt;&lt;br&gt;그룹 생성·가입·공지&lt;br&gt;챌린지 회차·베팅·정산&lt;br&gt;초대 링크·Universal Link" vertex="1">
-          <mxGeometry height="125" width="330" x="450" y="1432" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-140" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;리그&lt;/b&gt;&lt;br&gt;티어·랭킹·일정·주간 결과&lt;br&gt;직업 카테고리 순위" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1577" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-141" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;캐릭터 · 재화 · 아이템&lt;/b&gt;&lt;br&gt;누끼 생성 쿼터·이미지 모더레이션&lt;br&gt;서버 재화 · 서버 인벤토리 조회/장착&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;legacy 구매 소유권은 AsyncStorage&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="330" x="450" y="1689" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-142" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;푸시 · 분석&lt;/b&gt;&lt;br&gt;FCM/APNs 알림 수신&lt;br&gt;Firebase Analytics typed events" vertex="1">
-          <mxGeometry height="92" width="330" x="450" y="1814" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-143" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;네이티브 Device Control&lt;/b&gt;&lt;br&gt;iOS · 앱 선택/차단 · DeviceActivity · Widget&lt;br&gt;Android M1 · 권한 · 오늘/어제 사용량 · 목표 저장&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;Android는 iOS와 기능 대칭이 아님&lt;/span&gt;" vertex="1">
-          <mxGeometry height="130" width="330" x="450" y="1926" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-144" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4A78A8;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Auth · User API&lt;/b&gt;&lt;br&gt;POST /auth/{provider|guest|refresh|logout}&lt;br&gt;GET·POST·PATCH·DELETE /users/me&lt;br&gt;GET /users/{id}/profile · /occupations" vertex="1">
-          <mxGeometry height="120" width="370" x="870" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-145" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3F8C5A;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Focus · ScreenTime · Stats API&lt;/b&gt;&lt;br&gt;/tag · /focus-session · /screen-time&lt;br&gt;/stats/{today|heatmap|focus|screen-time}&lt;br&gt;/stats/streak · /stats/by-category" vertex="1">
-          <mxGeometry height="130" width="370" x="870" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-146" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#C48A20;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Friend · Pin API&lt;/b&gt;&lt;br&gt;/friends · /friends/requests · /friends/search&lt;br&gt;/pins/{userId} · /pins" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-147" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B85450;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Group · Challenge · Bet API&lt;/b&gt;&lt;br&gt;/groups · /groups/{id}/announcements&lt;br&gt;/groups/{id}/challenges · /bets · /sessions&lt;br&gt;/me/bet-sessions · /challenge-results" vertex="1">
-          <mxGeometry height="135" width="370" x="870" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-148" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7452A5;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;League API&lt;/b&gt;&lt;br&gt;/league/me/{tier|ranking|rank|schedule}&lt;br&gt;/league/ranking · /league/me/last-result" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-149" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2F8F83;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Character · Currency · Item API&lt;/b&gt;&lt;br&gt;/character/{quota|generation|moderation}&lt;br&gt;/currency · /inventory · /equipment&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;원자적 구매 API는 아직 없음&lt;/span&gt;" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-150" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7A828A;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Notification API · Scheduler Entry&lt;/b&gt;&lt;br&gt;/notifications/* · /groups/*/notify-* &lt;br&gt;리그·챌린지·복귀·추월 알림 배치" vertex="1">
-          <mxGeometry height="105" width="370" x="870" y="1710" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-151" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#59636E;strokeWidth=2;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Invite · Analytics · Public Link&lt;/b&gt;&lt;br&gt;/groups/{id}/invite-link · /invite-links/claim&lt;br&gt;/analytics/events · /l/{slug} · /l/match&lt;br&gt;/.well-known/apple-app-site-association" vertex="1">
-          <mxGeometry height="135" width="370" x="870" y="1835" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-152" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="공통 계약 · JWT access/refresh · @Valid · RFC형 오류 응답 · cursor/page 조회" vertex="1">
-          <mxGeometry height="66" width="370" x="870" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-153" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;AuthService · UserService&lt;/b&gt;&lt;br&gt;ProfileService · OccupationService&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;JWT 발급·갱신 · 계정 연결 · 활동 갱신&lt;/span&gt;" vertex="1">
-          <mxGeometry height="120" width="370" x="1330" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-154" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;FocusService · ScreenTimeService&lt;/b&gt;&lt;br&gt;StatsService · UserStreakService&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;세션 수명주기 · 목표 보상 · 기간 집계&lt;/span&gt;" vertex="1">
-          <mxGeometry height="130" width="370" x="1330" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-155" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;FriendService&lt;/b&gt;&lt;br&gt;친구·요청·차단·핀·라이브 상태 주입&lt;br&gt;FriendNotificationService" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-156" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;GroupService · GroupMemberService&lt;/b&gt;&lt;br&gt;GroupChallengeService · GroupBetService&lt;br&gt;Join · Query · Window · Settlement Services&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;트랜잭션·행 잠금·멱등 정산&lt;/span&gt;" vertex="1">
-          <mxGeometry height="135" width="370" x="1330" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-157" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;LeagueService · LeagueBatchService&lt;/b&gt;&lt;br&gt;랭킹 쿼리 · 주간 스냅샷 · 티어 이동&lt;br&gt;월요일 00:00 KST 배치" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-158" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;CharacterGeneration · ImageModeration&lt;/b&gt;&lt;br&gt;InGameCurrency · CurrencyLedger&lt;br&gt;InventoryService · EquipmentService" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-159" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;PushNotificationService&lt;/b&gt;&lt;br&gt;League · Challenge · Bet · Friend 알림&lt;br&gt;FCM HTTP v1 · event claim/dedupe" vertex="1">
-          <mxGeometry height="105" width="370" x="1330" y="1710" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-160" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;InviteLinkService · Match · Click&lt;/b&gt;&lt;br&gt;AnalyticsService · Ga4MeasurementClient&lt;br&gt;OpenAiModerationClient&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;RestClient timeout · 실패 격리/차단 정책&lt;/span&gt;" vertex="1">
-          <mxGeometry height="135" width="370" x="1330" y="1835" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-161" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="공통 실행 · @Scheduled가 작업 트리거 · TaskScheduler(6+3 threads) · ShedLock(JDBC)은 중복 실행 가드 · JPA transaction · Flyway · Actuator :9091" vertex="1">
-          <mxGeometry height="66" width="370" x="1330" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-162" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;User · SocialAccount Repositories&lt;/b&gt;&lt;br&gt;users · social_accounts · occupations&lt;br&gt;user_*_settings · user_streaks" vertex="1">
-          <mxGeometry height="120" width="370" x="1790" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-163" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Focus · Stats Repositories&lt;/b&gt;&lt;br&gt;focus_sessions · focus_tags · pomodoros&lt;br&gt;daily_focus_stats · daily_screen_time_stats&lt;br&gt;weekly_feedbacks" vertex="1">
-          <mxGeometry height="130" width="370" x="1790" y="1030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-164" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Friendship · Pinned Repositories&lt;/b&gt;&lt;br&gt;friendships · pinned_friends · user_blocks" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1180" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-165" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Group · Challenge · Bet Repositories&lt;/b&gt;&lt;br&gt;groups · group_members · announcements&lt;br&gt;group_challenges · windows · durations · members&lt;br&gt;group_challenge_bets · sessions · participants" vertex="1">
-          <mxGeometry height="135" width="370" x="1790" y="1305" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-166" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;League Repositories&lt;/b&gt;&lt;br&gt;league_arenas · league_arena_users&lt;br&gt;league_rank_snapshots · weekly_results · tier_configs" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1460" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-167" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Currency · Item · Character Repositories&lt;/b&gt;&lt;br&gt;user_wallets · currency_transactions&lt;br&gt;items · user_items · character_equipment&lt;br&gt;character_generation&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#B85450;&quot;&gt;legacy 구매 로컬 기록과 원자화되지 않음&lt;/span&gt;" vertex="1">
-          <mxGeometry height="125" width="370" x="1790" y="1585" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-168" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Notification · Invite Repositories&lt;/b&gt;&lt;br&gt;notification_sent_logs · group_invite_links&lt;br&gt;invite_link_clicks · share_cards" vertex="1">
-          <mxGeometry height="115" width="370" x="1790" y="1730" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-169" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;동시성·마이그레이션&lt;/b&gt;&lt;br&gt;shedlock · Flyway schema history&lt;br&gt;PostgreSQL row/advisory lock · SKIP LOCKED" vertex="1">
-          <mxGeometry height="105" width="370" x="1790" y="1865" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-170" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="DB 스키마의 진실원본은 back/src/main/resources/db/migration/ Flyway 체인입니다." vertex="1">
-          <mxGeometry height="66" width="370" x="1790" y="1990" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-171" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;strokeWidth=2;fontSize=10;align=left;spacingLeft=14;" value="&lt;b&gt;AWS EC2 · Docker Compose (단일 인스턴스)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Cloudflare DNS/Proxy → Nginx 1.28&lt;br&gt;TLS 종단 → Spring Boot app:8080&lt;br&gt;Actuator 관리 포트 :9091은 내부 네트워크 전용&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;app · nginx · datadog-agent / app-network&lt;/span&gt;" vertex="1">
-          <mxGeometry height="230" width="440" x="2250" y="890" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-172" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#F3ECFF;strokeColor=#7452A5;strokeWidth=2;fontSize=10;align=left;spacingLeft=18;" value="&lt;b&gt;PostgreSQL (AWS RDS)&lt;/b&gt;&lt;br&gt;&lt;br&gt;Spring Data JPA · Hibernate validate&lt;br&gt;Flyway baseline + forward migration&lt;br&gt;JDBC ShedLock · 트랜잭션 락&lt;br&gt;&lt;br&gt;&lt;span style=&quot;font-size:9px;color:#66707A;&quot;&gt;운영 데이터 저장소 1종 · Redis 미사용&lt;/span&gt;" vertex="1">
-          <mxGeometry height="235" width="320" x="2310" y="1170" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-173" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#66707A;strokeColor=none;fontSize=10;fontStyle=1;fontColor=#FFFFFF;" value="외부 서비스" vertex="1">
-          <mxGeometry height="24" width="130" x="2250" y="1450" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-174" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;소셜 ID Provider&lt;/b&gt;&lt;br&gt;Apple JWKS · Google JWKS&lt;br&gt;Kakao API · LINE API · Meta/Instagram" vertex="1">
-          <mxGeometry height="120" width="210" x="2250" y="1490" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-175" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Firebase Cloud Messaging&lt;/b&gt;&lt;br&gt;FCM HTTP v1&lt;br&gt;→ APNs / Android Push" vertex="1">
-          <mxGeometry height="120" width="210" x="2480" y="1490" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-176" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EAF7EF;strokeColor=#3F8C5A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Firebase Analytics · GA4&lt;/b&gt;&lt;br&gt;앱 SDK typed events&lt;br&gt;서버 Measurement Protocol" vertex="1">
-          <mxGeometry height="120" width="210" x="2250" y="1630" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-177" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F7F5;strokeColor=#2F8F83;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;OpenAI API&lt;/b&gt;&lt;br&gt;omni-moderation-latest&lt;br&gt;이미지 미저장 · 실패 시 fail-closed" vertex="1">
-          <mxGeometry height="120" width="210" x="2480" y="1630" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-178" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Datadog&lt;/b&gt;&lt;br&gt;Metrics · container logs · APM(20% sample)&lt;br&gt;dd-java-agent → local Agent → HTTPS" vertex="1">
-          <mxGeometry height="115" width="440" x="2250" y="1770" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-179" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;모바일 플랫폼 · OTA&lt;/b&gt;&lt;br&gt;Apple OS Frameworks · App Store Connect · TestFlight&lt;br&gt;Google Play Console · Hot Updater(Supabase Edge/Storage)" vertex="1">
-          <mxGeometry height="105" width="440" x="2250" y="1905" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-180" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=9;fontColor=#4A5560;" value="AWS Secrets Manager gromo/prod/env · 배포 시 .env.prod 생성 후 삭제" vertex="1">
-          <mxGeometry height="36" width="440" x="2250" y="2030" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-181" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#90979E;strokeWidth=1.5;dashed=1;dashPattern=10 5;" value="" vertex="1">
-          <mxGeometry height="430" width="2300" x="420" y="2150" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-182" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#4A5560;strokeColor=none;fontSize=12;fontStyle=1;fontColor=#FFFFFF;" value="⑥ 빌드 · 배포 · 관측" vertex="1">
-          <mxGeometry height="26" width="200" x="420" y="2116" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-183" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#59636E;fontSize=10;" value="&lt;b&gt;GitHub&lt;/b&gt;&lt;br&gt;release push · back/** 또는 compose 변경&lt;br&gt;workflow_dispatch" vertex="1">
-          <mxGeometry height="82" width="210" x="465" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-184" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#E8F3FF;strokeColor=#4A78A8;fontSize=10;" value="&lt;b&gt;GitHub Actions · prod-ci&lt;/b&gt;&lt;br&gt;GCE self-hosted spot runner&lt;br&gt;buildx linux/arm64 · GAR cache" vertex="1">
-          <mxGeometry height="82" width="240" x="740" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-185" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;" value="&lt;b&gt;ECR · S3&lt;/b&gt;&lt;br&gt;SHA/SemVer image · Compose artifact" vertex="1">
-          <mxGeometry height="82" width="210" x="1045" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-186" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFF3D6;strokeColor=#C48A20;fontSize=10;" value="&lt;b&gt;SSM Run Command&lt;/b&gt;&lt;br&gt;Secrets Manager → .env.prod&lt;br&gt;Infra 저장소 문서 · compose up" vertex="1">
-          <mxGeometry height="82" width="250" x="1320" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-187" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;" value="&lt;b&gt;EC2 t4g · Docker Compose&lt;/b&gt;&lt;br&gt;nginx → Spring Boot&lt;br&gt;무중단 아님 · 단일 호스트" vertex="1">
-          <mxGeometry height="82" width="250" x="1635" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-188" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#EEF2F6;strokeColor=#59636E;fontSize=10;" value="&lt;b&gt;Datadog Agent&lt;/b&gt;&lt;br&gt;Docker metrics/logs&lt;br&gt;APM :8126 · runtime metrics" vertex="1">
-          <mxGeometry height="82" width="250" x="1950" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-189" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F3ECFF;strokeColor=#7452A5;fontSize=10;" value="&lt;b&gt;Datadog SaaS&lt;/b&gt;&lt;br&gt;Dashboard · Logs · APM&lt;br&gt;서비스/env/version 상관" vertex="1">
-          <mxGeometry height="82" width="250" x="2265" y="2220" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-190" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;iOS 네이티브&lt;/b&gt; · app/ios/testflight.sh · Fastlane → App Store Connect → TestFlight" vertex="1">
-          <mxGeometry height="58" width="650" x="465" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-191" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;Android 네이티브&lt;/b&gt; · android-release.sh → bundleRelease → AAB → Play Console 수동 업로드" vertex="1">
-          <mxGeometry height="58" width="650" x="1135" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-192" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;JS OTA&lt;/b&gt; · Hot Updater → Supabase · 네이티브 빌드 선배포 후 호환되는 JS만 publish" vertex="1">
-          <mxGeometry height="58" width="710" x="1805" y="2345" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-193" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FDECEE;strokeColor=#B85450;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;롤백 경계&lt;/b&gt; · ECR 이전 이미지 태그만 재배포 · Compose와 Flyway 적용 DB 스키마는 되돌리지 않음" vertex="1">
-          <mxGeometry height="58" width="900" x="465" y="2425" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-194" parent="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#F6F8FA;strokeColor=#7A828A;fontSize=10;align=left;spacingLeft=12;" value="&lt;b&gt;헬스·관측 경로&lt;/b&gt; · /health · /actuator/health|prometheus(:9091 내부) · nginx/app stdout · /var/log/springboot · Datadog/Sentry" vertex="1">
-          <mxGeometry height="58" width="1125" x="1390" y="2425" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-195" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#4A5560;" value="&lt;b&gt;도메인 색상&lt;/b&gt;　&lt;font color=&quot;#4A78A8&quot;&gt;■ 인증·사용자&lt;/font&gt;　&lt;font color=&quot;#3F8C5A&quot;&gt;■ 집중·통계&lt;/font&gt;　&lt;font color=&quot;#C48A20&quot;&gt;■ 친구&lt;/font&gt;　&lt;font color=&quot;#B85450&quot;&gt;■ 그룹·챌린지/위험 경계&lt;/font&gt;　&lt;font color=&quot;#7452A5&quot;&gt;■ 리그&lt;/font&gt;　&lt;font color=&quot;#2F8F83&quot;&gt;■ 게임·캐릭터&lt;/font&gt;　&lt;font color=&quot;#59636E&quot;&gt;■ 공통·운영&lt;/font&gt;" vertex="1">
-          <mxGeometry height="34" width="1770" x="690" y="2525" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-196" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-134" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-135">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-197" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-136" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-144">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-198" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-137" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-145">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-199" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-138" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-146">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-200" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-139" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-147">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-201" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-140" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-148">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-202" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-141" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-149">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-203" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-142" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-150">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-204" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-143" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-151">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-205" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-144" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-153">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-206" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-145" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-154">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-207" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-146" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-155">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-208" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-147" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-156">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-209" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-148" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-157">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-210" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-149" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-158">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-211" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-150" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-159">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-212" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-151" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-160">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-213" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-153" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-162">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-214" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-154" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-163">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-215" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-155" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-164">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-216" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-156" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-165">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-217" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-157" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-166">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-218" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-158" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-167">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-219" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-159" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-168">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-220" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-160" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-168">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-221" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-162" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-222" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-163" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-223" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-165" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#B85450;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-224" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-166" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-225" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-167" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-226" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-168" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-227" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-169" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-228" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-171" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;fontSize=9;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-172" value="JDBC/TLS">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-229" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-153" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-174">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-230" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-159" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-175">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-231" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-160" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-176">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-232" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-158" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#2F8F83;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-177">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-233" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-142" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#3F8C5A;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-176">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-234" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-143" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;dashed=1;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-179">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-235" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-183" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-184">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-236" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-184" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#4A78A8;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-185">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-237" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-185" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-186">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-238" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-186" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#C48A20;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-187">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-239" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-187" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#59636E;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-188">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="fvxlyuOKosK0JaqqW__E-240" edge="1" parent="1" source="fvxlyuOKosK0JaqqW__E-188" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7452A5;strokeWidth=2;endArrow=block;endFill=1;" target="fvxlyuOKosK0JaqqW__E-189">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="heading" value="Gromo · 서비스 아키텍처" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=32;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="60" y="24" width="1640" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="2026.09.13 · phone/docs 기반 목표 구조 · 실선: HTTP·저장소 / 점선: 비동기 · main·통합 PR·후속 단계 구분" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=17;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="60" y="72" width="1640" height="30" />
+        </mxCell>
+        <mxCell id="band0" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="120" width="1680" height="220" />
+        </mxCell>
+        <mxCell id="bandTitle0" value="01  명령과 데이터 소유권" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="132" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="band1" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="370" width="1680" height="850" />
+        </mxCell>
+        <mxCell id="bandTitle1" value="02  실시간 전달 · 내구 이벤트 · 위성 서비스" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="382" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="band2" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="1230" width="1680" height="220" />
+        </mxCell>
+        <mxCell id="bandTitle2" value="03  조건 충족 후 확장 · Target-2" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="1242" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="bandSub2" value="랭킹 지연·인스턴스 증가를 측정한 뒤 도입한다. 기존 채팅 Redis와 도입 시점이 다르다." vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="64" y="1273" width="1632" height="26" />
+        </mxCell>
+        <mxCell id="appRest" value="REST" source="app" target="business" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.4642857142857143;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="internalHttp" value="검증 주체 · 내부 HTTP" source="business" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4642857142857143;entryX=0.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="coreWrite" value="단일 TX" source="data" target="coreDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4482758620689655;entryX=0.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="appSocket" value="STOMP" source="app" target="realtime" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="realtimeContract" value="커밋된 봉투 · 후속 연결" source="data" target="adapter" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0625;exitY=1.0;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1040" y="350" />
+              <mxPoint x="650" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="routerInput" value="권한·router" source="adapter" target="realtime" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.48148148148148145;entryX=1.0;entryY=0.5;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayOwnership" value="커밋된 outbox" source="data" target="relay" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.53125;exitY=1.0;entryX=0.53125;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="focusPresence" value="presence:focus:* · Data 쓰기" source="data" target="chatRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.8275862068965517;entryX=0.7857142857142857;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="940" y="295" />
+              <mxPoint x="940" y="670" />
+              <mxPoint x="280" y="670" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="chatFanout" value="Pub/Sub · presence 읽기" source="realtime" target="chatRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.39285714285714285;exitY=1.0;entryX=0.39285714285714285;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="chatStore" value="" source="realtime" target="chatDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7058823529411765;entryX=0.0;entryY=0.4782608695652174;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="20" y="555" />
+              <mxPoint x="20" y="1055" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="previewCache" value="TTL 캐시" source="business" target="previewRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.8571428571428571;entryX=1.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="860" y="295" />
+              <mxPoint x="860" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayKafka" value="userId 키 · 재전달" source="relay" target="kafka" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kafkaConsume" value="consume" source="kafka" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4482758620689655;entryX=0.0;entryY=0.38235294117647056;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notiReads" value="조회 3종만 · 리컨실/ack/적격" source="notification" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.6;exitY=0.0;entryX=0.84375;entryY=1.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1600" y="390" />
+              <mxPoint x="1290" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notiStore" value="알림 전용 DB" source="notification" target="notiDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.44;exitY=1.0;entryX=0.44;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="push" value="" source="notification" target="fcm" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.7352941176470589;entryX=1.0;entryY=0.6842105263157895;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1735" y="850" />
+              <mxPoint x="1735" y="1185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="businessLink" value="발급·귀속" source="business" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7142857142857143;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="405" y="275" />
+              <mxPoint x="405" y="1080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayLink" value="실패한 HTTP 전달 재시도" source="relay" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="970" y="545" />
+              <mxPoint x="970" y="940" />
+              <mxPoint x="650" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="linkStore" value="자기 데이터" source="link" target="neon" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5217391304347826;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="scoreConsume" value="userId" source="score" target="rankConsumer" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rankProjection" value="version 검사 + Lua" source="rankConsumer" target="rankRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="app" value="&lt;b&gt;모바일 앱&lt;/b&gt;&lt;br&gt;REST 명령·스냅샷&lt;br&gt;STOMP 구독·응원·편지&lt;br&gt;&lt;b&gt;React Native · Expo&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="175" width="280" height="130" />
+        </mxCell>
+        <mxCell id="business" value="&lt;b&gt;Business API&lt;/b&gt;&lt;br&gt;인증 · 공개 DTO · BFF&lt;br&gt;Data 명령 호출 · DB 소유 없음&lt;br&gt;&lt;b&gt;전체 진입점 이관: 목표&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="460" y="175" width="360" height="140" />
+        </mxCell>
+        <mxCell id="data" value="&lt;b&gt;Data API&lt;/b&gt;&lt;br&gt;상태·정산·버전의 소유자&lt;br&gt;명령 receipt + outbox = 같은 TX&lt;br&gt;&lt;b&gt;원자 명령·outbox: 통합 PR&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="175" width="320" height="145" />
+        </mxCell>
+        <mxCell id="coreDb" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br&gt;gromo · 도메인 정본&lt;br&gt;원장 · 멱등 결과 · outbox&lt;br&gt;&lt;b&gt;코어 DB 접근: Data만&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="175" width="250" height="145" />
+        </mxCell>
+        <mxCell id="realtime" value="&lt;b&gt;Realtime&lt;/b&gt;&lt;br&gt;채널 분리 · 현재 수신자 인가&lt;br&gt;기존 편지 저장·전파&lt;br&gt;신규 14종 EventRouter&lt;br&gt;&lt;b&gt;채팅·router: main / 전달: 후속&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="435" width="280" height="170" />
+        </mxCell>
+        <mxCell id="adapter" value="&lt;b&gt;실시간 전달 어댑터&lt;/b&gt;&lt;br&gt;커밋된 eventId 그대로 전달&lt;br&gt;전송 경로·인가 통합 필요&lt;br&gt;&lt;b&gt;후속 · 공개 POST·토픽 미추가&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="500" y="455" width="300" height="135" />
+        </mxCell>
+        <mxCell id="relay" value="&lt;b&gt;Data outbox relay&lt;/b&gt;&lt;br&gt;미전달 행 lease · 재시도&lt;br&gt;목적지별 전달 완료 기록&lt;br&gt;Broker ACK 뒤 발행 완료&lt;br&gt;&lt;b&gt;통합 PR #745&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="440" width="320" height="150" />
+        </mxCell>
+        <mxCell id="chatRedis" value="&lt;b&gt;Redis · 채팅/집중&lt;/b&gt;&lt;br&gt;chat:fanout · 휘발 Pub/Sub&lt;br&gt;presence:focus:* · 상태 사본&lt;br&gt;Realtime은 presence 읽기만&lt;br&gt;&lt;b&gt;main · ACL 배포는 후속&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="725" width="280" height="145" />
+        </mxCell>
+        <mxCell id="previewRedis" value="&lt;b&gt;Redis · 미리보기 전용&lt;/b&gt;&lt;br&gt;cache:business:preview:*&lt;br&gt;메타데이터 · 축소 PNG · TTL&lt;br&gt;128 MiB · allkeys-lru · 비영속&lt;br&gt;&lt;b&gt;main · 채팅 Redis와 별도&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="480" y="725" width="340" height="145" />
+        </mxCell>
+        <mxCell id="kafka" value="&lt;b&gt;Kafka · 알림 스트림&lt;/b&gt;&lt;br&gt;notification-events · userId 키&lt;br&gt;3 partitions · .DLT도 3&lt;br&gt;KRaft 1 node · RF 1 · 7일&lt;br&gt;&lt;b&gt;통합 PR · 활성화 기본 OFF&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="725" width="320" height="145" />
+        </mxCell>
+        <mxCell id="notification" value="&lt;b&gt;Notification&lt;/b&gt;&lt;br&gt;eventId 멱등 · version&lt;br&gt;재시도 · .DLT · 재조정&lt;br&gt;템플릿 · 발송 · 이력&lt;br&gt;&lt;b&gt;통합 PR #745&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="725" width="250" height="170" />
+        </mxCell>
+        <mxCell id="chatDb" value="&lt;b&gt;PostgreSQL · 편지&lt;/b&gt;&lt;br&gt;gromo_chat · 메시지 정본&lt;br&gt;&lt;b&gt;main · 히스토리로 복구&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1000" width="280" height="115" />
+        </mxCell>
+        <mxCell id="link" value="&lt;b&gt;Link · MMP&lt;/b&gt;&lt;br&gt;Vercel · 랜딩 · 초대 · 귀속&lt;br&gt;코어가 HTTP로 전달&lt;br&gt;링크 서버는 Kafka 미접속&lt;br&gt;&lt;b&gt;위성 분리: 목표&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="480" y="1000" width="340" height="160" />
+        </mxCell>
+        <mxCell id="neon" value="&lt;b&gt;Neon PostgreSQL&lt;/b&gt;&lt;br&gt;링크 · 클릭 · 어트리뷰션 원장&lt;br&gt;&lt;b&gt;Link 소유&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="1020" width="320" height="115" />
+        </mxCell>
+        <mxCell id="notiDb" value="&lt;b&gt;PostgreSQL · 알림&lt;/b&gt;&lt;br&gt;gromo_notification&lt;br&gt;&lt;b&gt;별도 DB·유저·Flyway&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="985" width="250" height="115" />
+        </mxCell>
+        <mxCell id="fcm" value="&lt;b&gt;FCM&lt;/b&gt;&lt;br&gt;기기 전달 · 외부 부작용" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="1120" width="250" height="95" />
+        </mxCell>
+        <mxCell id="score" value="&lt;b&gt;score-events + .DLT&lt;/b&gt;&lt;br&gt;Data outbox · 절대 점수+version" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1320" width="330" height="100" />
+        </mxCell>
+        <mxCell id="rankConsumer" value="&lt;b&gt;랭킹 컨슈머&lt;/b&gt;&lt;br&gt;낮은 version 거부 · 중복 수렴" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="500" y="1320" width="330" height="100" />
+        </mxCell>
+        <mxCell id="rankRedis" value="&lt;b&gt;Redis · 랭킹 projection&lt;/b&gt;&lt;br&gt;ZADD 완료분 + presence 라이브분 · ACL로 쓰기 소유 강제" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="1320" width="630" height="100" />
         </mxCell>
       </root>
     </mxGraphModel>
