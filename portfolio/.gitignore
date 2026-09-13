@@ -3,6 +3,8 @@ node_modules/
 out/
 next-env.d.ts
 *.tsbuildinfo
+__pycache__/
+*.pyc
 
 .env
 .env.*

@@ -93,6 +93,14 @@ manifest의 `detailHref`는 다이어그램 아래에 근거 문서 링크를 �
 
 버전이 하나뿐인 도면도 `versions`를 생략하지 않는다. 현재 별칭(`<id>`)을 새 버전으로 바꾸기 전에 기존 파일을 명시적 버전(`<id>.vN`)으로 먼저 보존한다.
 
+manifest는 최신 버전을 맨 앞에 두고, 최신 항목만 현재 별칭(`<id>`)을 사용한다. 이전 버전은 반드시 `<id>.vN`이라는 독립 파일을 가리킨다. 빌드는 순서가 뒤집히거나 현재 별칭을 이전 버전이 재사용하면 실패한다.
+
+### 공통 시각 문법
+
+`04-system`을 모든 현재 다이어그램의 시각 기준으로 사용한다. 흰 캔버스, 32px 제목과 17px 부제, `#f8fafc` 영역 밴드, 12px 모서리의 의미별 카드, `#607583` 2px 연결선, `Apple SD Gothic Neo, Noto Sans KR, sans-serif` 글꼴을 공통으로 쓴다. 유스케이스·IA·유저 저니처럼 구조가 다른 도면도 같은 토큰과 제목 계층을 유지한다.
+
+현재 도면을 고칠 때는 먼저 생성기의 `TARGET_VERSION` 또는 `TARGET_VERSIONS`를 올리고 manifest에 새 현재 버전과 이전 버전을 함께 등록한다. 생성기는 직전 현재 별칭을 해당 버전 파일로 한 번만 보존하며, 같은 버전으로 다시 실행해도 보존본을 덮어쓰지 않는다.
+
 현재 v1은 문서 저장소의 `345aa78`(2026-09-08)에서 복원했고, v2는 2026-09-13의 Kafka·Redis 경계 반영본이다.
 
 ## R61 유스케이스 갱신
@@ -102,6 +110,7 @@ manifest의 `detailHref`는 다이어그램 아래에 근거 문서 링크를 �
 ```bash
 node scripts/make-usecase-diagram.mjs
 node scripts/make-product-html-diagrams.mjs
+python3 scripts/make-architecture-diagrams.py
 npm run build
 ```
 

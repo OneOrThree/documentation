@@ -116,3 +116,57 @@ test('an unversioned diagram fails the build', t => {
     error => error.status === 1 && error.stderr.includes('every diagram needs at least one version'),
   );
 });
+
+for (const [name, versions, message] of [
+  [
+    'a current version pointing at a historical artifact',
+    [{id: 'v2', artifactId: 'test.v2'}, {id: 'v1', artifactId: 'test.v1'}],
+    'current version must use artifactId',
+  ],
+  [
+    'a historical version reusing the current alias',
+    [{id: 'v2', artifactId: 'test'}, {id: 'v1', artifactId: 'test'}],
+    'version ids and artifact ids must be unique',
+  ],
+  [
+    'versions listed oldest first',
+    [{id: 'v1', artifactId: 'test'}, {id: 'v2', artifactId: 'test.v2'}],
+    'versions must be newest first',
+  ],
+]) {
+  test(`${name} fails the build`, t => {
+    const f = fixture(t, svg);
+    writeFileSync(
+      path.join(f.dir, 'diagrams/manifest.json'),
+      JSON.stringify([{id: 'test', title: '테스트', versions}]),
+    );
+    assert.throws(
+      f.run,
+      error => error.status === 1 && error.stderr.includes(message),
+    );
+  });
+}
+
+test('current diagrams share the system architecture visual contract', () => {
+  const diagramDir = path.join(import.meta.dirname, '..', 'diagrams');
+  for (const id of ['00-usecase', '03-service', '04-system', '05-cloud']) {
+    const svgSource = readFileSync(path.join(diagramDir, `${id}.svg`), 'utf8').toLowerCase();
+    for (const token of ['#ffffff', '#172b3a', '#4d5a66', '#f8fafc', '#dce4eb']) {
+      assert.ok(svgSource.includes(token), `${id}.svg is missing ${token}`);
+    }
+    assert.ok(
+      svgSource.includes('apple sd gothic neo, noto sans kr, sans-serif'),
+      `${id}.svg uses a different font stack`,
+    );
+  }
+  for (const id of ['01-ia', '02-journey']) {
+    const htmlSource = readFileSync(path.join(diagramDir, `${id}.html`), 'utf8').toLowerCase();
+    for (const token of ['#ffffff', '#172b3a', '#4d5a66', '#f8fafc', '#dce4eb']) {
+      assert.ok(htmlSource.includes(token), `${id}.html is missing ${token}`);
+    }
+    assert.ok(
+      htmlSource.includes('"apple sd gothic neo", "noto sans kr", sans-serif'),
+      `${id}.html uses a different font stack`,
+    );
+  }
+});

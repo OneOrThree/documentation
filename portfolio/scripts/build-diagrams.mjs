@@ -77,6 +77,7 @@ function build(entry, i) {
       `diagrams/manifest.json[${i}] (${id}): every diagram needs at least one version.`,
     );
   }
+  validateVersions(entry, i);
 
   if (entry.format === "html") {
     buildHtmlArtifact(id, title);
@@ -116,6 +117,50 @@ function build(entry, i) {
     ...built,
     versions,
   };
+}
+
+function validateVersions(entry, entryIndex) {
+  const versionIds = new Set();
+  const artifactIds = new Set();
+  let previousNumber = Number.POSITIVE_INFINITY;
+
+  entry.versions.forEach((version, versionIndex) => {
+    if (!version.id || !version.artifactId) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}].versions[${versionIndex}] needs "id" and "artifactId".`,
+      );
+    }
+    if (versionIds.has(version.id) || artifactIds.has(version.artifactId)) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): version ids and artifact ids must be unique.`,
+      );
+    }
+    const match = /^v(\d+)$/.exec(version.id);
+    if (!match) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): version "${version.id}" must use v<number>.`,
+      );
+    }
+    const number = Number(match[1]);
+    if (number >= previousNumber) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): versions must be newest first.`,
+      );
+    }
+    if (versionIndex === 0 && version.artifactId !== entry.id) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): the current version must use artifactId "${entry.id}".`,
+      );
+    }
+    if (versionIndex > 0 && version.artifactId === entry.id) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): historical versions need explicit artifact files.`,
+      );
+    }
+    versionIds.add(version.id);
+    artifactIds.add(version.artifactId);
+    previousNumber = number;
+  });
 }
 
 function buildHtmlArtifact(id, title) {

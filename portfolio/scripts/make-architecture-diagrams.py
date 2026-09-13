@@ -7,10 +7,12 @@
 
 from html import escape
 from pathlib import Path
+from shutil import copy2
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT = "Apple SD Gothic Neo, Noto Sans KR, sans-serif"
+TARGET_VERSIONS = {"03-service": 2, "04-system": 2, "05-cloud": 2}
 COLORS = {
     "core": ("#edf4fc", "#3866a0"),
     "data": ("#fff3e8", "#a9682b"),
@@ -38,6 +40,14 @@ class Diagram:
                                label=label, at=at, async_=async_))
 
     def write(self):
+        target_version = TARGET_VERSIONS[self.name]
+        for suffix in ("svg", "drawio.xml"):
+            current = ROOT / "diagrams" / f"{self.name}.{suffix}"
+            previous = ROOT / "diagrams" / f"{self.name}.v{target_version - 1}.{suffix}"
+            if current.exists() and not previous.exists():
+                copy2(current, previous)
+                print(f"{self.name}: archived {previous.name}")
+
         parts = [
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{self.width}" height="{self.height}" '
             f'viewBox="0 0 {self.width} {self.height}" role="img" aria-labelledby="diagramTitle diagramDesc">',
@@ -309,6 +319,43 @@ def system():
     d.write()
 
 
+def cloud():
+    d = Diagram("05-cloud", "Gromo · 클라우드 아키텍처",
+                "2026.08 구성 기록 · Cloudflare → 단일 EC2 → RDS PostgreSQL · 시스템 아키텍처 시각 규칙", 960)
+    d.band(360, 120, 1360, 800, "AWS · ap-northeast-2 (Seoul)",
+           "VPC 10.20.0.0/16 · 이 도면은 2026.08 구성 스냅샷이다.")
+    d.band(970, 180, 460, 720, "EC2 · gromo-prod",
+           "t4g.medium · AL2023 arm64 · Docker Compose · app-network")
+    d.box("mobile", 60, 250, 240, 120, "GroMo 앱",
+          ["React Native · Expo", "HTTPS :443"], "external", "사용자 요청")
+    d.box("cloudflare", 410, 245, 250, 140, "Cloudflare",
+          ["DNS · Proxy/WAF · DDoS", "Edge TLS → Origin TLS"], "external", "원본 IP 보호")
+    d.box("igw", 730, 245, 200, 120, "Internet Gateway",
+          ["VPC ingress", "공개 경로"], "external")
+    d.box("eip", 730, 450, 200, 120, "Elastic IP",
+          ["A record target", "고정 원본 주소"], "future")
+    d.box("ec2-host", 1010, 270, 380, 110, "EC2 · gromo-prod",
+          ["30 GB gp3 · SSM access"], "external", "80/443만 공개 · SSH 닫힘")
+    d.box("nginx", 1010, 440, 380, 120, "Nginx 1.28",
+          ["Origin TLS :443", "Spring Boot → app:8080"], "core", "ingress 소유")
+    d.box("app", 1010, 610, 380, 130, "Spring Boot 4 API",
+          ["Java 17 · app:8080", "단일 애플리케이션"], "core", "service")
+    d.box("datadog", 1010, 790, 380, 90, "Datadog Agent 7",
+          ["APM · 로그 · 메트릭"], "external")
+    d.box("rds", 1470, 600, 230, 160, "RDS PostgreSQL 16",
+          ["db.t4g.micro · 20 GB gp3", "암호화 · backup 7d", "private · Single-AZ"], "data", "EC2 SG만 :5432")
+    d.edge("flow-user-cf", "mobile", "cloudflare", [(300,310),(410,310)], "HTTPS :443", (355,302))
+    d.edge("flow-cf-igw", "cloudflare", "igw", [(660,310),(730,310)], "Origin TLS", (695,302))
+    d.edge("flow-igw-eip", "igw", "eip", [(830,365),(830,450)])
+    d.edge("flow-eip-nginx", "eip", "nginx", [(930,510),(970,510),(970,500),(1010,500)])
+    d.edge("flow-nginx-app", "nginx", "app", [(1200,560),(1200,610)], "HTTP :8080", (1200,592))
+    d.edge("flow-app-rds", "app", "rds", [(1390,675),(1470,675)], "Postgres :5432", (1430,667))
+    d.edge("flow-nginx-datadog", "nginx", "datadog", [(1050,560),(950,560),(950,835),(1010,835)], "관측", (950,690), True)
+    d.edge("flow-app-datadog", "app", "datadog", [(1200,740),(1200,790)], "APM", (1200,775), True)
+    d.write()
+
+
 if __name__ == "__main__":
     service()
     system()
+    cloud()

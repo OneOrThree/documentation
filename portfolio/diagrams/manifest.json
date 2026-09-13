@@ -8,15 +8,27 @@
     "fitOnOpen": true,
     "versions": [
       {
-        "id": "v2",
-        "label": "v2 · 현재",
+        "id": "v3",
+        "label": "v3 · 현재",
         "date": "2026-09-13",
         "artifactId": "00-usecase",
         "status": "R61 현재 설계",
-        "summary": "이전 74개 동작 목록을 R61의 첫 소속, 집중, 성장, 섬 생활, 운영이라는 5개 사용자 목표 영역으로 다시 구성했습니다.",
-        "evidenceTitle": "사용자 목표 정본 — R61",
-        "evidenceSummary": "사용자 목표와 역할은 유스케이스 문서가 정본입니다. 화면 위치는 IA, 단계와 상태 변화는 유저 저니를 우선합니다.",
+        "summary": "R61의 5개 사용자 목표 영역을 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트, 연결선 규칙으로 통일했습니다.",
+        "evidenceTitle": "사용자 목표 정본 — R61 v3",
+        "evidenceSummary": "내용과 연결은 v2를 유지하고 04-system을 기준으로 시각 문법을 통일했습니다. 화면 위치는 IA, 단계와 상태 변화는 유저 저니를 우선합니다.",
         "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "00-usecase.v2",
+        "status": "대체됨",
+        "summary": "이전 74개 동작 목록을 R61의 첫 소속, 집중, 성장, 섬 생활, 운영이라는 5개 사용자 목표 영역으로 다시 구성했습니다.",
+        "evidenceTitle": "R61 사용자 목표 재구성 스냅샷",
+        "evidenceSummary": "사용자 목표 구조는 유효하지만 독립적인 유스케이스 캔버스 스타일을 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
       },
       {
         "id": "v1",
@@ -41,15 +53,27 @@
     "format": "html",
     "versions": [
       {
-        "id": "v2",
-        "label": "v2 · 현재",
+        "id": "v3",
+        "label": "v3 · 현재",
         "date": "2026-09-13",
         "artifactId": "01-ia",
         "status": "R61 현재 설계",
-        "summary": "진입→섬 홈→마을회관·게시판→선택 시설을 한 흐름에 두고, 기능·권한 상세를 필요할 때만 펼치도록 다시 구성했습니다.",
-        "evidenceTitle": "정보 구조 설계 뷰 — R61 v2",
-        "evidenceSummary": "사용자 목표 정본의 첫 가치, 역할, 기준 명칭을 반영했습니다. 화면의 위치와 해금 단계는 이 버전을 우선합니다.",
+        "summary": "진입→섬 홈→고정 성장→선택 시설 구조를 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
+        "evidenceTitle": "정보 구조 설계 뷰 — R61 v3",
+        "evidenceSummary": "v2의 화면 위치와 해금 단계를 유지하고 04-system의 시각 규칙을 적용했습니다.",
         "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "01-ia.v2",
+        "status": "대체됨",
+        "summary": "진입→섬 홈→마을회관·게시판→선택 시설을 한 흐름에 두고, 기능·권한 상세를 필요할 때만 펼치도록 다시 구성했습니다.",
+        "evidenceTitle": "정보 구조 단계형 구조 스냅샷",
+        "evidenceSummary": "정보 구조는 유효하지만 독립 HTML 테마를 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
       },
       {
         "id": "v1",
@@ -74,15 +98,27 @@
     "format": "html",
     "versions": [
       {
-        "id": "v2",
-        "label": "v2 · 현재",
+        "id": "v3",
+        "label": "v3 · 현재",
         "date": "2026-09-13",
         "artifactId": "02-journey",
         "status": "R61 현재 설계",
-        "summary": "혼자서도 완결되는 01–04 핵심 집중 루프와, 그 뒤에 열리는 05 성장·06 선택 활동을 분리했습니다.",
-        "evidenceTitle": "전체 유저 저니 — R61 v2",
-        "evidenceSummary": "집중·휴식·종료, 두 재화, 역할과 해금 우회 금지, 꽃나팔 방송기·우체국 기준 명칭을 유스케이스 정본과 맞췄습니다.",
+        "summary": "01–04 핵심 집중 루프와 05 성장·06 선택 활동을 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
+        "evidenceTitle": "전체 유저 저니 — R61 v3",
+        "evidenceSummary": "v2의 상태 순서와 확정 규칙을 유지하고 04-system의 시각 규칙을 적용했습니다.",
         "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "02-journey.v2",
+        "status": "대체됨",
+        "summary": "혼자서도 완결되는 01–04 핵심 집중 루프와, 그 뒤에 열리는 05 성장·06 선택 활동을 분리했습니다.",
+        "evidenceTitle": "핵심 루프·선택 활동 분리 스냅샷",
+        "evidenceSummary": "상태 순서와 확정 규칙은 유효하지만 독립 HTML 테마를 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
       },
       {
         "id": "v1",
@@ -174,14 +210,25 @@
     "detailHref": "/spec/system-architecture",
     "versions": [
       {
-        "id": "v1",
-        "label": "v1 · 현재",
-        "date": "2026-09-11",
+        "id": "v2",
+        "label": "v2 · 현재",
+        "date": "2026-09-13",
         "artifactId": "05-cloud",
         "status": "2026.08 구성 기록",
-        "summary": "Cloudflare, 단일 EC2의 Nginx·Spring Boot, 프라이빗 RDS PostgreSQL, Datadog 수집 경로를 기록한 AWS 배치 도면입니다.",
-        "evidenceTitle": "AWS 구성 스냅샷",
-        "evidenceSummary": "이 도면은 8월 구성 기록입니다. 9월 서비스 분리 목표와 현재 개발 구성은 시스템 아키텍처와 상세 문서를 우선합니다.",
+        "summary": "2026.08 AWS 구성과 트래픽 경로를 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트, 연결선 규칙으로 다시 그렸습니다.",
+        "evidenceTitle": "AWS 구성 스냅샷 — 공통 시각 문법",
+        "evidenceSummary": "구성 사실은 v1과 같고 표현만 04-system 기준으로 통일했습니다. 9월 서비스 분리 목표와 현재 개발 구성은 시스템 아키텍처를 우선합니다.",
+        "detailHref": "/spec/system-architecture"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-11",
+        "artifactId": "05-cloud.v1",
+        "status": "대체됨",
+        "summary": "Cloudflare, 단일 EC2의 Nginx·Spring Boot, 프라이빗 RDS PostgreSQL, Datadog 수집 경로를 기록한 최초 AWS 배치 도면입니다.",
+        "evidenceTitle": "AWS 구성 최초 스냅샷",
+        "evidenceSummary": "구성 내용은 유지했지만 다른 도면과 시각 문법이 달라 v2로 대체했습니다.",
         "detailHref": "/spec/system-architecture",
         "sourceHref": "https://github.com/OneOrThree/documentation/commit/33560dbc88440cd5eaa3497029382449dbe7f344"
       }
