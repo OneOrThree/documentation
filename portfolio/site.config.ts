@@ -26,6 +26,16 @@ export interface SectionConfig {
    * accumulate; noise on a section that holds one or two.
    */
   search?: boolean;
+  /**
+   * How the index, the left rail and prev/next order this section.
+   *
+   * "curated" (default) follows the `order` field in each document's
+   * frontmatter — right where a section is a reading sequence, like the
+   * chronicle. "date" puts the newest document first, which is what a log of
+   * decisions and notes should do; documents sharing a date fall back to
+   * `order`, so a batch written on one day keeps its intended sequence.
+   */
+  sort?: "curated" | "date";
 }
 
 export const sections: SectionConfig[] = [
@@ -46,6 +56,7 @@ export const sections: SectionConfig[] = [
       "무엇을 만드는지 확정한 문서입니다. 위키나 옛 메모와 어긋나면 이 문서가 이깁니다.",
     kind: "docs",
     search: true,
+    sort: "date",
   },
   {
     slug: "adr",
@@ -56,6 +67,7 @@ export const sections: SectionConfig[] = [
       "무엇을 정했는지가 아니라, 왜 그렇게 정했고 무엇을 기각했는지를 남깁니다. 뒤집힌 결정도 지우지 않고 대체됨으로 표시합니다.",
     kind: "docs",
     search: true,
+    sort: "date",
   },
   {
     slug: "research",
@@ -66,6 +78,7 @@ export const sections: SectionConfig[] = [
       "측정하고 부딪히며 알아낸 것들. 결론뿐 아니라 재현 방법과 숫자를 함께 남깁니다.",
     kind: "docs",
     search: true,
+    sort: "date",
   },
   {
     slug: "evolution",
