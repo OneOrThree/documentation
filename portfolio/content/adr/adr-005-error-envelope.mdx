@@ -1,0 +1,74 @@
+---
+title: "ADR-005 — 예외 핸들러를 하나로 모으고 공통 에러 봉투를 계약 테스트로 고정한다"
+summary: "에러 봉투 `{code, message}`는 하나였지만 들어가는 길이 열한 개였고 새는 경로가 일곱이었다. `ErrorCode` 인터페이스·`DomainException` 베이스로 핸들러를 `handleDomain` 하나로 접고, 클래스패스에서 enum을 찾아 상수마다 단언하는 `ErrorContractTest`로 고정했다. 앱 계약이 바뀌는 항목(404 세 갈래·409→400)은 별도 티켓으로 분리했다."
+status: "유효"
+date: "2026-09-10"
+order: 5
+author: "조재영"
+keywords: [에러 봉투, GlobalExceptionHandler, ErrorCode, 계약 테스트, 404, 409, 앱 계약]
+related:
+  - label: "패키지 경로가 계층을 말하게 — 리팩토링 에픽 1643"
+    href: "/research/backend-layering-refactor"
+  - label: "서버를 나누기 전에 코드 경계를 먼저 세웠다"
+    href: "/retrospective/01-boundaries-before-split"
+  - label: "ADR-004 — 패키지 계층 규약과 ArchUnit"
+    href: "/adr/adr-004-modular-monolith-archunit"
+---
+
+## 맥락
+
+에러 봉투 `{code, message}`는 이미 하나였다. 문제는 봉투에 들어가는 길이었다.
+
+- 도메인 `ErrorCode` enum 11개가 전부 `(HttpStatus, String)` 같은 모양인데 공통 타입이 없어서, `GlobalExceptionHandler`가 글자 그대로 같은 핸들러를 11개 들고 있었다.
+- 새 도메인이 한 줄을 빠뜨리면 그 예외는 스프링 기본 `/error` 바디(`code` 없음)로 새어 나갔다. 규약 §7은 "`exception/`에 `<Domain>ErrorCode` + `<Domain>Exception` 쌍을 만들고 `GlobalExceptionHandler`에 등록한다"고만 적고 있었다.
+- 그 11개를 직접 검증하는 테스트는 0건이었다.
+- 앱은 응답의 `code` 문자열로 분기한다. 요청이 지목한 대상의 부재와 요청자 본인의 부재는 앱의 탈출구가 다르다(전자는 "없는 대상", 후자는 "재로그인").
+
+## 선택지
+
+| 갈림길 | 기각한 안 | 채택한 안 | 이유 |
+| --- | --- | --- | --- |
+| 핸들러 구조 | 도메인별 핸들러 11개 유지 | `ErrorCode` 인터페이스 + `DomainException` 베이스 + `handleDomain` 하나 | 핸들러는 판단하지 않고 `code.getStatus()`·`code.name()`만 옮긴다. 응답을 바꾸려면 그 도메인의 enum을 고친다 |
+| 계약 테스트의 대상 목록 | 손으로 적은 enum 목록 | 클래스패스에서 `ErrorCode` 구현 enum을 탐색 | 손으로 적으면 새 도메인이 빠져도 초록이다. 찾은 enum이 팩토리 표에 없으면 그것 자체가 실패 |
+| 필터 응답(401·413) | `@RestControllerAdvice`로 처리 | 필터가 같은 봉투를 직접 씀 | `JwtFilter`·`RequestSizeLimitFilter`는 핸들러가 구조적으로 볼 수 없는 자리 |
+| 앱 계약 변경 | 1657에서 함께 처리 | 1725로 분리, 앱 티켓 1726과 배포 순서를 묶음 | 1657의 원칙은 "앱 호환이 깨지는 항목은 그 티켓에서 바꾸지 않는다" |
+| `NOT_FOUND` 충돌 | 한쪽 도메인만 이름 변경 | A안: 새 코드 신설 + 앱 `case` 병기 | 서버 enum 이름이 곧 앱 분기 문자열이라 한쪽만 못 바꾼다. `USER_NOT_FOUND` 신구 병기 선례(GROMO-1247) |
+
+## 결정
+
+**공통 `common/exception/ErrorCode`·`DomainException`을 두고 `GlobalExceptionHandler`를 `handleDomain` 하나로 접는다. `ErrorContractTest`가 클래스패스의 모든 `ErrorCode` enum 상수마다 `(status, code, message)`를 단언하고, 봉투 밖으로 새는 경로는 `CommonErrorCode` 15개와 catch-all로 봉투에 넣는다.**
+
+| 단계 | PR | 결과 |
+| --- | --- | --- |
+| 핸들러 통합 | #725 | 핸들러 11 → 1, 계약 테스트 처음 100건(현재 120건) |
+| 새는 경로 봉합 | #726 | 일회용 `@WebMvcTest` 프로브로 실측한 7경로 → 0. `CommonErrorCode` 15개 |
+| 404 세 갈래 | #729 | `GROUP_NOT_FOUND`·`CHALLENGE_NOT_FOUND`·`TARGET_USER_NOT_FOUND` 신설. `NOT_FOUND`는 그룹 안의 것(공지·멤버십)에만 유지 |
+| 409 → 400 | #730 | `IllegalArgumentException` 그물을 400으로. 앱까지 닿던 IAE 3경로(집중 세션 시각·친구 검색 수단·소셜 제공자)는 도메인 코드로 치환 |
+
+새던 7경로는 `@Valid` 실패(컨트롤러 26곳) · 깨진 JSON · 파라미터 누락 · 405 · 404 · item의 `EntityNotFound`(500) · 그 외 전부였다. 앱은 `body.code`만 읽으니 전부 「알 수 없는 오류」였다.
+
+## 근거
+
+- 핸들러가 판단하지 않으므로 응답 계약의 정본은 각 도메인 enum 한 곳이다. 핸들러를 고쳐 응답을 바꾸는 경로가 없다.
+- 계약 테스트가 enum을 자동 탐색하므로 새 도메인이 등록을 빠뜨려도 초록으로 통과하지 않는다.
+- `GroupErrorCode.NOT_FOUND`와 `UserErrorCode.NOT_FOUND`가 같은 문자열로 나가서 앱 그룹 화면 17곳이 유저 부재 404에도 「그룹이 사라졌다」를 띄웠다.
+- 잘못된 입력에 409 「충돌」이라 답하면 앱이 재시도로 오해할 수 있다. 400으로 바꾸기 전에 앱의 `status === 409` 분기 8곳/7파일을 실측했고, 전부 도메인 코드(닉네임 중복·이미 친구·마지막 소셜 연동)가 원천이라 영향이 없었다.
+- 종전에 낙관락 코드를 `GroupErrorCode`에서 빌려 쓰던 `common → group` 참조도 이때 없어졌다. ADR-004의 레이어 규칙이 검사하지 않는 방향이었다.
+
+<Callout label="배포 순서는 앱 → 서버" tone="warn">
+서버가 먼저 나가면 구앱은 새 코드에 분기가 없어 안내 없이 실패한다. #729는 리뷰가 끝난 뒤에도 `main`(dev)까지만 들어갔고 release(prod) 컷은 앱 1726 배포 뒤다.
+</Callout>
+
+## 영향
+
+- 새 도메인은 `<Domain>ErrorCode`가 `ErrorCode`를 구현하고 `<Domain>Exception`이 `DomainException`을 상속한다. `GlobalExceptionHandler`에 도메인별 핸들러를 추가하지 않는다.
+- 응답 상태·코드를 바꾸는 변경은 enum 수정이며 `ErrorContractTest`가 함께 바뀐다.
+- 조회 계층은 `getTarget*`(지목 대상 부재 → 도메인 NOT_FOUND)와 `getCaller*`(요청자 본인 부재 → 재로그인 코드)를 시그니처로 가른다. `userId` 파라미터가 요청자인지 대상인지는 컨트롤러 시그니처(`@LoginUser`인지 경로·본문 id인지)까지 추적해 판단한다. #729 리뷰 지적 7건 중 6건이 이 축을 틀린 것이었다.
+- 지갑 접근자는 요청자(구매·집중 보상·잔액)와 참가자(회차 환불·정산 지급·리그 보너스) 두 경로를 지나므로 원장 API에 `WalletOwner {CALLER, TARGET}`을 호출자가 명시한다.
+- 895(item·screentime 전용 예외)는 스프린트 밖으로 남아 있다.
+
+## 출처
+
+- [패키지 경로가 계층을 말하게 — 4. 에러 계약](/research/backend-layering-refactor) — PR #725 · #726 · #729 · #730 · GROMO-1657 · 1725 · 1726
+- [서버를 나누기 전에 코드 경계를 먼저 세웠다 — 계약 변경은 앱 배포 순서와 함께 기록한다](/retrospective/01-boundaries-before-split)
+- `phone/docs/conventions/backend-layering.md` — §3 조회 계층의 "실패의 의미" · §4 허용 의존 방향 · §7 새 도메인을 만들 때

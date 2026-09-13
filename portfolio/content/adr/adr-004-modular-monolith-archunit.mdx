@@ -1,0 +1,75 @@
+---
+title: "ADR-004 — 서버를 나누기 전에 패키지 계층 규약을 세우고 도메인 의존 방향을 ArchUnit으로 고정한다"
+summary: "알림·링크·API 서버 분리 전에 data-api의 패키지 배치를 정본 문서로 고정하고, 도메인에 높이(L0~L9)를 줘 역행 참조와 순환을 0으로 만든 뒤 ArchUnit 빌드 실패로 묶었다. 레이어 표에 없는 도메인도 실패다."
+status: "유효"
+date: "2026-09-10"
+order: 4
+author: "조재영"
+keywords: [모듈러 모놀리스, ArchUnit, 패키지 배치, 도메인 의존 방향, 순환, 서버 분리]
+related:
+  - label: "패키지 경로가 계층을 말하게 — 리팩토링 에픽 1643"
+    href: "/research/backend-layering-refactor"
+  - label: "서버를 나누기 전에 코드 경계를 먼저 세웠다"
+    href: "/retrospective/01-boundaries-before-split"
+  - label: "서비스 아키텍처 — 명령·이벤트·데이터 소유권"
+    href: "/spec/service-architecture"
+---
+
+## 맥락
+
+알림 서버·초대 링크 서버·API/데이터 서버 분리(GROMO-1658~1661)를 앞두고 `server/data-api`가 잘라낼 수 있는 모양인지 확인했다. 실측 결과는 다음과 같았다(2026-09 기준).
+
+- 도메인 17개가 같은 성격의 클래스를 서로 다른 자리에 두고 있었다. 리스너가 한 곳은 `listener/`, 다른 곳은 `service/`에 있어 패키지 경로만으로 계층을 알 수 없었고, 배치 판단이 리뷰 때마다 반복됐다.
+- 서비스 44개가 다른 도메인의 리포지토리 약 120건을 직접 주입받고 있었다.
+- 도메인 사이의 순환은 티켓이 추정한 2개가 아니라 238개였다.
+- 기존 규약은 "도메인 간 접근은 service를 통한다"고 누구를 통할지만 말하고 어느 쪽으로 갈지를 말하지 않았다. A→B, B→A가 둘 다 규약을 지키면서 순환이었다.
+- 규칙을 테스트로 강제하는 장치가 없었다(ArchUnit 미도입).
+
+이 상태로 프로세스 경계를 그으면 컴파일 단위가 갈라지지 않는다.
+
+## 선택지
+
+| 갈림길 | 기각한 안 | 채택한 안 | 이유 |
+| --- | --- | --- | --- |
+| 컨트롤러 위치 | `api/` 패키지 한 겹 추가 | 도메인 루트에 평평하게 | 16개 중 15개가 이미 루트(GROMO-1654 시점). 다수파를 정본으로 삼아 이동량 최소화 |
+| 엔티티 위치 | 도메인 최상위 `domain/` | `repository/domain/` | `@Entity`·`@Table`·페치 전략이 박힌 영속성 산물. 서버 분리 시 잘라낼 경계가 패키지로 드러남 |
+| `service/` vs `support/` | 클래스 이름으로 판정 | 의존성으로 판정 | 이름으로 고른 후보 13개 중 실측 이동 대상은 8개 |
+| 순환 제거 | 순환 238개를 하나씩 센다 | 도메인에 높이를 주고 역행 간선만 센다 | 순환 전부가 역행 간선 15쌍(import 49건)에서 파생 |
+| 탈퇴 절차의 역참조 | 이벤트로 뒤집기 | `withdrawal/` 오케스트레이터 | 순서 제약 셋이 있고, 이벤트로 가면 순서가 리스너 등록 순서에 숨음 |
+| 규칙 유지 | 리뷰·측정 스크립트 | ArchUnit 빌드 실패 | 측정 스크립트가 미등록 도메인을 건너뛰어 위반 0을 두 번 잘못 보고 |
+
+## 결정
+
+**프로세스로 나누기 전에 `docs/conventions/backend-layering.md`를 배치 정본으로 세우고, 도메인 레이어 L0~L9를 정해 역행 참조·순환·미등록 도메인을 ArchUnit 빌드 실패로 고정한다.**
+
+| L0 | L1 | L2 | L3 | L4 | L5 | L6 | L7 | L8 | L9 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `user` | `currency` `item` | `focus` `screentime` | `friend` | `stats` `league` | `group` | `invitelink` | `notification` | `auth` `character` `bot` `analytics` | `profile` `withdrawal` |
+
+사실은 아래에 있고, 그 사실에 반응하거나 조립하는 것이 위에 있다. 참조는 위에서 아래로만 간다. `common/`·`config/`는 레이어 밖이다. 판정 기준은 셋이다 — 엔티티 연관관계도 참조다, 화면 조립은 아래에 두지 않는다, 클래스가 있는 자리가 소유를 말한다.
+
+`DomainLayerRulesTest`(#724)의 규칙은 ① 역행 금지 ② 순환 금지 ③ 모든 도메인 패키지가 레이어 표에 등록돼 있다. 계층 안의 허용 방향은 `Controller → Service → Repository → Entity`, Service 아래로 `Support · Client · Event`이며 트랜잭션 경계는 `service/`에만 둔다. 도메인 간 접근은 그 도메인의 service를 통하고, 남는 순환은 `event/`나 `common/port/` 인터페이스로 끊는다.
+
+## 근거
+
+- 순서가 곧 의존이다. 배치가 정해져야 조회 계층을 둘 자리가 생기고, 조회 계층이 있어야 도메인 사이 의존을 셀 수 있고, 방향이 고정돼야 에러 계약을 공통으로 묶을 때 `common → group` 같은 역참조를 잡을 수 있다.
+- 규칙 ③이 없으면 ①②가 있으나 마나다. 미등록은 침묵이 아니라 실패여야 한다.
+- 규칙이 실제로 잡는지 되돌려 확인했다. `user`(L0)에 `group`(L5) 참조를 주입하니 ①②가 함께 실패했고, 표에 없는 패키지를 만드니 ③이 이름을 지목하며 실패했다. 작성 중 결함 둘(자기 도메인 내부 참조를 위반으로 센 6,462건, `common`을 슬라이스에 넣어 생긴 전 도메인 순환)도 이 검증으로 드러났다.
+- 세 PR(#721~#723)로 역행 15쌍/49건 → 0, 순환 238 → 0을 만든 뒤 #724에서 고정했다.
+
+<Callout label="인정된 예외는 이유와 함께 적는다" tone="primary">
+`support/`가 `service/`의 static 메서드를 호출하는 `GroupBetSessionFactory → WindowFocusAggregator` 1건은 컴파일 타임 `support → service` 방향이 생기지만 런타임 빈 의존이 아니다. ArchUnit 도입 시 예외로 명시하기로 규약 §5에 남겼다. 리포지토리 `@Transactional`도 무트랜잭션 `@Scheduled` 진입점이 부르는 `recordFailure` 1건만 근거와 함께 남겼다.
+</Callout>
+
+## 영향
+
+- 새 도메인은 `com.oneorthree.phone.<domain>/` 아래 필요한 계층만 만들고, 목록에 없는 패키지 이름(`util/`·`handler/`·`facade/`·`search/`·`policy/`)을 새로 만들지 않는다. 레이어 표에 등록하지 않으면 빌드가 실패한다.
+- 패키지를 옮기면 컴파일러가 못 잡는 자리를 grep한다. JPQL 문자열·`@Value`·`basePackages`·logback·yml. 직전 커밋에서 JPQL FQCN 39건이 남아 테스트 1,881개 중 434개가 무너진 사례가 근거다.
+- 조회 계층 `<Domain>QueryService`는 id 조회만 접고 판정은 service에 남긴다. 락 등급(`ForShare`·`ForUpdate`)과 예외 축(`getTarget*`/`getCaller*`)은 시그니처에 남긴다.
+- 서버 분리는 해당 모듈의 데이터 소유권, 내부 호출 계약, 장애 격리 이유가 문서에 함께 있을 때 진행한다. 1658(Kafka)·1659 P1~·1660·1661은 목표 아키텍처 문서가 확정되면 이 위에서 시작한다.
+
+## 출처
+
+- [패키지 경로가 계층을 말하게 — 서버 분리 전에 한 리팩토링 에픽 1643](/research/backend-layering-refactor) — PR #711 · #721~#724 · GROMO-1654 · 1656 · 1662 · 1724
+- [서버를 나누기 전에 코드 경계를 먼저 세웠다](/retrospective/01-boundaries-before-split) · [도메인 의존 방향을 ArchUnit으로 고정한 커밋](https://github.com/OneOrThree/phone/commit/5a18cf37b31c6d6f37f49e054440d73968937c0e) · [목표 아키텍처 정본 승격 커밋](https://github.com/OneOrThree/phone/commit/e0fc18120b96b39e9254c1eafa28dd5113cae3a7)
+- `phone/docs/conventions/backend-layering.md` — §1 표준 레이아웃 · §2 배치 판정 기준 · §4 허용 의존 방향 · §5 인정된 예외 · §6 패키지를 옮길 때

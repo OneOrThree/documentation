@@ -1,0 +1,77 @@
+---
+title: "ADR-010 — 정산은 되돌리지 않고, 재실행은 기존 유니크 행을 완료 마커로 삼아 멱등하게 만든다"
+summary: "확정된 정산은 번복하지 않는다. 배치 재실행은 신규 테이블 없이 유저·주차 UNIQUE 행의 존재를 완료 마커로 재사용하고, 락 안 재확인으로 정확히 한 번만 정산되게 한다."
+status: "유효"
+date: "2026-08-10"
+order: 10
+author: "조재영"
+keywords: [정산, 멱등성, 배치, 재실행, 완료 마커]
+related:
+  - label: "리그 배치 4종 실패와 멱등 재실행"
+    href: "/research/league-batch"
+  - label: "재화·정산 무결성의 돈 경로"
+    href: "/research/money-integrity"
+  - label: "배치 처리의 함정들"
+    href: "/research/batch-traps"
+---
+
+## 맥락
+
+2026-07-20 크론 감사에서 리그 주간 정산이 전 유저 단일 `@Transactional`이라 재시작 지점이 없고, 정산 도중 회원탈퇴 1건이 커밋되면 전량 롤백되는 레이스가 확인됐다. #517에서 정산 경계를 유저 1명 단위로 쪼갰지만 잔여가 남았다. anchor를 먼저 커밋하는 구조라 정산 루프가 크래시로 중단되면 재실행이 `BATCH_ALREADY_RUN`에 막히고, 가드를 뚫으면 라이브 tier 재독으로 성공 유저가 연쇄 승급(래칫)되거나 유니크 위반으로 전원 failed 집계됐다.
+
+한편 챌린지 정책 정본(`docs/prd/challenge/policy.md`, 결정일 2026-08-08)은 §B8에서 "확정된 정산은 번복하지 않는다. 마감 이후 도착한 기록은 반영되지 않는다"를 원칙으로 못박았다. 돈 경로라 재실행이 이미 정산된 유저를 건드리면 안 된다는 조건이 먼저 있었다.
+
+## 선택지
+
+| 선택지 | 재실행 안전성 | 추가 비용 | 결과 |
+| --- | --- | --- | --- |
+| Spring Batch Step 이관 (GROMO-892) — JobRepository 재시작성 | 표준으로 확보 | 메타테이블 + 설정 복잡도 | 기각 |
+| 완료 마커 테이블 신설 | 확보 | 신규 테이블 + 마이그레이션 | 기각 |
+| 기존 `league_weekly_results` 유니크 행을 완료 마커로 재사용 | 락 안 재확인으로 확보 | 신규 테이블 0개 | 채택 |
+| 마감 후 도착 기록을 반영하는 보정 재정산 | 정산 결과가 흔들림 | — | 기각 (§B8) |
+
+## 결정
+
+**정산은 되돌리지 않는다. 재실행은 기존 유니크 행의 존재를 "그 주차 정산 완료"로 읽어 skip하고, 미정산 유저만 정산한다.**
+
+`league_weekly_results`는 STAY도 INSERT하므로 행의 존재 자체가 완료를 뜻하고, 유저·주차 UNIQUE 제약은 재편(#240) 때 이미 있었다. 여기에 판정 순서를 고정했다.
+
+```text
+settle(user, week)
+  → 유저 행 배타 락 취득
+  → (락 안에서) existsByUserIdAndWeekStartAt 재확인
+      존재하면  → ALREADY_SETTLED 로 skip, mutation 0건
+      없으면    → 정산 후 결과 행 INSERT
+  → 유니크 제약은 최후 방어로 유지
+```
+
+- 반환형을 boolean에서 `SettleOutcome`(SETTLED / SKIPPED_WITHDRAWN / ALREADY_SETTLED)으로 바꾸고 summary에 `alreadySettledMemberCount`를 신설했다.
+- `rotateIfAbsent`를 신설해 anchor가 있으면 회전을 skip한다. 기존 `rotate()`의 409 계약은 그대로 둬 스케줄러와 기존 run 경로는 무변경이다.
+- 정산 루프는 100명 페이지마다 완료 마커를 일괄 선조회해 N+1을 피한다. 정본은 락 안 단건 재확인이고 선조회는 빠른 경로다.
+- 실패한 유저만 다시 돌리는 `userIds` 표적 재실행을 지원한다.
+- `POST /api/v1/league/batch/resume`은 프로파일 제한 + `X-Batch-Admin-Key` 상수시간 비교(`MessageDigest.isEqual`). 기존 `/league/batch/run`은 무키로 유지하고 `legacyRunStaysKeyless` 테스트로 고정했다.
+
+<Callout label="24h 자동 환불은 예외가 아니다" tone="primary">
+챌린지 정산 실패가 24시간을 넘기면 회차를 무효화하고 전원 환불한다(policy §E1). 이는 정산된 건을 되돌리는 것이 아니라 정산 자체가 불가능한 건을 닫는 것이므로 §B8과 충돌하지 않는다.
+</Callout>
+
+## 근거
+
+- 완료 조건을 "재실행 시 중복 정산 불가능함을 증명하는 통합 테스트"로 먼저 못박았다. 지갑 없는 유저로 승급 보너스 credit을 실패시켜 1차 run에서 A 성공·B 실패 → 원인 복구 → resume을 돌렸고, A는 완전히 불변(tier 래칫 없음·결과 1행·보너스 트랜잭션 1건), B만 정산되며, 한 번 더 돌리면 전원 already로 변화가 없음을 확인했다. 전체 스위트는 1,379 tests / 0 failures였다.
+- 락 안에서 재확인하므로 동시 재실행에도 정확히 한 번만 정산된다. 유니크 제약은 그 아래 최후 방어로 남는다.
+- Spring Batch 이관은 메타테이블과 설정 복잡도를 받고 재시작성을 얻는 교환이었는데, 기존 유니크 행을 재사용하니 신규 테이블 0개로 같은 성질이 나왔다(GROMO-892 닫힘).
+- 기존 계약을 건드리지 않아 기존 재실행 테스트가 무수정으로 그린이었다.
+
+## 영향
+
+- 정산 배치의 재실행은 `resume` 진입점으로 한다. `run`은 anchor 409 가드 덕에 주차당 1회만 실효하므로 키를 소급하지 않았다.
+- 정산 결과 행은 완료 마커를 겸하므로, STAY를 INSERT하지 않는 방향의 변경은 이 결정을 깨뜨린다.
+- 크론 중복 발화는 ShedLock(GROMO-894)으로 닫혔지만, 정산 건별 처리 자체를 직렬화하는 분산 락은 아직 없다. 건별 배타 락 + (user, weekStartAt) 유니크 + 보너스 멱등키로 이중 반영이 차단되어 있어 별도 티켓 TODO로 남겼다.
+- 배치 성공/실패 메트릭은 미도입이라, 실패는 로그로만 알 수 있다.
+
+## 출처
+
+- [리그 배치 4종 실패와 멱등 재실행](/research/league-batch) — #517(GROMO-1218) 건별 분리, #534(GROMO-1239) 멱등 재실행
+- [재화·정산 무결성의 돈 경로](/research/money-integrity) — 전체 롤백에서 건별 격리로
+- [배치 처리의 함정들](/research/batch-traps) — 2026-07-20 감사, GROMO-892 처분
+- `phone/docs/prd/challenge/policy.md` §B6 정산 시점 · §B8 정산은 되돌리지 않는다 · §E1 참가비는 영원히 묶이지 않는다

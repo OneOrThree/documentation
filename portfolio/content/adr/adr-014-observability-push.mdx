@@ -1,0 +1,71 @@
+---
+title: "ADR-014 — 관측은 pull 스택 대신 Datadog push로 가고, 헬스게이트는 기동 실측에 맞춘다"
+summary: "Prometheus·Grafana·Loki 셀프호스트 pull 스택을 Datadog Agent(push)+APM으로 교체한다. APM 계측이 기동을 늦추므로 헬스체크 예산은 계측 없는 기준이 아니라 healthy까지 90~120초라는 실측에 맞춘다."
+status: "유효"
+date: "2026-07-16"
+order: 14
+author: "조재영"
+keywords: [관측성, Datadog, APM, Prometheus, 헬스체크, 분산 트레이싱]
+related:
+  - label: "헬스체크 하나뿐이던 관측이 APM까지"
+    href: "/research/observability-evolution"
+  - label: "성공률 0%의 만성 원인은 60초였다"
+    href: "/research/cicd-infra"
+  - label: "로깅이 비즈니스를 깨뜨리다"
+    href: "/research/logging-traps"
+---
+
+## 맥락
+
+백엔드는 서버 한 대 위 docker-compose로 도는 Spring Boot 앱이다. 관측은 네 단계를 거쳤다. 처음엔 `/health`가 `"test"` 문자열을 반환하는 컨트롤러 하나가 전부였고, 다음엔 logback 파일 로그와 grep, 그다음이 Actuator·micrometer 위에 Prometheus + Grafana + Loki를 얹은 pull 스택이었다. Prometheus가 `app:9091`을 5초마다 스크레이프하고, promtail이 컨테이너 stdout을 Loki로 보내고, Grafana 한 화면에 트래픽 RED·HikariCP 풀·postgres·리소스를 올렸다.
+
+한 화면 관측과 알람은 달성했지만 세 가지가 남았다.
+
+1. Prometheus·Loki·promtail·exporter·cAdvisor까지 컨테이너 5~6개를 직접 굴린다.
+2. 분산 트레이싱이 없다. 메트릭으로는 "5xx율이 튄다"까지만 알 수 있고 "어느 요청의 어느 SQL이 느린가"는 알 수 없다.
+3. 관측 스택이 관측 대상과 같은 VM에 산다. VM이 죽으면 Grafana도 같이 죽는다.
+
+## 선택지
+
+| 선택지 | 트레이싱 | 운영 | 실패 감지 | 되돌리기 |
+| --- | --- | --- | --- | --- |
+| pull 스택 유지 | 없음 | 저장소·HA를 직접, 컨테이너 5~6개 | 스크레이프 실패 자체가 신호 | — |
+| Datadog push로 즉시 전면 전환 | `dd-java-agent` | 벤더가 대신, 대신 종속 | Agent가 죽으면 no-data 모니터를 따로 걸어야 함 | 비용 실측 전에 OSS 스택을 버림 |
+| Datadog을 토글 overlay로 OSS 옆에 얹어 평가 | 동일 | 동일 | 동일 | 워크플로우 `down` 한 번 |
+
+기각한 것이 하나 더 있다. Datadog 온보딩 화면이 안내한 `DD_APM_INSTRUMENTATION_ENABLED=host` 설치 스크립트다. 호스트에 에이전트를 직접 깔고 호스트 레벨 자동계측을 켜는 플로우라, 이미 컨테이너 Agent + 앱 이미지 내장 `dd-java-agent`로 구성한 쪽에서 돌리면 두 번째 에이전트가 깔려 중복·충돌·이중과금이 난다.
+
+## 결정
+
+**Datadog Agent(push) + APM으로 전환하되, dev에서는 OSS 스택 옆에 토글 overlay로 얹어 평가하고, 헬스게이트 예산은 계측을 포함한 기동 실측에 맞춘다.**
+
+- `datadog-agent` 컨테이너가 `docker.sock`과 cgroup을 읽어 인프라 메트릭을, 컨테이너 stdout을 tail해 로그를 HTTPS로 보낸다. 앱은 `-javaagent:/opt/datadog/dd-java-agent.jar`로 떠서 Spring MVC·JDBC·JPA가 바이트코드 계측되고 span을 `datadog-agent:8126`으로 보낸다. 소스는 한 줄도 건드리지 않는다.
+- 기존 `/actuator/prometheus` 자산은 버리지 않고 Agent의 OpenMetrics 체크로 스크레이프해 `gromo.*`로 보낸다. pull과 push를 한 곳에서 대조할 수 있다.
+- 최소비용 레버를 미리 박는다. APM 샘플링 `0.2`, OpenMetrics `.*` 금지(대시보드에 쓰는 메트릭만 큐레이트), `DD_CONTAINER_EXCLUDE`로 기존 OSS 관측 컨테이너 제외, 안 볼 때는 `down`.
+- 헬스게이트: 토글 워크플로우는 60초(`seq 1 12`)에서 180초(`seq 1 36`)로. `cd.yml`은 60초 → 150초(#451) → APM 부착 후 300초(#524).
+- prod는 상시 활성이라 토글이 불필요해 단일 compose에 병합한다. app에 `depends_on: datadog-agent`는 두지 않는다.
+
+## 근거
+
+- 트레이싱은 pull 스택에 없던 축이다. 셀프호스트 3스택이 Agent 컨테이너 하나로 줄고, 없던 축을 `dd-java-agent`가 채운다.
+- 한 번에 갈아타지 않은 이유는 "관리형이 무조건 정답은 아니다"이다. `-javaagent`는 overlay를 켤 때만 붙으므로 jar가 이미지에 있어도 평소 배포에는 로드되지 않아 런타임 영향이 0이고, 비용과 효용을 실측한 뒤 OSS 폐기 여부를 결정할 수 있다.
+- 헬스게이트 실측: 계측이 붙자 컨테이너 생성부터 Spring `"Starting"`까지만 약 45초, healthy까지 90~120초가 걸렸다. 60초 예산에서는 배포가 성공해도 워크플로우가 빨간 X로 끝나는 false-negative가 난다. 실행 이력 두 건이 모두 failure로 찍힌 것도 같은 오독이었다.
+- `cd.yml` 쪽도 같은 구조였다. 7/24 이후 dev 실배포 성공 0건이었고, 마지막 성공조차 12번째 시도 55초 턱걸이였다. 실패 런의 60초 컷오프 시점 앱 로그에는 에러가 없고 Hibernate 초기화가 진행 중이었다. 8월 재측정에서 `-javaagent` 부팅이 150초마저 넘겨 300초로 재확장했다(dev VM 총 부팅 약 3분).
+- Compose `depends_on`은 `required: false`가 없으면 필수라 agent가 못 뜨면 app도 안 뜬다. 트레이서는 agent 미연결 시 트레이스만 드롭하고 앱은 정상이므로, 부가 기능이 핵심의 기동을 막는 커플링을 뺐다.
+
+<Callout label="실패 감지 모델이 바뀐다" tone="warn">
+pull에서는 스크레이프 실패 자체가 신호였다. push에서는 Agent가 죽으면 침묵이 된다. Agent가 죽은 침묵을 잡을 no-data 모니터는 아직 미완 과제다.
+</Callout>
+
+## 영향
+
+- 배포가 매 회 Datadog 배선을 벗겨내는 문제가 뒤따랐다. 토글 워크플로우는 overlay 2장으로 app을 재생성하는데 `cd.yml`은 main 푸시마다 dev 파일 단독으로 `up -d app`을 해서 `-javaagent`·`DD_*` env·서비스 태그 라벨이 소멸했다. 수정은 배포 전에 Agent 기동을 감지해 켜져 있으면 overlay를 함께 물리는 것이다. 배포가 Datadog을 강제로 켜지는 않고, `DD_API_KEY`가 비면 경고만 남기고 overlay를 포기한다(compose가 `DD_API_KEY:?`로 fail-fast하므로).
+- 로그·트레이스 상관은 미완이다. `DD_LOGS_INJECTION=true`는 `dd.trace_id`를 MDC에 넣지만, dev CONSOLE appender는 텍스트 패턴이고 찍는 것은 앱 자체 MDC 키 `[%X{trace_id}]`뿐이다. `datadog` 전용 springProfile의 JSON 콘솔 encoder 또는 서버측 파서 중 하나가 남아 있다.
+- dev·prod 비대칭(GROMO-1489): dev 호스트에서 `docker images -q` 응답이 6.08초인데 Datadog docker/container 체크 기본 타임아웃은 5초라, 컨테이너 메트릭 0건·로그 2일간 0건이 났다. 같은 티켓에서 상태 확인 워크플로가 `|| true`로 실패를 삼키던 것도 제거했다.
+- 대기 상한을 올리면 진짜 고장을 인지하는 시간도 같이 늘어난다. 배포 잡 타임아웃 20분 → 40분(#450)도 같은 대가를 지불했다.
+- OSS 스택 폐기·상시화 결정은 며칠 굽고 비용을 실측한 뒤로 미뤄져 있다.
+
+## 출처
+
+- [헬스체크 하나뿐이던 관측이 APM까지 — pull에서 push로 갈아엎은 기록](/research/observability-evolution) — PR #113 · #264 · #519, GROMO-588 · GROMO-1233 · GROMO-891 · GROMO-1068 · GROMO-1489
+- [성공률 0%의 만성 원인은 60초였다 — CI/CD 트러블슈팅](/research/cicd-infra) — PR #450 · #451 · #524

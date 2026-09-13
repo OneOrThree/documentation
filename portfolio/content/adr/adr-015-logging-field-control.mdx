@@ -1,0 +1,90 @@
+---
+title: "ADR-015 — PII 방어의 1차선은 필드 통제이고, 로깅은 인자 평가 단계까지 비즈니스와 격리한다"
+summary: "로그 payload에는 non-null이 보장되는 원시값만 넣고 엔티티는 금지한다. 정규식 마스킹은 2차 방어로 두되 정밀도가 낮은 패턴은 뺀다. trace_id는 필터 전처리에서 심고, 스케줄러는 AOP로 새로 발급한다."
+status: "유효"
+date: "2026-06-25"
+order: 15
+author: "조재영"
+keywords: [구조화 로깅, PII, Logback, MDC, trace_id, AOP]
+related:
+  - label: "로깅이 비즈니스를 깨뜨리다 — PII·NPE·필터 순서 다섯 함정"
+    href: "/research/logging-traps"
+  - label: "구현 중 막혀서 정리한 Spring 배선 노트"
+    href: "/research/spring-wiring-notes"
+  - label: "헬스체크 하나뿐이던 관측이 APM까지"
+    href: "/research/observability-evolution"
+---
+
+## 맥락
+
+시스템 로그(`@Slf4j`)와 "누가 무엇을 했다"는 유저 행동 기록이 같은 파일에 섞여 있었다. 목적이 다르므로 스트림을 갈랐다. 유저 행동 로그는 이름 로거 `user-activity`, `logs/user-activity.log`, logstash JSON 인코더, `maxHistory` 30일이다(PR #50 · GROMO-384).
+
+이 로거를 붙이는 PR 한 건에서 로깅이 비즈니스를 깨뜨리는 함정 5건이 나왔다. 엔티티를 payload에 통째로 넣어 PII를 흘릴 뻔했고, 로깅 인자 하나 때문에 그룹 탈퇴 트랜잭션이 단위테스트에서 실패했고, MDC를 `doFilter` 뒤에 넣어 `trace_id`·`user_id`가 전부 빈칸이었다. 별도로, `@Scheduled` 12곳(알림 10 · 리그 1 · 세션 정리 1)은 HTTP 요청이 아니라 `TraceIdFilter`를 거치지 않으므로 여러 배치의 실패 로그가 같은 시각에 `trace_id` 없이 뒤섞였다.
+
+## 선택지
+
+PII 방어:
+
+| 선택지 | 실패 방향 | 판정 |
+| --- | --- | --- |
+| 정규식 마스킹만(블랙리스트) | 놓치면 PII가 조용히 나간다. 오탐이면 원본이 사라진다. 둘 다 비가역 | 기각 |
+| 필드 통제 1차 + 마스킹 2차 | 화이트리스트가 놓치면 값이 눈에 띄게 빈다 | 채택 |
+| 로그엔 참조 ID만 남기고 필요할 때 DB를 본다 | 가장 멀리 간 형태 | 방향으로만 기록 |
+
+로깅 격리:
+
+- 로거 내부만 try-catch로 감싼다 — 인자 평가 단계 예외는 호출 전이라 걸러지지 않는다. 불충분.
+- payload 값은 non-null 원시값만, 메시지는 `{}` 파라미터화 — 채택.
+
+스케줄러 `trace_id`:
+
+- `TaskDecorator`로 복사 — `@Async`·`@EnableAsync`·`CompletableFuture`·`ThreadPoolTaskExecutor`가 `back/src/main`에 0건이라 붙일 데가 없다. 스케줄러는 유실이 아니라 애초에 원본이 없다.
+- 12곳에 각자 MDC 발급 — 반복.
+- `@Scheduled` 포인트컷에 `@Around` Aspect로 발급 — 채택.
+
+## 결정
+
+**PII 방어의 1차선은 필드 통제다. payload에는 non-null이 보장되는 원시값만 넣고 엔티티는 금지하며, 마스킹은 2차 방어로 둔다. `trace_id`는 `TraceIdFilter`가 `doFilter` 앞에서 심고 `finally`에서 지우며, 스케줄러는 AOP가 새로 발급한다.**
+
+```java
+// payload — 원시값만, nullable 값은 아예 넣지 않는다
+logger.log(event, Map.of("is_new_user", isNewUser, "method", "kakao"));
+
+// TraceIdFilter — 전처리에서 심고, finally에서 지운다
+MDC.put("trace_id", traceId);
+try {
+    filterChain.doFilter(request, response);
+} finally {
+    MDC.clear();
+}
+```
+
+- 정규식 마스킹은 정밀도가 높은 패턴(주민번호·이메일·전화번호)만 남기고 GPS 좌표·한글 이름 패턴은 뺀다.
+- JSON 로그는 PatternLayout을 쓰지 않아 `%mask`가 자동 적용되지 않으므로, 코드가 `MaskingConverter.mask()`를 직접 호출한다.
+- `TraceIdFilter`는 `JwtFilter`가 심은 request attribute를 읽어야 하므로 JwtFilter 뒤에 둔다(order 1 → 2). attribute 키는 `userId`, MDC 키는 `user_id`다.
+- 스케줄러 Aspect는 `MDC.put("trace_id", UUID)`와 `job` 이름을 넣고 `finally`에서 `MDC.clear()`한다. 스케줄러 스레드도 재사용되므로 clear는 필수다.
+
+## 근거
+
+- 함정 1: `Map.of("is_new_user", user)`로 JPA `User` 엔티티를 넣으면 logstash 인코더가 그대로 직렬화해 refreshToken·닉네임이 파일에 찍히고, lazy 연관관계로 추가 쿼리·순환참조·`LazyInitializationException` 위험이 생긴다. 파일에 쓰인 PII는 수집기로 흘러간 뒤엔 회수가 어렵다.
+- 함정 2: `groupMember.getJoinedAt().toString()`이 `log()` 호출 전 인자 평가에서 NPE를 냈다. 메서드 안의 try-catch는 메서드 안에서만 유효하다. `joined_at`을 버리고 `group_id`만 남겨 해결했다. `log.debug("u=" + toJson())` 같은 문자열 연결도 레벨에 막혀도 인자가 먼저 평가되므로 같은 이유로 `{}`가 필수다.
+- 정규식 정밀도: 카드번호(16자리)는 주문번호와 충돌하고, GPS 좌표(소수 4자리+)는 가격·환율·응답시간 등 모든 실수와, 한글 이름(2~4자)은 "결제"·"실패"·"사용자"까지 마스킹한다. 미탐과 오탐은 둘 다 되돌릴 수 없고, 오탐은 장애 조사 중에야 드러난다. 마스킹은 핫패스라 패턴을 늘릴수록 모든 로그 줄이 느려진다.
+- MDC 순서: `doFilter` 앞이 전처리, 뒤가 후처리다. `%X{trace_id}`는 값이 없으면 예외도 경고도 없이 빈 문자열이 되므로, 누군가 로그 파일을 열어 볼 때까지 신호가 없다.
+- 스케줄러: Filter는 HTTP 요청, Interceptor는 컨트롤러 호출에만 닿는다. 스케줄러는 HTTP가 아니므로 AOP가 유일한 답이다.
+
+<Callout label="격리의 경계" tone="warn">
+"로깅 실패는 비즈니스에 영향 없게"는 인자 평가 단계까지 지켜야 진짜다. payload 값을 만드는 표현식은 이미 비즈니스 트랜잭션의 일부다.
+</Callout>
+
+## 영향
+
+- "민감 객체를 payload에 넣지 않는다"는 코드리뷰 체크리스트 항목이 됐다.
+- 규칙은 정했지만 이미 배포된 호출부의 구조는 그대로라, payload 값에 null이 들어올 경로가 하나라도 있으면 비즈니스 트랜잭션까지 터지는 지뢰가 프로덕션에 남아 있다.
+- 서비스에 `UserActivityEventLogger`를 주입하자 `@InjectMocks` 단위테스트가 NPE로 실패했다. 횡단 관심사를 추가하는 PR은 기존 단위테스트의 `@Mock` 목록도 함께 갱신한다. mock을 채운 뒤 단위테스트 186건이 통과했다.
+- 스케줄러 Aspect는 프록시 방식이라 자기 호출(`this.method()`)·`private`·`final`·`static`에는 걸리지 않는다. 적용 전 확인 항목은 AOP 스타터 의존성, 스케줄러 메서드가 `public`인지, 붙인 뒤 실제 값이 찍히는지다.
+- `AsyncAppender`의 `discardingThreshold=0`은 레벨 기반 조기 폐기를 끄는 스위치라 큐가 끝까지 차면 ERROR도 버려질 수 있다. 폐기 시 카운터도 경고도 없으므로, 부하 구간에서 로그 줄 수와 요청 수를 대조하는 방법뿐이다. 당시 이 트레이드오프를 모른 채 넣었다.
+
+## 출처
+
+- [로깅이 비즈니스를 깨뜨리다 — PII·NPE·필터 순서 다섯 함정](/research/logging-traps) — PR #50 · GROMO-384
+- [구현 중 막혀서 정리한 Spring 배선 노트](/research/spring-wiring-notes) — 스케줄러 12곳의 빈 `trace_id`와 AOP 절
