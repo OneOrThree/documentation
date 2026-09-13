@@ -1,0 +1,102 @@
+---
+title: "ADR-020 — JVM 서비스는 서버 모노레포 하나로 모으고, 앱·링크·문서만 각자 레포로 둔다"
+summary: "레포 분리의 진짜 동기가 '에이전트 하네스 정리·이력서 가독성'이라는 것이 드러나자 그 두 렌즈로 다시 채점했다. 한 저녁에 A13(서비스마다 레포 + dispatch) → A15(서브모듈 불채택) → A16(하네스 실측: CLAUDE.md 4개 117·414·163줄, 메모리 105개 한 통) → A17(JVM 5개는 `oneorthree/server` 모노, 이력서는 허브 링크 1개)로 세 번 뒤집혔다."
+status: "유효"
+date: "2026-09-11"
+order: 20
+author: "조재영"
+keywords: [모노레포, 레포 분리, 서브모듈, workflow_dispatch, 에이전트 하네스, CLAUDE.md, 이력서]
+related:
+  - label: "시스템 아키텍처 — 배치·노출면·배포 경계"
+    href: "/spec/system-architecture"
+  - label: "프로젝트 컨텍스트 — Gromo가 무엇이고 무엇이 아닌가"
+    href: "/spec/context"
+  - label: "ADR-004 — 서버를 나누기 전에 패키지 계층 규약을 세운다"
+    href: "/adr/adr-004-modular-monolith-archunit"
+  - label: "패키지 경로가 계층을 말하게 — 리팩토링 에픽 1643"
+    href: "/research/backend-layering-refactor"
+---
+
+## 맥락
+
+Gromo는 `OneOrThree/phone` 한 레포에서 시작했다. 앱(React Native·스크린타임 익스텐션)과 Spring Boot 서버가 같이 살고, [프로젝트 컨텍스트](/spec/context)가 가리키는 README도 그 모노레포 구조를 설명한다. 8월 26일 #708(GROMO-1638)로 `back/`을 `server/data-api/`로, `app/`을 `app/app-dev/`로 옮기는 구조 개편을 했고, 후속 커밋 42파일로 워크플로 8종·CLAUDE.md·gitignore·compose 경로를 현행화했다. 이때 이미 "레포 안에 서버가 여럿 놓일 자리"는 만들어졌다.
+
+그 위에서 서비스 분리가 시작됐다. [ADR-004](/adr/adr-004-modular-monolith-archunit)와 [리팩토링 에픽 1643](/research/backend-layering-refactor)이 `server/data-api`를 잘라낼 수 있는 모양으로 만드는 동안, 알림(1659)·링크(1660)·Business API(1661) 티켓이 각각 "새 서비스는 별도 레포"를 전제로 열렸다. 레포 구조는 GROMO-1695가 결정하기로 돼 있었다.
+
+2026-09-13 현재 origin/main 기준으로 `server/data-api`·`server/business-api`(09-11 #735)·`server/realtime`(09-11 #734에서 `server/chat`으로 신설, 09-12 #739에서 개명)·`server/notification`(09-13 #745)이 전부 phone 저장소의 `server/` 아래에 있다. 이 문서가 다루는 `oneorthree/server`와 `services/<name>` 경로는 확정된 목표이지 현재 위치가 아니다. [시스템 아키텍처](/spec/system-architecture)도 같은 구분을 둔다.
+
+## 선택지
+
+9월 9일 저녁 한 세션에서 결정이 네 단계로 움직였다. 각 단계가 앞 단계를 뒤집었다.
+
+| 단계 | 시각 | 내용 | 결과 |
+| --- | --- | --- | --- |
+| A13 잠정 | 21:03 | 앱·알림·Business API 각자 레포, `data-api`는 phone에 잔류. 배포 정의(compose·nginx·CD) 소유자는 phone, 서비스 레포가 `repository_dispatch`로 phone의 CD를 호출 | 같은 날 A17로 개정 |
+| A13 수정 | 21:12 | 레포 간 호출을 `workflow_dispatch`로. 사람과 CI가 같은 버튼을 누르고, 입력에 타입·선택지·필수가 있으며, 기존 `prod-cd.yml`의 "SHA 수동 배포"와 같은 모양 | `repository_dispatch`는 자유 JSON에 Actions 탭 버튼이 없어 기각 |
+| A15 검토 | 21:16 | 분리한 레포를 서브모듈로 phone에 꽂는 안 | 불채택 |
+| A16 재채점 | 21:44 | 분리 동기를 하네스·이력서 두 렌즈로 두고 현재 하네스를 실측 | 분리 + dispatch 우세, 서브모듈 최하 |
+| A17 제안·확정 | 21:49 → 21:55 | 서비스가 7개(MMP·Notification·Docs·Data·Business·Chat·File Upload)가 되면 "서비스마다 레포"를 재검토 | 확정 |
+
+### 서브모듈을 기각한 이유
+
+서브모듈은 분리 방법이 아니라 "이미 분리한 레포를 phone에 커밋 핀으로 꽂는 방법"이다. 유일한 진짜 장점은 phone 커밋 하나가 시스템 전체 스냅샷이 된다는 것인데, 이는 CD 버튼이 `deploy/<env>.yml` 매니페스트에 digest를 자동 커밋하면 같은 효과를 얻는다. 대가는 컸다.
+
+- 배포 1건에 드는 사람 손이 1(서비스 PR)에서 2(phone에 "책갈피 옮김" PR)로 늘어난다. 봇이 열어도 머지는 사람이다.
+- 워크트리·클론마다 `submodule update --init`이 필요해 orca의 병렬 워크트리 배치와 정면 충돌한다.
+- phone CI에 private 토큰과 recursive 체크아웃이 필요하고, 책갈피 커밋에는 Jira 키가 없다.
+- 서비스 사이에 소스 공유가 없다(HTTP·Kafka만). 공유 라이브러리가 생기면 패키지로 배포하는 것이 맞다.
+
+### 하네스 실측 (A16)
+
+| 항목 | 실측 |
+| --- | --- |
+| CLAUDE.md | 4개 — 루트 117줄 · 앱 414 · 서버 163 · 트러블슈팅 |
+| 루트 117줄 중 앱 얘기 | 13줄 — 서버 작업 때도 읽힌다(브랜치 접두사 `a*`/`b*`, 앱 CI, fastlane) |
+| 메모리 | 105개 한 통 — iOS 서명·에뮬레이터가 알림 작업에도 회상 후보 |
+| 스킬 | 전역 91 · 프로젝트 0 · phone 경로 하드코딩 0 → 레포를 쪼개도 무변경 |
+| 전역 훅 | 2개가 `phone/.claude/*.py`를 하드코딩(저널·트러블 로그) |
+| 워크플로 | 16개 — 앱 2 · 서버 14가 경로 필터로 동거 |
+
+판단축은 "에이전트가 읽는 줄 중 지금 작업에 쓰이는 비율"이다. 모노레포 그대로면 약 60%로 봤다. 알림 작업인데 루트의 앱 규칙·접두사·앱 CI를 같이 읽고 메모리는 한 통이다. 분리 + dispatch는 약 100%, 서브모듈은 절차 텍스트가 늘고 phone 이력이 봇 bump 커밋으로 오염돼 두 렌즈 모두 최하였다.
+
+## 결정
+
+**JVM 서비스는 `oneorthree/server` 한 레포에 `services/<name>/`로 모으고, 앱·link·docs는 스택이 달라 각자 레포로 두며, 이력서에는 허브 링크 하나만 넣는다.**
+
+| 항목 | 결정 |
+| --- | --- |
+| JVM 서비스 5개(data-api · business-api · notification · chat · file-upload) | `oneorthree/server` 모노. `services/<name>/` + 중첩 CLAUDE.md, `deploy/`에 compose·nginx·환경별 매니페스트 |
+| 앱 · link · docs | 각자 레포. 레포 수 1 → 4(server · app · link · docs) |
+| CI | 같은 레포 안 경로 필터 매트릭스. `services/<name>/**`가 바뀐 서비스만 reusable 워크플로 1벌 + 이미지 빌드 |
+| CD | 같은 레포 `workflow_dispatch`(service · digest · env). `deploy/<env>.yml` 자동 커밋, 롤백은 직전 digest |
+| 레포 간 dispatch·토큰 | 불필요. 배포 정의가 같은 레포에 있으므로 A13의 호출 구조는 사라진다 |
+| 이력서 · 허브 | `docs/architecture` 승격본을 팀 사이트 `/spec/architecture`와 조직 README에 올리고, 그림의 상자마다 레포 또는 폴더로 링크 |
+| A15 | 유지. 서브모듈은 계속 채택하지 않는다 |
+
+A13은 취소선으로 원문을 보존하고 A17을 가리키게 했다. GROMO-1695 본문은 서버 모노·`services/`·`deploy/`·`workflow_dispatch`·전역 훅 2개 전역화·완료 기준으로 개정했다.
+
+## 근거
+
+- 레포 수와 링크 수는 다른 문제다. 이력서 링크는 어차피 허브 하나로 줄이고, 읽는 사람에게는 상자 뒤가 레포인지 폴더인지 보이지 않는다. 그러면 남는 질문은 허브 아래 레포가 8개냐 4개냐뿐이다.
+- JVM 무리 5개는 Spring·Gradle·Checkstyle·Testcontainers·reusable 워크플로·compose·Datadog·서비스 토큰 규약을 전부 공유한다. 레포 7개로 가르면 CI·토큰·dispatch·시크릿 배관을 다섯 번 복사하고, GitHub 프로필 핀 6개를 넘기며, 메모리가 5통이 되어 같은 규약을 다섯 번 학습한다.
+- 모노 안에서도 배포 단위는 이미지이므로 독립 배포·롤백은 분리 레포와 같다. 중첩 CLAUDE.md로 문맥 관련도는 약 95%로, 분리 레포의 약 100%와 큰 차이가 없다.
+- A16의 실측이 없었다면 "분리 = 깨끗함"이라는 직관대로 갔을 것이다. 스킬 91개에 phone 경로 하드코딩이 0이고 훅 2개만 손보면 된다는 숫자가 나와서, 어느 안이든 하네스 이전 비용은 작고 결국 레포 수가 결정 변수가 됐다.
+
+<Callout label="같은 문장이 두 세션에 들어갔다" tone="warn">
+"서버 모노로 가자"는 21:55 main 세션의 확정이었는데, 같은 시각 열려 있던 디자인용 Codex 세션에도 같은 문장이 들어갔다. Codex는 앞 맥락 없이 `server/services/…` 트리를 답했다. 결과가 우연히 비슷해서 사고는 없었지만, 세션 여러 개를 병행할 때 결정 발화가 엉뚱한 곳에 꽂히는 비용을 보여준 사례다.
+</Callout>
+
+## 영향
+
+- 대가 하나는 기여 그래프가 서비스별로 갈리지 않는다는 것이다. 폴더 히스토리로 대체한다.
+- 전역 훅 2개(저널·트러블 로그)는 `phone/.claude/*.py` 경로를 `~/.claude/hooks/`로 옮겨야 레포가 바뀌어도 동작한다. 레시피는 phone 루트 CLAUDE.md를 약 70줄로, 서비스별 CLAUDE.md는 서버 163줄 템플릿에 `docs/architecture` 링크를 얹어 약 90줄로 잡았다.
+- 전 서비스 fan-out 시 각 CD가 같은 `deploy/<env>.yml`을 따로 커밋하면 충돌하고, 그 매니페스트 커밋을 CI 경로 필터에 넣으면 배포 → 매니페스트 커밋 → 전 서비스 CI → 새 이미지 → 재배포의 무한 재빌드가 돈다. 매니페스트는 `paths-ignore`로 뺀다.
+- 정본 장부는 다음 날 #731(GROMO-1727)로 `docs/architecture/decisions.md`에 승격됐고, 09-11에 A17 행에 저장소 이름이 보태졌다. Link/MMP는 `OneOrThree/mmp-custom`, Notification은 JVM 서버 레포 내부 서비스로 유지한다.
+- 결정 뒤에도 서비스는 phone의 `server/` 아래에 먼저 생겼다(위 맥락). `oneorthree/server`로 옮기는 시점과 방법은 이 문서의 범위 밖이며, 옮길 때 #708에서 배운 "경로 문자열 의존 전수 조사"를 다시 치러야 한다.
+
+## 출처
+
+- [시스템 아키텍처 — 배치·노출면·배포 경계](/spec/system-architecture) — A17 계획과 현재 `phone/server/<name>`의 구분
+- [ADR-004](/adr/adr-004-modular-monolith-archunit) · [리팩토링 에픽 1643](/research/backend-layering-refactor) — 분리 전 `server/data-api` 정리
+- phone `docs/architecture/decisions.md` A11 · A13 · A15 · A16 · A17, `docs/architecture/system-architecture.md` "레포 (A17 · 1695 개정)" 절
+- PR #708(GROMO-1638 구조 개편) · #731(GROMO-1727 정본 승격) · #734 · #735 · #739 · #745, 티켓 GROMO-1695 · 1659 · 1660 · 1661
