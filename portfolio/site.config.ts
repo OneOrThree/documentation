@@ -86,6 +86,16 @@ export const sections: SectionConfig[] = [
     kind: "docs",
   },
   {
+    slug: "history",
+    label: "연대기",
+    kicker: "PROJECT HISTORY",
+    title: "프로젝트 연대기",
+    description:
+      "소프트웨어 마에스트로 시작부터 지금까지를 순서대로 복원합니다. 지라 티켓·스프린트, 컨플루언스 회의록·회고·멘토링 기록이 근거입니다.",
+    kind: "docs",
+    search: true,
+  },
+  {
     slug: "team",
     label: "팀·역할",
     kicker: "TEAM & OWNERSHIP",
