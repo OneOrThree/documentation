@@ -34,7 +34,7 @@ export interface DiagramVersion {
   evidenceTitle: string;
   evidenceSummary: string;
   detailHref: string;
-  sourceHref: string;
+  sourceHref?: string;
   nodeCount?: number;
   edgeCount?: number;
 }

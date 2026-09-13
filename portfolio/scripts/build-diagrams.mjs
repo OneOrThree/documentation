@@ -72,22 +72,33 @@ function build(entry, i) {
       `diagrams/manifest.json[${i}]: every entry needs "id" and "title".`,
     );
   }
+  if (!Array.isArray(entry.versions) || entry.versions.length === 0) {
+    throw new DiagramError(
+      `diagrams/manifest.json[${i}] (${id}): every diagram needs at least one version.`,
+    );
+  }
 
   if (entry.format === "html") {
-    const htmlPath = path.join(SRC_DIR, `${id}.html`);
-    if (!fs.existsSync(htmlPath)) {
-      throw new DiagramError(
-        `Missing diagrams/${id}.html for diagram "${id}".`,
-      );
-    }
-    fs.copyFileSync(htmlPath, path.join(OUT_DIR, `${id}.html`));
-    console.log(`[diagrams] ${id}: HTML → public/diagrams/`);
-    return entry;
+    buildHtmlArtifact(id, title);
+    const versions = entry.versions.map((version, versionIndex) => {
+          if (!version.id || !version.artifactId) {
+            throw new DiagramError(
+              `diagrams/manifest.json[${i}].versions[${versionIndex}] needs "id" and "artifactId".`,
+            );
+          }
+          if (version.artifactId !== id) {
+            buildHtmlArtifact(
+              version.artifactId,
+              `${title} ${version.label ?? version.id}`,
+            );
+          }
+          return version;
+        });
+    return { ...entry, versions };
   }
 
   const built = buildArtifact(id, title);
-  const versions = Array.isArray(entry.versions)
-    ? entry.versions.map((version, versionIndex) => {
+  const versions = entry.versions.map((version, versionIndex) => {
         if (!version.id || !version.artifactId) {
           throw new DiagramError(
             `diagrams/manifest.json[${i}].versions[${versionIndex}] needs "id" and "artifactId".`,
@@ -98,14 +109,24 @@ function build(entry, i) {
             ? built
             : buildArtifact(version.artifactId, `${title} ${version.label ?? version.id}`);
         return { ...version, ...counts };
-      })
-    : undefined;
+      });
 
   return {
     ...entry,
     ...built,
-    ...(versions ? { versions } : {}),
+    versions,
   };
+}
+
+function buildHtmlArtifact(id, title) {
+  const htmlPath = path.join(SRC_DIR, `${id}.html`);
+  if (!fs.existsSync(htmlPath)) {
+    throw new DiagramError(
+      `Missing diagrams/${id}.html for diagram "${title}".`,
+    );
+  }
+  fs.copyFileSync(htmlPath, path.join(OUT_DIR, `${id}.html`));
+  console.log(`[diagrams] ${id}: HTML → public/diagrams/`);
 }
 
 function buildArtifact(id, title) {

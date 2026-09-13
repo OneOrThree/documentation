@@ -11,7 +11,11 @@ function fixture(t, svg) {
   mkdirSync(path.join(dir, 'scripts'));
   mkdirSync(path.join(dir, 'diagrams'));
   copyFileSync(path.join(import.meta.dirname, 'build-diagrams.mjs'), path.join(dir, 'scripts/build-diagrams.mjs'));
-  writeFileSync(path.join(dir, 'diagrams/manifest.json'), JSON.stringify([{id: 'test', title: '테스트'}]));
+  writeFileSync(path.join(dir, 'diagrams/manifest.json'), JSON.stringify([{
+    id: 'test',
+    title: '테스트',
+    versions: [{id: 'v1', artifactId: 'test'}],
+  }]));
   writeFileSync(path.join(dir, 'diagrams/test.drawio.xml'), `<mxGraphModel><root>
     <mxCell id="0"/><mxCell id="1" parent="0"/>
     <mxCell id="background" vertex="1" connectable="0" parent="1"/>
@@ -56,4 +60,59 @@ test('a host includes its services while their individual traffic links remain s
   assert.deepEqual(graph.groups.group, ['nginx', 'app']);
   assert.deepEqual(graph.adjacency.nginx, {nodes:['app'],edges:['internal']});
   assert.deepEqual(graph.adjacency.group, {nodes:['actor'],edges:['edge']});
+});
+
+test('HTML diagrams copy every version artifact and preserve version metadata', t => {
+  const dir = mkdtempSync(path.join(import.meta.dirname, '.diagram-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  mkdirSync(path.join(dir, 'scripts'));
+  mkdirSync(path.join(dir, 'diagrams'));
+  copyFileSync(
+    path.join(import.meta.dirname, 'build-diagrams.mjs'),
+    path.join(dir, 'scripts/build-diagrams.mjs'),
+  );
+  writeFileSync(
+    path.join(dir, 'diagrams/manifest.json'),
+    JSON.stringify([{
+      id: 'journey',
+      title: '유저 저니',
+      format: 'html',
+      versions: [
+        {id: 'v2', artifactId: 'journey', label: 'v2 · 현재'},
+        {id: 'v1', artifactId: 'journey.v1', label: 'v1 · 이전'},
+      ],
+    }]),
+  );
+  writeFileSync(path.join(dir, 'diagrams/journey.html'), '<h1>v2</h1>');
+  writeFileSync(path.join(dir, 'diagrams/journey.v1.html'), '<h1>v1</h1>');
+
+  execFileSync(process.execPath, [path.join(dir, 'scripts/build-diagrams.mjs')]);
+
+  assert.equal(
+    readFileSync(path.join(dir, 'public/diagrams/journey.html'), 'utf8'),
+    '<h1>v2</h1>',
+  );
+  assert.equal(
+    readFileSync(path.join(dir, 'public/diagrams/journey.v1.html'), 'utf8'),
+    '<h1>v1</h1>',
+  );
+  const index = JSON.parse(
+    readFileSync(path.join(dir, 'public/diagrams/index.json'), 'utf8'),
+  );
+  assert.deepEqual(index[0].versions.map(({id, artifactId}) => ({id, artifactId})), [
+    {id: 'v2', artifactId: 'journey'},
+    {id: 'v1', artifactId: 'journey.v1'},
+  ]);
+});
+
+test('an unversioned diagram fails the build', t => {
+  const f = fixture(t, svg);
+  writeFileSync(
+    path.join(f.dir, 'diagrams/manifest.json'),
+    JSON.stringify([{id: 'test', title: '테스트'}]),
+  );
+  assert.throws(
+    f.run,
+    error => error.status === 1 && error.stderr.includes('every diagram needs at least one version'),
+  );
 });

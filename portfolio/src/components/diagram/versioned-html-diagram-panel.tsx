@@ -3,51 +3,28 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { DiagramTextView } from "@/components/diagram/diagram-text-view";
-import { DiagramViewer } from "@/components/diagram/diagram-viewer";
-import type { DiagramGraph, DiagramVersion } from "@/lib/diagrams";
+import type { DiagramEntry, DiagramVersion } from "@/lib/diagrams";
 
-type VersionWithGraph = DiagramVersion & { graph: DiagramGraph };
-
-export function VersionedDiagramPanel({
+export function VersionedHtmlDiagramPanel({
+  diagram,
   index,
-  title,
-  titleEn,
-  fitOnOpen,
   selector,
   versions,
 }: {
+  diagram: DiagramEntry;
   index: number;
-  title: string;
-  titleEn?: string;
-  fitOnOpen?: boolean;
   selector: React.ReactNode;
-  versions: VersionWithGraph[];
+  versions: DiagramVersion[];
 }) {
   const [selectedId, setSelectedId] = useState(versions[0]?.id ?? "");
-  const [view, setView] = useState<"diagram" | "doc">("diagram");
   const selected = versions.find((version) => version.id === selectedId) ?? versions[0];
 
   if (!selected) return null;
+  const src = `/diagrams/${selected.artifactId}.html`;
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        {selector}
-
-        <div
-          role="group"
-          aria-label="보기 방식"
-          className="flex shrink-0 rounded-pill border border-border bg-surface-1 p-[0.1875rem]"
-        >
-          <ViewButton active={view === "diagram"} onClick={() => setView("diagram")}>
-            다이어그램
-          </ViewButton>
-          <ViewButton active={view === "doc"} onClick={() => setView("doc")}>
-            문서 보기
-          </ViewButton>
-        </div>
-      </div>
+      <div className="mb-6">{selector}</div>
 
       <section aria-labelledby="diagram-version-heading" className="mb-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -85,24 +62,34 @@ export function VersionedDiagramPanel({
         </div>
       </section>
 
-      {view === "diagram" ? (
-        <DiagramViewer
+      <section className="overflow-hidden rounded-card border border-border bg-white text-[#302e2a]">
+        <div className="flex items-center justify-between gap-3 border-b border-[#e5e2dc] px-5 py-3">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="text-sm font-bold">
+              {index} · {diagram.title} · {selected.label}
+            </h2>
+            {diagram.titleEn && (
+              <span className="font-mono text-[0.625rem] uppercase tracking-[0.1em] text-[#948e86]">
+                {diagram.titleEn}
+              </span>
+            )}
+          </div>
+          <a
+            href={src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 whitespace-nowrap text-xs text-[#6d665e] underline underline-offset-4"
+          >
+            새 창에서 보기 ↗
+          </a>
+        </div>
+        <iframe
           key={selected.artifactId}
-          id={selected.artifactId}
-          index={index}
-          title={title}
-          titleEn={titleEn}
-          fitOnOpen={fitOnOpen}
-          graph={selected.graph}
+          src={src}
+          title={`${diagram.title} ${selected.label}`}
+          className="block h-[680px] w-full border-0 max-sm:h-[650px]"
         />
-      ) : (
-        <DiagramTextView
-          graph={selected.graph}
-          index={index}
-          title={`${title} · ${selected.label}`}
-          titleEn={titleEn}
-        />
-      )}
+      </section>
 
       <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
         <time dateTime={selected.date} className="mr-2 font-mono text-xs tabular-nums text-muted">
@@ -140,30 +127,5 @@ export function VersionedDiagramPanel({
         </div>
       </section>
     </>
-  );
-}
-
-function ViewButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`min-h-11 whitespace-nowrap rounded-pill px-3.5 py-1 text-sm transition-colors ${
-        active
-          ? "bg-foreground font-semibold text-background"
-          : "text-muted-foreground hover:text-foreground"
-      }`}
-    >
-      {children}
-    </button>
   );
 }
