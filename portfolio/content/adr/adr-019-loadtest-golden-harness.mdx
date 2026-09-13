@@ -1,0 +1,90 @@
+---
+title: "ADR-019 — 부하테스트는 프로드 스케일 golden DB 복제 위에서 k6로 돌리고, 표적 가설은 코드·스키마 실측으로 먼저 검증한다"
+summary: "시드 완료 상태를 PostgreSQL TEMPLATE으로 동결한 golden DB를 run마다 복제하고, k6 open model로 부하를 건다. 도메인 지식으로 짚은 표적 가설 3개는 코드·스키마 전수 조사에서 전부 틀렸으므로, 부하를 걸기 전에 스키마와 리포지토리부터 읽는다."
+status: "유효"
+date: "2026-07-10"
+order: 19
+author: "조재영"
+keywords: [부하 테스트, k6, open model, golden DB, 재현성, PostgreSQL]
+related:
+  - label: "측정 도구를 먼저 의심한다 — 부하테스트 설계 결정들"
+    href: "/research/loadtest-design"
+  - label: "조용히 죽는 시드, 조용히 사라지는 브랜치 — 부하테스트 하네스 구축기"
+    href: "/research/loadtest-harness"
+  - label: "p99가 정확히 30,000ms였다"
+    href: "/research/loadtest-error96"
+---
+
+## 맥락
+
+v1은 2026-06-29 멘토 세션 직후 "느릴 만한 곳"을 도메인 지식으로만 짚어 둔 가설 설계였다. 2026-07-02 `back`의 스키마와 리포지토리를 전수 조사하자 표적 가설 3개가 한꺼번에 무너졌다.
+
+| 축 | v1 가설 | 실측 결과 | 교정된 표적 |
+| --- | --- | --- | --- |
+| Phase 1 | `/stats/heatmap`이 `daily_focus_stats` 인덱스 부재로 느릴 것 | `(user_id, date)` UNIQUE 인덱스가 이미 있음 | `GET /api/v1/focus-session` — `focus_sessions` |
+| Phase 2 | 리그 랭킹에 N+1이 있을 것 | 이미 `JOIN FETCH` 적용됨 | `Friendship`·`PinnedFriend`·`GroupChallengeMember`의 LAZY 경로 |
+| Phase 3 | friends·groups 검색 둘 다 `LIKE '%…%'` 풀스캔일 것 | `users.nickname`은 이미 pg_trgm GIN | `GroupRepository.findByNameContainingIgnoreCase`만 남음 |
+
+진짜 표적은 조사 중에 걸렸다. `focus_sessions`는 PK 외 인덱스가 0개였고, 시드 볼륨표에서 최대 규모(3천만 건)를 차지하는 테이블이었다. 한편 쓰기 시나리오를 돌리면 DB가 오염되고, 7천만 건 규모 시드는 수십 분이 걸려 매 run 재시드는 불가능했다.
+
+## 선택지
+
+| 축 | 기각 | 채택 | 이유 |
+| --- | --- | --- | --- |
+| 표적 선정 | 도메인 지식 가설 | 코드·스키마 전수 조사 | 가설 3개가 3개 다 틀렸다 |
+| 부하 모델 | closed(VU 수 지정) | open(`constant-arrival-rate` / `ramping-arrival-rate`) | closed는 서버가 포화될수록 부하기가 요청을 덜 보낸다(coordinated omission) |
+| 데이터 리셋 | 매 run 재시드 / 리셋 없음 | golden `TEMPLATE` 복제 | 재시드는 수십 분, 리셋 없이는 before/after가 성립하지 않는다 |
+| 매트릭스 | 엔드포인트당 k6 파일 손으로 작성 | `openapi.json`에서 recipe 자동생성 | 엔드포인트가 늘 때마다 사람이 파일을 따라 늘려야 한다 |
+| 부하기 배치 | SUT와 같은 VM | 별도 VM + 부하기 CPU 80% 초과 run 무효 | 자원을 다투면 숫자가 오염된다 |
+
+soak만은 closed(VU)를 그대로 쓴다. 누수·누적 포화를 오래 보는 것이 목적이라 꼬리 지연 정확도가 1순위가 아니다. 부하기 스팟 재고에 막혔을 때 "max price를 올리면 용량을 뺏어올 수 있다"는 전언은 사내 terraform 레포 전수 검색(세팅 0건)과 provider 스키마로 반증했다. GCP Spot에는 가격 파라미터가 없고, 막혀 있던 SUT는 온디맨드였다.
+
+## 결정
+
+**시드 완료 상태를 golden으로 동결하고 run마다 복제한다. 부하는 k6 open model로 걸고, 표적은 부하를 걸기 전에 스키마와 리포지토리를 읽어 정한다.**
+
+```sql
+-- 1회, 비쌈: 시드 완료 후 golden을 동결
+ALTER DATABASE golden IS_TEMPLATE true;
+ALTER DATABASE golden ALLOW_CONNECTIONS false;
+
+-- 매 run, 쌈: 같은 인스턴스 안 파일 수준 복사
+DROP DATABASE IF EXISTS loadtest;
+CREATE DATABASE loadtest TEMPLATE golden;
+```
+
+```javascript
+thresholds: {
+  'http_req_duration{phase:main}': ['p(95)<200', 'p(99)<500'],
+  'http_req_failed{phase:main}':   ['rate<0.01'],
+  'dropped_iterations':            ['count<1'],   // rate를 못 따라감 = 포화
+},
+```
+
+- v1에서 이미 인덱스가 있던 `/stats/heatmap`은 버리지 않고 대조군으로 승격한다.
+- 시드는 결정론이다. 차원 UUID는 `md5('user-' || n)::uuid`, 문자열·비율 난수는 mulberry32 고정 시드, 팩트 PK는 `seed_uuid_v7(started_at)`. 시드 검증에 "커서 정렬 위반 0건"을 넣는다. 적재는 앱을 거치지 않고 차원 테이블은 CSV `\copy`, 팩트 테이블은 DB 안에서 생성한다.
+
+## 근거
+
+- open model은 초당 N개 요청을 서버 상태와 무관하게 밀어넣고, k6가 못 따라가면 `dropped_iterations`가 올라간다. 이 값이 포화 판정 지표가 된다.
+- 재시드는 논리 데이터가 같아도 행의 물리 배치와 적재 시각이 매번 달라진다. 복제는 물리 상태까지 같은 출발선에서 시작하고 수 분이면 끝난다. 시드 직후 `VACUUM ANALYZE`까지 golden에 담으면 플래너 통계도 함께 동결된다.
+- 자동생성 커버리지는 93 operation 중 86이었다. 못 채운 7개는 시드에 없는 path ID다.
+- 결과로 검증됐다. 동결된 golden은 22GB(실적재 약 6,500만 건, 설계 목표 7,000만)로 설계 시 추정 ~15GB보다 컸고, "데이터 > RAM(8GB)" 조건은 더 여유 있게 충족됐다. 첫 측정일 50rps 붕괴 run에서 에러율 96.1%, p99 30,000ms가 나왔고, 진범은 설계 단계에서 1순위로 지목한 `focus_sessions`(3,000만 행)의 보조 인덱스 0개였다. 격리 run 셋(킬러 7종만 2rps: 87.5% / 킬러 1종 잔류 30rps: 83.9% / 킬러 제거 30rps: 8.1%)으로 단일 원인임을 실증했다.
+- 그날 잡은 범인 4개 중 3개(시드 JWT의 `type` 클레임 누락, compose no-op이 남긴 좀비 JVM, 스크립트와 API의 계약 드리프트)는 서버 밖 하네스와 절차에 있었다. 측정 시스템 자체도 소프트웨어다.
+
+<Callout label="무효 규칙이 먼저다" tone="warn">
+부하기가 먼저 포화된 run은 숫자로 쓰지 않는다. 이 규칙 덕에 무료체험 8 vCPU 상한에 맞춰 부하기를 c2-standard-4로 하향(SUT 2 + 관측 2 + 부하 4)해도 결과가 오염되지 않았고, 고rps 한계 탐색은 다중 부하기가 준비된 뒤로 미뤘다.
+</Callout>
+
+## 영향
+
+- golden을 다시 만드는 건 스키마 마이그레이션·시드 로직 변경·인스턴스 삭제 때뿐이다. 제약명은 `pg_get_constraintdef`로 런타임에 캡처하므로 마이그레이션으로 제약명이 바뀌어도 시드 스크립트는 손대지 않는다.
+- 리셋 절차에 앱 명시적 정지를 넣었다. DB만 갈아엎으면 이미지가 같은 `docker compose up -d`는 no-op이라 이전 run의 JVM이 오염된 상태로 살아남는다. 시드 산출물(JWT)도 코드와 함께 진화해야 한다.
+- 조용한 실패는 시끄럽게 바꾼다. 긴 시드 단계는 `setsid`로 SSH 수명에서 떼어내고, 대량 적재 검증은 `n_live_tup`이 아니라 `count(*)`와 `pg_database_size`로 하며, 렌더된 prometheus 설정은 `promtool check config`로 게이트하고, 실행 불가 recipe는 즉시 throw한다.
+- P0 인덱스 5종(`focus_sessions(user_id, started_at)` 등)을 Flyway로 반영하고 동일 프로토콜로 before/after를 비교하는 것이 다음 단계다.
+
+## 출처
+
+- [측정 도구를 먼저 의심한다 — 부하테스트 설계 결정들](/research/loadtest-design) — PR #172 · #179 · #202, GROMO-548 · GROMO-750
+- [조용히 죽는 시드, 조용히 사라지는 브랜치 — 부하테스트 하네스 구축기](/research/loadtest-harness) — PR #179 · #185 · #213, GROMO-752 · GROMO-763
+- [p99가 정확히 30,000ms였다 — 인덱스 0개가 인증 장애로 위장한 이야기](/research/loadtest-error96) — 결과 근거, PR #182 · #183

@@ -1,0 +1,68 @@
+---
+title: "ADR-002 — 정본은 PostgreSQL 하나이고 Redis는 세 용도로 나눈다"
+summary: "코어 데이터의 정본은 Data API의 PostgreSQL 하나다. Redis는 채팅·집중 presence, Business 미리보기, Target-2 랭킹 projection으로 용도와 수명을 나누며, 어느 것도 손실 후 재생성할 수 없는 사실을 담지 않는다."
+status: "유효"
+date: "2026-09-13"
+order: 2
+author: "조재영"
+keywords: [PostgreSQL, Redis, presence, projection, 데이터 소유권, Target-2]
+related:
+  - label: "Gromo 아키텍처 개요"
+    href: "/spec/architecture"
+  - label: "서비스 아키텍처 — 명령·이벤트·데이터 소유권"
+    href: "/spec/service-architecture"
+  - label: "Kafka와 Redis를 넣은 뒤 더 많은 경계를 설명해야 했다"
+    href: "/retrospective/02-kafka-redis-boundaries"
+---
+
+## 맥락
+
+Gromo는 집중·정산·재화를 확정하는 트랜잭션과, 화면 조합·실시간 연결·푸시 발송을 실패와 확장의 단위가 다른 일로 본다. 서비스는 Business API·Data API·Realtime·Notification으로 나뉘고, 각 서비스가 소유하는 데이터가 다르다.
+
+`docs/architecture`의 9월 10일 Target-1 도식에는 "Redis 없음"이 남아 있었지만, 9월 12일 API·실시간 HLD와 main에는 이미 채팅·집중 Redis와 미리보기 전용 Redis가 있었다. 랭킹 ZSET은 아직 설계(Target-2)다. 이 셋을 같은 단계·같은 장애 의미로 묶으면 무엇이 정본이고 무엇이 사본인지 설명할 수 없었다.
+
+## 선택지
+
+- **Redis 없이 Target-1 배치를 유지한다.** 9월 10일 도식의 상태다. main의 현재 코드와 맞지 않아 그대로 둘 수 없었다.
+- **채팅·미리보기 Redis를 한 인스턴스로 합친다.** 기각. 미리보기 인스턴스는 128 MiB·allkeys-lru·비영속으로 재생 가능한 캐시만 담는 전제이고, 채팅·집중 Redis는 Data가 쓰는 presence 사본과 재생 불가 Pub/Sub를 담아 손실 의미가 다르다.
+- **랭킹 ZSET을 두 Redis와 같은 단계로 도입한다.** 보류. 시스템 정본의 시작 조건(리그 화면 p95 1.5초 초과, `findRankOf` p95 500ms 초과, 또는 Business 다중 인스턴스 필요)을 충족한 뒤 Target-2로 도입한다.
+- **PostgreSQL 정본 + 용도별 Redis 3분리.** 채택.
+
+## 결정
+
+**코어 데이터의 정본은 Data API가 소유한 PostgreSQL(`gromo`) 하나이며, Redis는 용도와 수명에 따라 셋으로 나누고 어느 것도 정본으로 쓰지 않는다.**
+
+| 구분 | 데이터·채널 | 작성·사용 주체 | 손실·장애 시 |
+| --- | --- | --- | --- |
+| 채팅·집중 Redis — main | `chat:fanout`, `cache:chat:member:*`, `presence:focus:*` | Data가 presence 작성, Realtime은 presence 읽기와 채팅 fanout | Pub/Sub는 재생 불가. 편지는 DB 히스토리로 복구. presence 쓰기는 커밋 후 best effort·재조정 |
+| 미리보기 전용 Redis — main | `cache:business:preview:*`, 사용자별 상태·메타데이터·PNG | Business 전용 인스턴스 | PENDING 90초, READY 300초, FAILED 30초. 만료 후 POST로 재생성. Redis 장애는 API 503 |
+| 랭킹 Redis — Target-2 | `league:*` ZSET, `presence:*` 및 소유 서비스별 캐시·락 | 랭킹 컨슈머/Data가 projection 작성, Business가 조회 | 절대 점수+version으로 재적용. DB 정본의 같은 스냅샷에서 점수와 version을 읽어 재구축 |
+
+Business API는 영속 DB를 갖지 않는다. 편지 정본은 Realtime의 `gromo_chat`, 알림 정본은 Notification의 `gromo_notification`이며, Data는 위성 데이터베이스에 직접 쓰지 않는다.
+
+## 근거
+
+- 상태 변경·원장·version·명령 receipt·outbox는 Data의 단일 TX에서 확정한다. 목표는 장애나 재시도에도 원장과 화면이 서로 다른 사실을 만들지 않는 것이고, 그 불변식은 Redis가 아니라 PostgreSQL에 있다.
+- `presence:focus:*`는 Data가 만드는 상태 사본이다. Realtime은 presence를 읽기만 하고 개인 재화·소유권을 결정하지 않는다.
+- 미리보기는 TTL 만료 후 POST로 다시 만들 수 있으므로 인스턴스를 비영속·LRU로 둘 수 있다. 채팅과 미리보기 Redis는 한 인스턴스로 합치지 않는다.
+- 랭킹은 주차별 절대 점수+단조 version으로 통일해 delta 재가산을 피하고, DB 정본의 같은 스냅샷에서 점수와 version을 읽어 재구축한다.
+
+<Callout label="논리 소유권 ≠ 인프라 권한" tone="warn">
+main의 Redis 키 소유 규칙(`RedisKeys.java`)은 문서화됐지만, 목표 A19가 요구하는 서비스별 ACL과 읽기 전용 selector는 dev Redis에 아직 배포되지 않았다. 현재 코드의 키 소유 규칙과 저장소가 강제하는 권한을 같은 것으로 표현하지 않는다.
+</Callout>
+
+## 영향
+
+- 채팅·집중 Redis와 미리보기 Redis는 다른 인스턴스로 운영하며, 서비스별 ACL·메모리·eviction 정책을 용도별로 적용한다.
+- 원래 Target-1의 JVM 3개·컨테이너 6개 계산에는 Realtime, 채팅 Redis, 미리보기 Redis가 없다. 운영 편입 시 전체 힙·비힙·버퍼·페이지 캐시를 다시 산정하고, 기존 8 GB 계획을 확장 구성의 검증 결과로 쓰지 않는다.
+- 랭킹 Redis는 알림과 분리된 `score-events`·랭킹 컨슈머·ZSET projection과 함께 Target-2에서 도입한다. 조회는 완료 ZSET과 진행 중 presence를 합산하고 최종 정렬은 `score DESC, uuid ASC`다.
+- 두 Redis를 랭킹 ZSET 도입과 같은 단계로 묶지 않는다. 문서는 기존 Target-1을 배치 목표로 보존하면서 추가된 main 구성을 분리해 표시한다.
+- 후속: Redis ACL 실배포 뒤 허용되지 않은 키 prefix 접근이 실패하는 검증 결과, 그리고 재구축 절차의 운영 검증 결과를 남긴다. 2026-09-13 기준 둘 다 아직 없다.
+
+## 출처
+
+- [Gromo 아키텍처 개요 — Kafka와 Redis의 역할 · 자료가 어긋날 때](/spec/architecture)
+- [서비스 아키텍처 — Redis의 세 가지 용도 · Target-2 랭킹](/spec/service-architecture) · [RedisKeys.java의 소유·ACL 상태](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/server/realtime/src/main/java/com/oneorthree/realtime/common/redis/RedisKeys.java)
+- [시스템 아키텍처 — 컴퓨트와 저장소 · 다음 확장의 기준](/spec/system-architecture)
+- [Kafka와 Redis를 넣은 뒤 더 많은 경계를 설명해야 했다](/retrospective/02-kafka-redis-boundaries)
+- [결정 장부 A19·A20·A21](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture/decisions.md)

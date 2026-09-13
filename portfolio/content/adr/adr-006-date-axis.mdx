@@ -1,0 +1,88 @@
+---
+title: "ADR-006 — 시각은 UTC로 저장하고, '오늘' 버킷은 쓰기와 조회의 주체를 나눈다"
+summary: "시각(Instant)은 UTC로 저장하되 달력 날짜를 서버가 now()로 계산하지 않는다. 쓰기 버킷은 서버가 유저 존으로 환산하고 조회 기준일은 클라가 date로 전달해, 서버 코드의 LocalDate.now 호출을 0건으로 유지한다."
+status: "일부 대체됨 → KST 고정"
+date: "2026-08-12"
+order: 6
+author: "조재영"
+keywords:
+  - 타임존
+  - civil date
+  - 날짜 버킷
+related:
+  - label: "KST 아침엔 '오늘 집중'이 0이었다 — 타임존 버킷 전쟁"
+    href: "/research/timezone-wars"
+  - label: "루프가 있다 ≠ 페이지네이션이다"
+    href: "/research/league-batch"
+---
+
+## 맥락
+
+`/stats/today`를 붙일 때 읽는 경로마다 "오늘"의 기준이 달랐다. `FriendService`·`GroupService`는 `LocalDate.now(ZoneOffset.UTC)`, `/stats/today`와 `daily_screen_time_stats.date`는 `country_code` 파생 존, `daily_focus_stats`는 writer가 없어 조회하면 항상 0이었다.
+
+조회를 UTC 날짜로 통일하고 `daily_focus_stats` writer를 `endedAt`의 UTC 날짜로 버킷하자, KST 유저의 로컬 00:00~08:59, 하루의 3/8이 전날 버킷으로 갔다. 아침에 앱을 열면 오늘 집중이 0이었다(GROMO-643). 시각(instant)은 위치와 무관한 절대량이지만 날짜(civil date)는 타임존이 있어야 정해지는 달력 개념이다. "UTC로 저장한다"는 원칙을 날짜까지 확장한 것이 원인이었다.
+
+7월 2일부터 8월 12일까지 PR 17개, 일곱 단계를 거쳤다. 경로별 제각각 → UTC 일원화 → UTC 버킷 writer → 클라 `localDate` 계약 → `local_date` 컬럼 승격 → 정본 회귀 → 서버 존 산정.
+
+## 선택지
+
+| 선택지 | 내용 | 결과 |
+| --- | --- | --- |
+| 서버 UTC 날짜 일원화 | 서버는 UTC 오늘, 로컬 변환은 클라 | KST 유저 하루의 3/8이 전날 귀속. 기각 |
+| 클라 `localDate` 쓰기 계약 (PR #149) | 요청에 `localDate` 필수, `focus_sessions.local_date` 컬럼 | 사흘 뒤 스키마 정합(V2)이 낡은 `schema.dbml`을 권위로 삼아 컬럼·필드를 삭제, 나흘간 회귀. 재도입은 계약 파괴라 기각 |
+| 서버가 유저 존으로 쓰기 버킷 + 조회는 클라 `date` | `endedAt.atZone(zone).toLocalDate()`, 조회는 `date` 필수 파라미터 | 채택 |
+| 기기 tz(IANA 문자열) 직접 수신 | 국가 코드 대신 기기 존 | 글로벌 확장 시 전환 지점으로 보류 |
+
+## 결정
+
+**시각은 UTC Instant로 저장하고, "오늘" 버킷은 쓰기는 서버가 유저 존으로 환산하며 조회 기준일은 클라가 `date`로 전달한다. 서버는 `now()`로 오늘을 계산하지 않는다.**
+
+| 데이터 | 타입 | 기준 |
+| --- | --- | --- |
+| `focus_sessions.startedAt` · `endedAt` | Instant | UTC |
+| `daily_focus_stats.date` · 스트릭 버킷 | DATE | country-zone 산정 (endedAt@존) |
+| `daily_screen_time_stats.date` | DATE | country-zone 산정 |
+| 조회 기준일 (`date` 필수 API 11개) | LocalDate | 클라 `date` 계약 |
+| 카테고리 조회 윈도우 | Instant | endedAt이 유저 존 `[from, to+1)` 안 |
+| 재참여 알림 판정 | Instant 윈도우 (endedAt, KST) | 서버 배치 |
+
+```java
+// FocusService — GROMO-803 이후
+private LocalDate statDate(Instant endedAt, ZoneId zone) {
+    return endedAt.atZone(zone).toLocalDate();
+}
+```
+
+클라가 `date`를 줄 상대가 없는 배치는 `endedAt`(절대시각)의 KST 윈도우로 오늘 여부를 판정한다. `DailyFocusStat.date`(로컬 버킷)로 판정했더니 비-KST 유저의 세션이 다른 날짜로 버킷돼 오판이 났기 때문이다.
+
+## 근거
+
+- 조회 `date`가 필수(없으면 400)라 서버가 `now()`로 폴백하는 회귀가 구조적으로 불가능하다. 그 결과 서버 코드에 `LocalDate.now` 호출이 0건이다(2026-08-12 기준).
+- 회귀 수리 시 클라 계약을 다시 깨면 앱과 동시 배포가 필요하고 구버전 앱은 400을 맞는다. 원샷 전환 일주일 만에 또 계약을 깨는 대신 서버측에서만 고쳤다.
+- 유저 화면 집계는 로컬 날짜 버킷, 서버 배치 판정은 절대시각 윈도우로 소비자에 따라 기준을 달리 둔다. 같은 테이블을 두 기준으로 읽는 것이 정답인 구간이 실제로 있었다.
+
+수용한 한계는 다음과 같다.
+
+| 항목 | 결정 |
+| --- | --- |
+| 국가→존 매핑 | KR·JP·GB만, 그 외와 null은 UTC 폴백 |
+| 다중 타임존 국가(US) | 단일 매핑 원리적으로 불가 — 주석으로 명시 |
+| 과거 데이터 | forward-only, 백필 없음 |
+| 경계 테스트 | KST 00~09시 시나리오로 고정 |
+
+## 영향
+
+- 새 조회 API는 `date`를 필수로 받는다. 서버에서 `LocalDate.now`를 호출하는 코드는 들어오지 않는다.
+- 분류 원칙은 PR 본문에만 있다가 `docs/date-axis.md` 정본으로 승격됐다(PR #638).
+- 스키마 문서 갱신을 계약 변경 PR에 원자적으로 묶는 규칙은 논의만 됐고 강제 여부는 열려 있다.
+- 리그 주차 경계는 KST 고정이라 해외 유저에게 최대 1일 버킷 차가 남는다.
+
+<Callout label="후속 변경 — 쓰기 존" tone="warn">
+`phone/docs/conventions/date-axis.md`에 따르면 GROMO-1259가 서버의 판정·저장·조회 날짜 버킷을 전부 KST(`ZonePolicy.KST = Asia/Seoul`) 고정으로 통일하고 `CountryZoneResolver`를 제거했다. 챌린지 판정·카드·정산이 처음부터 KST 고정이라 저장축이 country-zone으로 갈리면 판정 경로와 저장 버킷이 어긋났고, JP가 UTC+9라 우연히 드러나지 않았다. 앱은 서버 결합 지점에서 `todayStrKst()` 계열로 `date`를 보낸다. 기기의 그날 UTC 오프셋이 `+09:00`이 아니면 "내 하루"와 앱의 하루가 어긋나는 한계(L5)는 한국 타깃 서비스라 수용했다. 이 ADR의 "시각은 UTC · 조회는 클라 `date`"는 유지되고 "쓰기는 country-zone"만 대체됐다.
+</Callout>
+
+## 출처
+
+- [KST 아침엔 '오늘 집중'이 0이었다 — 타임존 버킷 전쟁](/research/timezone-wars) — PR #149 · #475 · #634 · #638, GROMO-561 · 642 · 643 · 779 · 803
+- `phone/docs/conventions/date-axis.md` — 날짜 축 규약. 앱 쪽 정본이며 서버 축 정본은 `common/util/ZonePolicy.java`
+- [루프가 있다 ≠ 페이지네이션이다](/research/league-batch) — 리그 주차 경계 KST 고정의 감수 근거

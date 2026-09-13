@@ -1,0 +1,89 @@
+---
+title: "ADR-001 — 스키마 정본은 Flyway 마이그레이션이며 기존 DB는 V1 베이스라인으로 전환한다"
+summary: "로컬 전용 셸 스크립트와 ddl-auto: update가 섞여 dev/prod의 스키마 상태를 아무도 몰랐다. 버전 넘버링된 SQL을 앱 기동 시 Flyway가 적용하게 하고, 이미 데이터가 찬 dev/prod는 33개 테이블 스냅샷을 V1으로 마킹만 해 무중단 전환했다."
+status: "유효"
+date: "2026-07-10"
+order: 1
+author: "조재영"
+keywords: [Flyway, baseline, 스키마 마이그레이션, ddl-auto, Spring Boot 4]
+related:
+  - label: "flyway-core를 넣었는데 왜 안 켜질까"
+    href: "/research/flyway-adoption"
+  - label: "실패한 배포도 DB는 이미 바꿔놨다"
+    href: "/research/migration-incidents"
+  - label: "Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트"
+    href: "/research/springboot4-migration"
+---
+
+## 맥락
+
+전환 전 DB 스키마 변경 수단은 `docker exec`로 `psql` 히어독을 밀어넣는 로컬 전용 셸 스크립트였다. `run-migration-v15.sh`부터 `v30.sh`까지 쌓이는 동안 세 가지가 걸렸다.
+
+- 스크립트가 로컬 전용(gitignore)이라 dev/prod DB가 몇 번까지 적용됐는지 아무도 몰랐다.
+- 배포마다 사람이 `psql`을 손으로 실행해야 했고, 빠뜨리면 앱이 죽었다.
+- `ddl-auto: update`와 수동 스크립트가 섞여 스키마 문서(dbml)와 실 DB가 조금씩 어긋났다.
+
+`ddl-auto: update`는 컬럼 삭제·리네임을 못 하고 변경 이력도 남기지 않는다. 한편 dev/prod는 이미 손으로 v30까지 적용된 상태라, Flyway를 그냥 켜면 "테이블은 잔뜩 있는데 `flyway_schema_history`는 비어 있다 → 관리하지 않은 스키마다"로 기동을 거부한다.
+
+## 선택지
+
+| 선택지 | 변경 이력 | 컬럼 삭제·리네임 | 기존 dev/prod 전환 |
+| --- | --- | --- | --- |
+| 셸 스크립트 + `ddl-auto: update` 유지 | 없음 | 불가 | 해당 없음 |
+| Flyway를 빈 DB 전제로 켠다 | 있음 | 가능 | 기동 거부 |
+| Flyway + `baseline-on-migrate` + V1 스냅샷 | 있음 | 가능 | V1 마킹만, 무중단 |
+
+## 결정
+
+**스키마 정본은 `src/main/resources/db/migration/`의 Flyway 마이그레이션이며, 기존 dev/prod는 현재 실 DB의 `pg_dump --schema-only` 스냅샷을 `V1__baseline.sql`로 두고 baseline 마킹으로 전환한다.**
+
+```yaml
+# application-dev.yml
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true   # 비어있지 않은 DB면 baseline부터
+    baseline-version: 1         # V1을 '기준선'으로 마킹(재실행 안 함)
+```
+
+설정은 한 벌인데 동작이 두 갈래로 갈린다. 기존 dev/prod에서는 V1을 "적용됨"으로 마킹만 하고 실행하지 않는다. 빈 DB(신규 환경·CI)에서는 V1부터 전부 실행한다. 베이스라인은 33개 테이블 + `pg_trgm` 확장 + 닉네임 trgm GIN 인덱스로 떨어졌고, 이후 변경은 V2부터 번호를 이어 붙인다.
+
+| 프로필 | Flyway | `ddl-auto` | 의도 |
+| --- | --- | --- | --- |
+| `local` | OFF | `update` | 현행 동작 불변 |
+| `ci` | OFF | `create-drop` | 테스트는 매번 빈 스키마에서 시작 |
+| `dev`·`staging` | ON + baseline | `validate` | 배포 경로와 validate 기동을 먼저 확인 |
+| `prod` | ON + baseline | `update` → `validate` | 드리프트를 기동 시 조기 탐지 |
+
+## 근거
+
+- V1이 실 DB 스냅샷이어야 하는 이유는 새 환경에서 이 파일이 실제로 실행돼 지금과 똑같은 스키마를 재현해야 하기 때문이다.
+- prod `ddl-auto`를 `validate`로 올린 것은 의도된 위험 감수다. 엔티티와 실 DB가 어긋나 있으면 기동이 실패하며, 드리프트는 후속 마이그레이션으로 해소한 뒤 prod에 올린다.
+- 실행할 명령이 따로 없다. Flyway는 앱에 내장돼 기동 시 JPA 초기화 직전에 적용되므로 흐름은 머지 = 배포 = 자동 적용이고, 사람은 배포 로그의 `Successfully applied N migration` 한 줄만 확인한다.
+- 의존성은 3종이 필요하다. Spring Boot 4는 오토컨피그를 기술별 모듈로 분리해 `flyway-core`만으로는 로그 한 줄 없이 미적용되며, Flyway 10은 PostgreSQL 지원을 별도 모듈로 갈랐다.
+
+```gradle
+implementation 'org.springframework.boot:spring-boot-flyway'   // Boot 4: 오토컨피그
+implementation 'org.flywaydb:flyway-core'                      // 엔진
+runtimeOnly    'org.flywaydb:flyway-database-postgresql'        // Flyway 10+: DB별 지원 분리
+```
+
+<Callout label="적용된 파일은 주석도 불변" tone="warn">
+Flyway는 적용된 파일을 체크섬으로 검증한다. 체크섬은 DDL의 해시가 아니라 파일의 해시이므로 주석 한 줄도 바꿀 수 없다. 오류는 다음 번호로 보정한다(forward-only). 이 규칙을 어겼을 때 무슨 일이 생기는지는 GROMO-1050의 수습 3차(#447) 실패가 보여준다.
+</Callout>
+
+## 영향
+
+- 새 스키마 변경은 `V<N>__<설명>.sql` 추가로 끝나고 이력은 `flyway_schema_history`에 남는다. 레거시 `run-migration-v*.sh`는 아카이브했다.
+- 배포 환경의 설정 파일 일부가 저장소에 없어(gitignore) Flyway 설정 주입을 환경 쪽에서 따로 확인해야 한다.
+- Flyway는 rollback을 자동 지원하지 않는다. 마이그레이션은 앱 부팅 시퀀스 앞쪽에 있어 **배포가 실패해도 그 시점까지의 스키마 변경은 이미 확정**이다. 롤백이든 재수습이든 판단하기 전에 `flyway_schema_history`를 먼저 조회한다.
+- 전환 뒤 3주 동안 사고 3건이 났다. prod는 Flyway 도입 전 이력이라 제약 이름이 베이스라인과 달랐고(GROMO-817), 스키마는 코드화됐지만 시드는 사람 손에만 있었으며(GROMO-910), 53초 차이의 머지 순서 역전으로 dev CD가 6연속 실패했다(GROMO-1050). 여기서 굳힌 규칙은 이름 비의존·적용 파일 불변·번호 비예약·fail-fast다.
+- 시드 데이터 정본도 Flyway에 둔다. `spring.sql.init` + `data.sql`은 Flyway와 실행 순서가 얽히고 프로파일별 스위치가 하나 더 늘어 기각했다.
+- `out-of-order: true`는 dev에만 상시 허용하고 prod에는 넣지 않았다. 빈 번호(순서 역전)를 잡는 CI 검사는 아직 없다.
+- dev 리셋 스크립트가 `DROP SCHEMA public CASCADE` 후 `ddl-auto=update`로 재생성해 Flyway를 우회하는 경로가 남아 있다.
+
+## 출처
+
+- [flyway-core를 넣었는데 왜 안 켜질까 — Spring Boot 4 모듈형 오토컨피그](/research/flyway-adoption) — PR #166 · GROMO-670
+- [실패한 배포도 DB는 이미 바꿔놨다 — 마이그레이션 사고 3연발](/research/migration-incidents) — GROMO-817 · GROMO-910 · GROMO-1050
+- [Spring Boot 4로 먼저 넘어간 팀의 마이그레이션 노트](/research/springboot4-migration) — 모듈형 오토컨피그 항목
