@@ -87,6 +87,27 @@ npm run build
 
 manifest의 `detailHref`는 다이어그램 아래에 근거 문서 링크를 표시한다. 다이어그램의 연결 강조와 문서 보기, 원본 다운로드는 기존 빌드 파이프라인을 사용한다.
 
+### 아키텍처 버전 보존
+
+서비스·시스템 도면은 최신 파일을 덮어쓴 뒤 이전 파일을 지우지 않는다. 이전 SVG와 draw.io XML을 `<id>.v1.*`처럼 보존하고 manifest의 `versions`에 `artifactId`, 날짜, 대체 사유, 근거 문서와 원본 커밋을 등록한다. 빌드는 모든 버전의 연결 그래프까지 만들며, 페이지의 버전 선택은 도면·문서 보기·설계 뷰·다운로드 원본을 함께 전환한다.
+
+현재 v1은 문서 저장소의 `345aa78`(2026-09-08)에서 복원했고, v2는 2026-09-13의 Kafka·Redis 경계 반영본이다.
+
+## 발전 기록 자동 생성
+
+`src/data/evolution.json`은 직접 편집하지 않는다. 생성기가 `phone` 저장소 `origin/main`의 first-parent 기록에서 `docs/`, `.github/workflows/`, `server/scripts/` 변경만 모아 날짜·제목·SHA·변경 파일을 기록한다.
+
+```bash
+npm run sync:evolution
+npm run check:evolution
+```
+
+기본 source 경로는 이 저장소와 나란히 있는 `../phone`이다. 다른 위치에서는 `GROMO_SOURCE_REPO=/path/to/phone`을 지정한다. `predev`와 `prebuild`도 source 저장소가 보이는 환경에서는 자동으로 갱신하고, Vercel처럼 source가 없는 환경에서는 커밋된 스냅샷을 그대로 사용한다.
+
+## 기술 회고 추가
+
+`content/retrospective/`에 회고를 추가한다. 회고는 목표, Keep, Problem, Try, Action item, 근거 순서로 작성하고, 회의 기록이 없으면 팀의 감정이나 합의를 추정하지 않는다. 구현 문서·PR·커밋에서 확인되는 기술적 판단만 회고한다.
+
 ## HTML 다이어그램의 표시
 
 IA와 유저 저니는 검토한 R61 HTML을 그대로 표시합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 원본이며, manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 원본을 `public/diagrams/`에 복사하고 기존 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 새 창에서도 열 수 있습니다.

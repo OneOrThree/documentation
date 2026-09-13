@@ -3,6 +3,7 @@ import Link from "next/link";
 import { findSection, sections, site } from "@root/site.config";
 import { getAllDocs, getDocs } from "@/lib/content";
 import { getDiagrams } from "@/lib/diagrams";
+import evolution from "@/data/evolution.json";
 import { Kicker } from "@/components/kicker";
 import { StatusPill } from "@/components/status-pill";
 
@@ -25,7 +26,11 @@ export default function HomePage() {
   const index = sections.map((section) => ({
     ...section,
     count:
-      section.kind === "diagrams" ? diagrams.length : getDocs(section.slug).length,
+      section.kind === "diagrams"
+        ? diagrams.length
+        : section.kind === "generated"
+          ? evolution.entries.length
+          : getDocs(section.slug).length,
     unit: section.kind === "diagrams" ? "장" : "건",
   }));
 

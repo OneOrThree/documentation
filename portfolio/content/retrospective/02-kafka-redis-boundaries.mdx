@@ -1,0 +1,60 @@
+---
+title: "Kafka와 Redis를 넣은 뒤 더 많은 경계를 설명해야 했다"
+summary: "브로커와 캐시를 도입했다는 사실보다 outbox·중복·순서·복구·소유권을 설명하는 일이 중요했습니다. 현재 구현과 목표 구조를 분리한 과정을 KPT로 정리했습니다."
+status: "기술 회고"
+date: "2026-09-13"
+author: "조재영"
+order: 2
+keywords: [KPT, Kafka, Redis, outbox, Notification, Realtime]
+related:
+  - label: "서비스 아키텍처 정본"
+    href: "/spec/service-architecture"
+  - label: "시스템 아키텍처 정본"
+    href: "/spec/system-architecture"
+  - label: "알림 파이프라인 기록"
+    href: "/research/notification-pipeline"
+---
+
+이 회고는 2026-09-13 기준 [서비스 아키텍처](/spec/service-architecture), [시스템 아키텍처](/spec/system-architecture), Kafka·Realtime 구현 기록에서 확인되는 선택만 정리한다. 아직 활성화하지 않은 목표는 성과로 세지 않는다.
+
+## 목표
+
+Data가 확정한 사건을 Notification과 Realtime으로 전달하면서, 장애나 재시도에도 원장과 화면이 서로 다른 사실을 만들지 않게 한다. Kafka와 Redis는 제품 기능 이름이 아니라 전달·복구 경계를 구현하는 수단으로 둔다.
+
+## Keep — 유지할 것
+
+- **상태 변경과 outbox를 같은 Data 트랜잭션에 둔다.** 발행 성공 여부와 무관하게 사건의 원본을 남기고 relay가 재시도할 수 있다.
+- **중복과 순서를 다른 축으로 다룬다.** `eventId`는 중복 제거, aggregate `version`은 오래된 적용 거부, `schemaVersion`은 호환성에 사용한다.
+- **Redis의 용도를 분리한다.** 채팅 fanout·presence, Business 미리보기, Target-2 랭킹 projection을 다른 수명·장애 의미로 설명한다.
+- **현재·통합 PR·후속 목표를 도면과 문서에서 구분한다.** 코드가 존재한다는 사실과 운영 전환 완료를 같은 상태로 표시하지 않는다.
+
+## Problem — 문제가 된 것
+
+- `notification-events`는 사용자 키로 3개 파티션을 사용하지만, 브로커 도착 순서가 DB 커밋 순서를 대신하지 않는다. 파티션 수만 적으면 순서 보장이 끝난 것처럼 보일 수 있었다.
+- 개발용 Kafka는 단일 KRaft 브로커·replication factor 1이다. 영속 볼륨이 있어도 브로커 장애 내성이 생기는 것은 아니다.
+- dev Realtime의 포트와 Target-1 Data의 목표 포트가 모두 `8081`이다. 현재 Compose와 목표 배치 표를 합치면 충돌한다.
+- main의 Redis 키 소유 규칙은 문서화됐지만 서비스별 ACL이 운영에 배포됐다는 증거는 없다. 논리 소유권과 인프라 권한을 섞기 쉬웠다.
+- 기존 다이어그램을 최신 그림으로 덮어쓰면 Kafka·Redis가 왜 추가됐는지와 무엇이 대체됐는지가 사라졌다.
+
+## Try — 다음에 시도할 것
+
+1. Kafka 활성화 전에 consumer lag, DLT 유입률, outbox oldest-pending, relay 실패율의 기준선을 측정한다.
+2. DLT 재처리에서 같은 `eventId`가 다시 들어와도 소비자 DB가 중복을 접는지 장애 주입으로 확인한다.
+3. prod Compose에서 Realtime·Notification·Kafka·용도별 Redis의 포트, 자격, 메모리 예산을 다시 산정한다.
+4. Redis ACL을 실제 배포한 뒤 허용되지 않은 키 prefix 접근이 실패하는 검증 결과를 남긴다.
+5. 아키텍처 도면은 새 버전을 추가하고, 이전 버전·대체 사유·근거 커밋을 함께 보존한다.
+
+## Action item
+
+- [x] 서비스·시스템 도면에 v1과 v2 및 대체 사유 연결
+- [x] 버전별 설계 뷰와 원본 커밋 연결
+- [x] Git first-parent 기록에서 Evolution 자동 생성
+- [ ] Kafka 장애·DLT 재생 실증 결과 추가
+- [ ] Redis ACL과 재구축 절차의 운영 검증 결과 추가
+
+## 근거
+
+- [Kafka·Redis·outbox 상세 계약](/spec/service-architecture)
+- [배치·포트·데이터 저장소 경계](/spec/system-architecture)
+- [알림 파이프라인이 사건 선점 모델로 바뀐 기록](/research/notification-pipeline)
+- [채팅 팬아웃 단계와 MQ 경계](/research/chat-fanout)

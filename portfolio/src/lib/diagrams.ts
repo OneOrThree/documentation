@@ -21,6 +21,22 @@ export interface DiagramEntry {
   format?: "html";
   nodeCount?: number;
   edgeCount?: number;
+  versions?: DiagramVersion[];
+}
+
+export interface DiagramVersion {
+  id: string;
+  label: string;
+  date: string;
+  artifactId: string;
+  status: string;
+  summary: string;
+  evidenceTitle: string;
+  evidenceSummary: string;
+  detailHref: string;
+  sourceHref: string;
+  nodeCount?: number;
+  edgeCount?: number;
 }
 
 const INDEX_PATH = path.join(process.cwd(), "public", "diagrams", "index.json");
