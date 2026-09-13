@@ -1,0 +1,16 @@
+{
+  "date": "2026-09-13",
+  "framework": "Next.js 15 App Router",
+  "styling": "Tailwind CSS v4 with semantic CSS tokens",
+  "tokens": "src/styles/tokens.css",
+  "page_structure": "site.config.ts plus static App Router pages",
+  "content_source": "content/**/*.mdx and generated src/data/evolution.json",
+  "design_assets": [
+    "src/styles/tokens.css",
+    "src/components/site-header.tsx",
+    "src/components/site-footer.tsx",
+    "src/components/diagram/diagram-viewer.tsx"
+  ],
+  "reference": "https://alphaeveryday.github.io/edge-pages/",
+  "reference_dna": "technical documentation portal; diagram version control; source-of-truth callout; generated evolution log; KPT retrospective index"
+}

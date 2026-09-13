@@ -7,6 +7,7 @@ import { getDiagram, getDiagramGraph, getDiagrams } from "@/lib/diagrams";
 import { HtmlDiagramPanel } from "@/components/diagram/html-diagram-panel";
 import { DiagramPanel } from "@/components/diagram/diagram-panel";
 import { DiagramTextView } from "@/components/diagram/diagram-text-view";
+import { VersionedDiagramPanel } from "@/components/diagram/versioned-diagram-panel";
 import { Kicker } from "@/components/kicker";
 
 const section = findSection("diagrams")!;
@@ -45,6 +46,13 @@ export default async function DiagramPage({
   const diagram = getDiagram(id);
   if (!diagram) notFound();
   const graph = diagram.format === "html" ? undefined : getDiagramGraph(id);
+  const versions = diagram.versions?.map((version) => ({
+    ...version,
+    graph: getDiagramGraph(version.artifactId),
+  }));
+  const versionGraphs = versions?.every((version) => version.graph)
+    ? versions.map((version) => ({ ...version, graph: version.graph! }))
+    : undefined;
   if (diagram.format !== "html" && !graph) notFound();
 
   const all = getDiagrams();
@@ -97,6 +105,15 @@ export default async function DiagramPage({
 
       {diagram.format === "html" ? (
         <HtmlDiagramPanel diagram={diagram} index={index} selector={selector} />
+      ) : versionGraphs ? (
+        <VersionedDiagramPanel
+          index={index}
+          title={diagram.title}
+          titleEn={diagram.titleEn}
+          fitOnOpen={diagram.fitOnOpen}
+          selector={selector}
+          versions={versionGraphs}
+        />
       ) : graph ? (
         <DiagramPanel
           id={diagram.id}
@@ -117,12 +134,12 @@ export default async function DiagramPage({
         />
       ) : null}
 
-      {diagram.summary && (
+      {!versionGraphs && diagram.summary && (
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
           {diagram.summary}
         </p>
       )}
-      {diagram.detailHref && (
+      {!versionGraphs && diagram.detailHref && (
         <Link
           href={diagram.detailHref}
           className="mt-3 inline-block text-sm text-primary no-underline hover:underline"

@@ -85,6 +85,30 @@ function build(entry, i) {
     return entry;
   }
 
+  const built = buildArtifact(id, title);
+  const versions = Array.isArray(entry.versions)
+    ? entry.versions.map((version, versionIndex) => {
+        if (!version.id || !version.artifactId) {
+          throw new DiagramError(
+            `diagrams/manifest.json[${i}].versions[${versionIndex}] needs "id" and "artifactId".`,
+          );
+        }
+        const counts =
+          version.artifactId === id
+            ? built
+            : buildArtifact(version.artifactId, `${title} ${version.label ?? version.id}`);
+        return { ...version, ...counts };
+      })
+    : undefined;
+
+  return {
+    ...entry,
+    ...built,
+    ...(versions ? { versions } : {}),
+  };
+}
+
+function buildArtifact(id, title) {
   const xmlPath = path.join(SRC_DIR, `${id}.drawio.xml`);
   const svgPath = path.join(SRC_DIR, `${id}.svg`);
   for (const [p, hint] of [
@@ -121,11 +145,7 @@ function build(entry, i) {
       `${annotated.vertices}/${graph.nodes.length} + ${annotated.edges}/${graph.edges.length} matched in SVG`,
   );
 
-  return {
-    ...entry,
-    nodeCount: graph.nodes.length,
-    edgeCount: graph.edges.length,
-  };
+  return { nodeCount: graph.nodes.length, edgeCount: graph.edges.length };
 }
 
 /* -------------------------------------------------------------------------- */

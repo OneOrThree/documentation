@@ -7,7 +7,7 @@
  * adding one entry and one folder under `content/`.
  */
 
-export type SectionKind = "docs" | "diagrams";
+export type SectionKind = "docs" | "diagrams" | "generated";
 
 export interface SectionConfig {
   /** URL segment, and the folder name under `content/` for `kind: "docs"`. */
@@ -66,6 +66,24 @@ export const sections: SectionConfig[] = [
       "측정하고 부딪히며 알아낸 것들. 결론뿐 아니라 재현 방법과 숫자를 함께 남깁니다.",
     kind: "docs",
     search: true,
+  },
+  {
+    slug: "evolution",
+    label: "발전 기록",
+    kicker: "EVOLUTION LOG",
+    title: "발전 기록",
+    description:
+      "아키텍처·제품 설계·전달 경계를 바꾼 main 커밋을 Git 로그에서 자동으로 모읍니다.",
+    kind: "generated",
+  },
+  {
+    slug: "retrospective",
+    label: "회고",
+    kicker: "RETROSPECTIVE",
+    title: "기술 회고",
+    description:
+      "결과만 나열하지 않고, 유지할 것·문제가 된 것·다음에 시도할 것을 근거와 함께 남깁니다.",
+    kind: "docs",
   },
   {
     slug: "team",

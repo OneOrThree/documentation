@@ -24,7 +24,33 @@
     "titleEn": "Service Architecture",
     "summary": "2026.09.13 · phone/docs 기반. Business·Data의 원자 명령, Kafka·outbox·알림, Realtime과 Redis의 소유권을 연결합니다. main·통합 PR·후속 설계를 구분합니다.",
     "detailHref": "/spec/service-architecture",
-    "fitOnOpen": true
+    "fitOnOpen": true,
+    "versions": [
+      {
+        "id": "v2",
+        "label": "v2 · 현재",
+        "date": "2026-09-13",
+        "artifactId": "03-service",
+        "status": "현재 설계",
+        "summary": "Business·Data의 원자 명령 경계 위에 Kafka outbox·Notification·Realtime과 용도별 Redis 소유권을 연결했습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-13 정본",
+        "evidenceSummary": "phone/docs/architecture의 목표 구조와 main·통합 PR의 구현을 대조한 버전입니다. 문서와 코드가 충돌하면 연결된 source commit의 코드와 phone 정본을 우선합니다.",
+        "detailHref": "/spec/service-architecture",
+        "sourceHref": "https://github.com/OneOrThree/phone/commit/875a9fd8952a96d0031eabe455c627cddb6a643d"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-08",
+        "artifactId": "03-service.v1",
+        "status": "대체됨",
+        "summary": "data-api 중심 모놀리스와 당시의 채팅·알림 경계를 한 장에 둔 최초 실도면입니다. 서비스 분리 이후의 Kafka·Redis 소유권은 포함하지 않습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-08 스냅샷",
+        "evidenceSummary": "문서 저장소의 최초 실도면 커밋을 그대로 보존했습니다. 이후 Kafka·Notification 분리와 Realtime·Redis 경계가 구체화되어 v2로 대체됐습니다.",
+        "detailHref": "/spec/architecture",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/345aa78250c0ed02f4ab5f65359c6effde69e9c0"
+      }
+    ]
   },
   {
     "id": "04-system",
@@ -32,7 +58,33 @@
     "titleEn": "System Architecture",
     "summary": "2026.09.13 · Target-1의 AWS·Vercel 배치 목표와 main에 추가된 dev Realtime·Redis·미리보기 구성을 표시합니다. 목표 포트와 현재 설정, 운영 전환 단계를 구분합니다.",
     "detailHref": "/spec/system-architecture",
-    "fitOnOpen": true
+    "fitOnOpen": true,
+    "versions": [
+      {
+        "id": "v2",
+        "label": "v2 · 현재",
+        "date": "2026-09-13",
+        "artifactId": "04-system",
+        "status": "현재 설계",
+        "summary": "Target-1의 AWS·Vercel 배치와 main의 GCP dev Realtime·Redis·미리보기 구성을 함께 표시하고, 목표와 현재를 분리했습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-13 정본",
+        "evidenceSummary": "운영 배치 목표와 확인된 개발 Compose를 같은 그림에서 구분한 버전입니다. 실제 운영 자원 상태를 새로 실측했다는 의미는 아닙니다.",
+        "detailHref": "/spec/system-architecture",
+        "sourceHref": "https://github.com/OneOrThree/phone/commit/875a9fd8952a96d0031eabe455c627cddb6a643d"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-08",
+        "artifactId": "04-system.v1",
+        "status": "대체됨",
+        "summary": "Cloudflare·단일 EC2·RDS 중심의 운영 배치를 기록한 첫 시스템 실도면입니다. 이후 추가된 서비스별 배포 경계와 dev 구성을 담지 않습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-08 스냅샷",
+        "evidenceSummary": "문서 저장소의 최초 실도면 커밋을 그대로 보존했습니다. 서비스 분리 목표와 현재 dev 구성이 구체화되어 v2로 대체됐습니다.",
+        "detailHref": "/spec/architecture",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/345aa78250c0ed02f4ab5f65359c6effde69e9c0"
+      }
+    ]
   },
   {
     "id": "05-cloud",

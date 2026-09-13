@@ -4,13 +4,15 @@
   "private": true,
   "description": "팀 포트폴리오 문서 사이트",
   "scripts": {
-    "predev": "node scripts/build-diagrams.mjs",
+    "predev": "node scripts/generate-evolution.mjs --if-available && node scripts/build-diagrams.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/build-diagrams.mjs",
+    "prebuild": "node scripts/generate-evolution.mjs --if-available && node scripts/build-diagrams.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "verify": "node scripts/verify-routes.mjs"
+    "verify": "node scripts/verify-routes.mjs",
+    "sync:evolution": "node scripts/generate-evolution.mjs",
+    "check:evolution": "node scripts/generate-evolution.mjs --check"
   },
   "license": "UNLICENSED",
   "type": "module",

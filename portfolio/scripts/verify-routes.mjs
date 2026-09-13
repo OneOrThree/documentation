@@ -63,6 +63,12 @@ function collectUrls() {
       urls.push(`/diagrams/${entry.id}.svg`);
       urls.push(`/diagrams/${entry.id}.graph.json`);
       urls.push(`/diagrams/${entry.id}.drawio.xml`);
+      for (const version of entry.versions ?? []) {
+        if (version.artifactId === entry.id) continue;
+        urls.push(`/diagrams/${version.artifactId}.svg`);
+        urls.push(`/diagrams/${version.artifactId}.graph.json`);
+        urls.push(`/diagrams/${version.artifactId}.drawio.xml`);
+      }
     }
   }
 
