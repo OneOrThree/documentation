@@ -63,7 +63,9 @@ export default async function DiagramPage({
   const isVersioned = Boolean(diagram.versions?.length);
 
   const selector = (
-    <nav aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-2">
+    // 이 엘리먼트는 클라이언트 컴포넌트에 prop 으로 건너간다. React dev 가
+    // 키 없는 배열 자식으로 보고 경고하므로 이름을 명시한다.
+    <nav key="diagram-selector" aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-2">
       {all.map((d, i) => {
         const active = d.id === id;
         return (

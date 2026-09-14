@@ -345,6 +345,19 @@ svg[data-focus] .dg-cell.dg-hot[data-cell-kind="vertex"] {
   filter: drop-shadow(0 0 3px var(--primary-ring));
 }
 
+/* Actor filter: unchecked roles fade out but stay on the page, so the reader
+   sees what the role does NOT reach rather than a diagram that resized. */
+.dg-cell.dg-off {
+  opacity: 0.08;
+  filter: saturate(0);
+  pointer-events: none;
+}
+
+/* A focus pick still wins inside a filtered view. */
+svg[data-focus] .dg-cell.dg-off {
+  opacity: 0.06;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dg-cell {
     transition: none;
