@@ -5,14 +5,13 @@ import { useState } from "react";
 
 import type { DiagramEntry, DiagramVersion } from "@/lib/diagrams";
 
+/** 위 선택기와 버전 버튼이 이미 제목을 보여 주므로 프레임 상단 제목줄은 두지 않는다. */
 export function VersionedHtmlDiagramPanel({
   diagram,
-  index,
   selector,
   versions,
 }: {
   diagram: DiagramEntry;
-  index: number;
   selector: React.ReactNode;
   versions: DiagramVersion[];
 }) {
@@ -63,26 +62,6 @@ export function VersionedHtmlDiagramPanel({
       </section>
 
       <section className="overflow-hidden rounded-card border border-border bg-white text-[#302e2a]">
-        <div className="flex items-center justify-between gap-3 border-b border-[#e5e2dc] px-5 py-3">
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 className="text-sm font-bold">
-              {index} · {diagram.title} · {selected.label}
-            </h2>
-            {diagram.titleEn && (
-              <span className="font-mono text-[0.625rem] uppercase tracking-[0.1em] text-[#948e86]">
-                {diagram.titleEn}
-              </span>
-            )}
-          </div>
-          <a
-            href={src}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 whitespace-nowrap text-xs text-[#6d665e] underline underline-offset-4"
-          >
-            새 창에서 보기 ↗
-          </a>
-        </div>
         <iframe
           key={selected.artifactId}
           src={src}
@@ -90,6 +69,16 @@ export function VersionedHtmlDiagramPanel({
           className="block h-[680px] w-full border-0 max-sm:h-[650px]"
         />
       </section>
+      <p className="mt-2 text-right">
+        <a
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="whitespace-nowrap text-xs text-[#6d665e] underline underline-offset-4"
+        >
+          새 창에서 보기 ↗
+        </a>
+      </p>
 
       <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
         <time dateTime={selected.date} className="mr-2 font-mono text-xs tabular-nums text-muted">

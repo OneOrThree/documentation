@@ -363,6 +363,17 @@ function makeJourney() {
   });
 }
 
+// v4부터 IA·유저 저니는 이 생성기가 아니라 scripts/sync-r61-html.py가 설계 원본에서 만든다.
+// manifest의 현재 버전이 더 높으면 여기서 멈춰 현재 별칭을 덮어쓰지 않는다.
+const manifest = JSON.parse(fs.readFileSync(path.join(DIAGRAM_DIR, "manifest.json"), "utf8"));
+for (const id of ["01-ia", "02-journey"]) {
+  const current = Number(/^v(\d+)$/.exec(manifest.find((e) => e.id === id)?.versions?.[0]?.id ?? "")?.[1] ?? 0);
+  if (current > TARGET_VERSION) {
+    console.error(`[product-diagrams] ${id}는 v${current}가 현재 버전이라 v${TARGET_VERSION} 생성기로 덮어쓰지 않는다. scripts/sync-r61-html.py를 사용할 것.`);
+    process.exit(1);
+  }
+}
+
 for (const id of ["01-ia", "02-journey"]) {
   const current = path.join(DIAGRAM_DIR, `${id}.html`);
   const previous = path.join(DIAGRAM_DIR, `${id}.v${TARGET_VERSION - 1}.html`);

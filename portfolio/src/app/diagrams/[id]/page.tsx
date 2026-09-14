@@ -110,7 +110,6 @@ export default async function DiagramPage({
       {diagram.format === "html" && diagram.versions?.length ? (
         <VersionedHtmlDiagramPanel
           diagram={diagram}
-          index={index}
           selector={selector}
           versions={diagram.versions}
         />
