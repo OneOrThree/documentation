@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { DiagramGraph } from "@/lib/diagrams";
+import type { DiagramCellMeta, DiagramGraph } from "@/lib/diagrams";
 import { DiagramHeading } from "@/components/diagram/diagram-heading";
 
 /**
@@ -56,6 +56,8 @@ export function DiagramViewer({
   // Where the % button returns to. Not a constant: it is measured per diagram.
   const [homeZoomIndex, setHomeZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
   const [focusId, setFocusId] = useState<string | null>(null);
+  // 체크 해제된 역할. 비어 있으면 전부 보인다 (기본값).
+  const [offRoles, setOffRoles] = useState<ReadonlySet<string>>(() => new Set());
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const zoom = ZOOM_STEPS[zoomIndex];
@@ -164,6 +166,65 @@ export function DiagramViewer({
       }
     }
   }, [focusId, graph, svg]);
+
+  /**
+   * Role filter.
+   *
+   * Unchecking 방장 should not just drop that actor's lines: the buildings only
+   * 방장 reaches stop being reachable too, and that is the answer the reader
+   * came for. So an edge dies when either end is filtered out, and a building
+   * dies when every edge into it died.
+   *
+   * Nothing is removed from the DOM — the artwork keeps its size and the reader
+   * sees the gap where the role used to reach.
+   */
+  useEffect(() => {
+    // `svg` is the markup string; the injected element lives under hostRef.
+    const root = hostRef.current?.querySelector("svg");
+    if (!root) return;
+    const cells = root.querySelectorAll<SVGElement>(".dg-cell");
+    if (!graph.filters?.length || !offRoles.size) {
+      for (const cell of cells) cell.classList.remove("dg-off");
+      return;
+    }
+
+    // 체크박스 하나가 셀 여러 개를 덮을 수 있다 (예: 외부 시스템 3개).
+    const off = new Set<string>();
+    for (const role of graph.filters) {
+      if (!offRoles.has(role.id)) continue;
+      for (const cell of role.ids ?? [role.id]) off.add(cell);
+    }
+
+    const deadEdges = new Set<string>();
+    const edgesInto = new Map<string, string[]>();
+    for (const edge of graph.edges) {
+      const dead =
+        (edge.source && off.has(edge.source)) ||
+        (edge.target && off.has(edge.target));
+      if (dead) deadEdges.add(edge.id);
+      for (const end of [edge.source, edge.target]) {
+        if (!end) continue;
+        const list = edgesInto.get(end) ?? [];
+        list.push(edge.id);
+        edgesInto.set(end, list);
+      }
+    }
+
+    const deadNodes = new Set<string>(off);
+    for (const node of graph.nodes) {
+      if (deadNodes.has(node.id)) continue;
+      const touching = edgesInto.get(node.id);
+      // A node nothing connects to is standalone artwork — leave it alone.
+      if (touching?.length && touching.every((id) => deadEdges.has(id))) {
+        deadNodes.add(node.id);
+      }
+    }
+
+    for (const cell of cells) {
+      const id = cell.getAttribute("data-cell-id") ?? "";
+      cell.classList.toggle("dg-off", deadEdges.has(id) || deadNodes.has(id));
+    }
+  }, [graph, offRoles, svg]);
 
   /**
    * Pinch-to-zoom over the diagram belongs to the diagram, not to the browser.
@@ -334,6 +395,9 @@ export function DiagramViewer({
           {focusId && (
             <TextControl onClick={() => setFocusId(null)}>선택 해제 (Esc)</TextControl>
           )}
+          {offRoles.size > 0 && (
+            <TextControl onClick={() => setOffRoles(new Set())}>역할 전체 보기</TextControl>
+          )}
           <TextControl onClick={toggleFullscreen}>
             {isFullscreen ? "전체화면 나가기" : "전체화면"}
           </TextControl>
@@ -347,9 +411,48 @@ export function DiagramViewer({
         </div>
       </div>
 
+      {graph.filters?.length ? (
+        <fieldset className="mb-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-border bg-surface-1 px-3.5 py-2">
+          <legend className="sr-only">역할별로 보기</legend>
+          <span className="text-[0.75rem] text-muted-foreground">역할</span>
+          {graph.filters.map((role) => {
+            const on = !offRoles.has(role.id);
+            return (
+              <label
+                key={role.id}
+                className="flex cursor-pointer items-center gap-1.5 text-[0.8125rem] select-none"
+              >
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() =>
+                    setOffRoles((prev) => {
+                      const next = new Set(prev);
+                      if (on) next.add(role.id);
+                      else next.delete(role.id);
+                      return next;
+                    })
+                  }
+                  className="size-3.5 accent-[var(--role-color)]"
+                  style={{ ["--role-color" as string]: role.color ?? "currentColor" }}
+                />
+                <span
+                  aria-hidden
+                  className="size-2.5 rounded-full"
+                  style={{ backgroundColor: role.color ?? "currentColor" }}
+                />
+                <span className={on ? "" : "text-muted-foreground line-through"}>
+                  {role.label}
+                </span>
+              </label>
+            );
+          })}
+        </fieldset>
+      ) : null}
+
       <div
         ref={frameRef}
-        className="overflow-hidden rounded-card border border-border fullscreen:rounded-none fullscreen:border-0"
+        className="relative overflow-hidden rounded-card border border-border fullscreen:rounded-none fullscreen:border-0"
       >
         {/* The diagram keeps a light canvas in every theme: a draw.io export
             carries baked-in fills like #f1f2f4, so recolouring the page around
@@ -406,6 +509,14 @@ export function DiagramViewer({
             <img src={`/diagrams/${id}.svg`} alt={title} style={{ width: "100%" }} />
           </noscript>
         </div>
+
+        {graph.meta && focusId && graph.meta[focusId] && (
+          <CellPanel
+            meta={graph.meta[focusId]}
+            loop={graph.loop}
+            onClear={() => setFocusId(null)}
+          />
+        )}
       </div>
 
       <figcaption
@@ -426,6 +537,131 @@ export function DiagramViewer({
         )}
       </figcaption>
     </figure>
+  );
+}
+
+/**
+ * Side panel for the picked cell.
+ *
+ * The artwork answers "what are the parts"; a reader's next question is
+ * "which part of the loop is this, and what is actually inside it". Putting
+ * that here is what lets the diagram itself stay at eleven boxes instead of
+ * the seventy-seven it used to draw.
+ *
+ * Rendered whenever the diagram ships a meta file, focused or not, so picking
+ * a cell does not shove the artwork sideways.
+ */
+function CellPanel({
+  meta,
+  loop,
+  onClear,
+}: {
+  meta: DiagramCellMeta;
+  loop?: string[];
+  onClear: () => void;
+}) {
+  return (
+    <aside
+      aria-label="선택한 요소 설명"
+      aria-live="polite"
+      className="absolute inset-x-3 top-3 z-10 max-h-[calc(100%-1.5rem)] overflow-auto rounded-card border border-border bg-surface-1 p-5 shadow-lg sm:inset-x-auto sm:right-3 sm:w-[21rem]"
+    >
+      {loop && (
+        <ol className="m-0 mb-4 list-none space-y-1 p-0">
+          {loop.map((step) => {
+            const on = Boolean(meta.stage && step.startsWith(meta.stage));
+            return (
+              <li
+                key={step}
+                aria-current={on ? "step" : undefined}
+                className={`rounded-pill px-2.5 py-1 text-[0.75rem] leading-snug ${
+                  on
+                    ? "bg-foreground font-semibold text-background"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {step}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
+      {(
+        <>
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="m-0 text-base font-bold leading-tight">
+              {meta.stage && (
+                <span className="mr-2 font-mono text-sm text-muted-foreground">
+                  {meta.stage}
+                </span>
+              )}
+              {meta.title}
+            </h3>
+            {typeof meta.count === "number" && (
+              <span className="shrink-0 font-mono text-[0.75rem] tabular-nums text-muted-foreground">
+                {meta.count}개
+              </span>
+            )}
+          </div>
+          {meta.lead && (
+            <p className="mt-1 mb-0 text-[0.8125rem] text-muted-foreground">{meta.lead}</p>
+          )}
+          {meta.loop && (
+            <p className="mt-3 mb-0 rounded-card bg-surface-2 p-3 text-[0.8125rem] leading-relaxed">
+              {meta.loop}
+            </p>
+          )}
+
+          {(meta.actors?.length || meta.systems?.length) && (
+            <dl className="mt-4 mb-0 space-y-1.5 text-[0.8125rem]">
+              {meta.actors?.length ? (
+                <div className="flex gap-2">
+                  <dt className="w-12 shrink-0 text-muted-foreground">액터</dt>
+                  <dd className="m-0">{meta.actors.join(" · ")}</dd>
+                </div>
+              ) : null}
+              {meta.systems?.length ? (
+                <div className="flex gap-2">
+                  <dt className="w-12 shrink-0 text-muted-foreground">외부</dt>
+                  <dd className="m-0">{meta.systems.join(" · ")}</dd>
+                </div>
+              ) : null}
+            </dl>
+          )}
+
+          {meta.groups?.length ? (
+            <div className="mt-5">
+              {meta.groups.map((group) => (
+                <section key={`${group.place}/${group.sub}`} className="mt-4 first:mt-0">
+                  <h4 className="m-0 text-[0.75rem] font-semibold text-muted-foreground">
+                    {group.place}
+                    {group.sub !== group.place && (
+                      <span className="font-normal"> · {group.sub}</span>
+                    )}
+                  </h4>
+                  <ul className="mt-1.5 mb-0 list-none space-y-1 p-0 text-[0.8125rem]">
+                    {group.items.map((item) => (
+                      <li key={item} className="leading-snug">
+                        · {item}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onClear}
+            className="mt-5 border-b border-border pb-px text-[0.8125rem] text-muted-foreground transition-colors hover:text-foreground"
+          >
+            선택 해제 (Esc)
+          </button>
+        </>
+      )}
+    </aside>
   );
 }
 

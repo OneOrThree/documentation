@@ -1,0 +1,9 @@
+{
+  "filters": [
+    { "id": "a_resident", "label": "주민",  "color": "#23866C" },
+    { "id": "a_host",     "label": "방장",  "color": "#7556A6" },
+    { "id": "a_visitor",  "label": "방문자", "color": "#A8763B" },
+    { "id": "external",   "label": "외부 시스템", "color": "#2F8795",
+      "ids": ["sys_auth", "sys_os", "sys_sched"] }
+  ]
+}
