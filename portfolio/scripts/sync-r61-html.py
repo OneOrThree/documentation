@@ -4,14 +4,18 @@
 원본: gachisup-R61-assets/문서/IA-R61.html, User-Journey-R61.html (GROMO_R61_DOCS로 경로 지정 가능)
 가공: 헤더·푸터·외부 문서 링크·로컬 경로 제거, IA는 버튼·범례만 한 줄로, 저니는 흐름도만 남기고 프레임에 맞춰 자동 축소.
 원본 draw.io(User-Journey-R61.drawio)와 SVG 두 장은 참고용으로 02-journey.drawio.xml, 02-journey.svg, 01-ia.svg에 복사한다.
+IA draw.io는 원본에 없어서 make_ia_drawio.py로 01-ia.drawio.xml을 생성한다.
 원본이 바뀔 때마다 다시 실행하면 같은 가공이 재적용된다. 새 버전을 낼 때는 먼저 현재 파일을
 <id>.vN.html로 보존하고 manifest의 versions를 갱신한다 (README "HTML 다이어그램의 표시")."""
 import os
 import re
 import shutil
+import sys
 
 SRC = os.environ.get("GROMO_R61_DOCS", "/Users/soobin/orca/projects/growing/gachisup-R61-assets/문서")
 DST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "diagrams")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from make_ia_drawio import build as build_ia_drawio  # noqa: E402
 
 
 def sub1(s, pat, rep, what, flags=re.S):
@@ -72,4 +76,6 @@ for src, dst in (
     ("IA-R61-tree.svg", "01-ia.svg"),
 ):
     shutil.copy(f"{SRC}/{src}", f"{DST}/{dst}")
-print("synced: diagrams/01-ia.html, 02-journey.html + 원본 drawio/svg — 이어서 npm run build 또는 node scripts/build-diagrams.mjs")
+# IA는 원본에 draw.io가 없어서 트리 데이터·SVG 좌표로 생성한다
+n, e = build_ia_drawio(SRC, f"{DST}/01-ia.drawio.xml")
+print(f"synced: diagrams/01-ia.html, 02-journey.html + 원본 drawio/svg + 01-ia.drawio.xml({n} nodes, {e} edges) — 이어서 npm run build 또는 node scripts/build-diagrams.mjs")
