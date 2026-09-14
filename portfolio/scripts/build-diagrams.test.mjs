@@ -159,14 +159,6 @@ test('current diagrams share the system architecture visual contract', () => {
       `${id}.svg uses a different font stack`,
     );
   }
-  for (const id of ['01-ia', '02-journey']) {
-    const htmlSource = readFileSync(path.join(diagramDir, `${id}.html`), 'utf8').toLowerCase();
-    for (const token of ['#ffffff', '#172b3a', '#4d5a66', '#f8fafc', '#dce4eb']) {
-      assert.ok(htmlSource.includes(token), `${id}.html is missing ${token}`);
-    }
-    assert.ok(
-      htmlSource.includes('"apple sd gothic neo", "noto sans kr", sans-serif'),
-      `${id}.html uses a different font stack`,
-    );
-  }
+  // 01-ia·02-journey는 v4부터 설계 쪽 R61 원본(scripts/sync-r61-html.py)을 그대로 쓰므로
+  // 04-system 토큰을 요구하지 않는다. v3까지의 생성본은 diagrams/<id>.v3.html에 보존돼 있다.
 });

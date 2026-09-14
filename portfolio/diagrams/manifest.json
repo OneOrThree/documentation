@@ -48,20 +48,32 @@
     "id": "01-ia",
     "title": "IA · 정보 구조",
     "titleEn": "Information Architecture",
-    "summary": "R61의 진입, 처음부터 열리는 섬 홈, 고정 성장, 선택 해금 시설을 사용자 목표와 역할로 구분합니다.",
+    "summary": "R61 · 2026-09-14 정책 기준 정보 구조. 섬 홈·시설별 주요 기능을 트리로 보고, 세부 기능을 펼치면 모든 하위 항목이 열립니다.",
     "detailHref": "/spec/use-cases",
     "format": "html",
     "versions": [
       {
-        "id": "v3",
-        "label": "v3 · 현재",
-        "date": "2026-09-13",
+        "id": "v4",
+        "label": "v4 · 현재",
+        "date": "2026-09-14",
         "artifactId": "01-ia",
         "status": "R61 현재 설계",
+        "summary": "gachisup R61 설계 원본(IA-R61.html)을 그대로 표시합니다. 주요 기능·세부 기능 펼침 버튼과 범례만 남기고 제목·검색·외부 문서 링크는 뺐습니다.",
+        "evidenceTitle": "정보 구조 설계 원본 — R61 2026-09-14",
+        "evidenceSummary": "설계 쪽 R61 원본을 사이트용으로 가공(scripts/sync-r61-html.py)한 버전입니다. 원본이 바뀌면 같은 스크립트로 다시 넣습니다. v3의 카드형 요약은 보존합니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v3",
+        "label": "v3 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "01-ia.v3",
+        "status": "대체됨",
         "summary": "진입→섬 홈→고정 성장→선택 시설 구조를 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
         "evidenceTitle": "정보 구조 설계 뷰 — R61 v3",
-        "evidenceSummary": "v2의 화면 위치와 해금 단계를 유지하고 04-system의 시각 규칙을 적용했습니다.",
-        "detailHref": "/spec/use-cases"
+        "evidenceSummary": "진입→섬 홈→고정 성장→선택 시설 요약은 유효하지만, 설계 쪽 R61 원본 트리를 그대로 보여 주기로 하여 v4로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/150beb8"
       },
       {
         "id": "v2",
@@ -93,20 +105,32 @@
     "id": "02-journey",
     "title": "유저 저니",
     "titleEn": "User Journey",
-    "summary": "R61의 첫 소속, 집중, 휴식·복귀, 결과, 성장, 선택 활동을 상태를 바꾸는 여섯 단계로 정리합니다.",
+    "summary": "R61 · 주민의 일상과 공동 건설이 만나 섬에서 할 수 있는 일이 늘어나는 흐름. 개인·소셜을 누르면 해당 경험이 강조됩니다.",
     "detailHref": "/spec/use-cases",
     "format": "html",
     "versions": [
       {
-        "id": "v3",
-        "label": "v3 · 현재",
-        "date": "2026-09-13",
+        "id": "v4",
+        "label": "v4 · 현재",
+        "date": "2026-09-14",
         "artifactId": "02-journey",
         "status": "R61 현재 설계",
+        "summary": "gachisup R61 설계 원본(User-Journey-R61.html)의 흐름도만 표시합니다. 제목·푸터를 빼고 프레임 높이에 맞춰 자동 축소합니다.",
+        "evidenceTitle": "사용자 여정 설계 원본 — R61 2026-09-14",
+        "evidenceSummary": "설계 쪽 R61 원본을 사이트용으로 가공(scripts/sync-r61-html.py)한 버전입니다. 원본이 바뀌면 같은 스크립트로 다시 넣습니다. v3의 6단계 표는 보존합니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v3",
+        "label": "v3 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "02-journey.v3",
+        "status": "대체됨",
         "summary": "01–04 핵심 집중 루프와 05 성장·06 선택 활동을 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
         "evidenceTitle": "전체 유저 저니 — R61 v3",
-        "evidenceSummary": "v2의 상태 순서와 확정 규칙을 유지하고 04-system의 시각 규칙을 적용했습니다.",
-        "detailHref": "/spec/use-cases"
+        "evidenceSummary": "여섯 단계 상태 표는 유효하지만, 설계 쪽 R61 원본 흐름도를 그대로 보여 주기로 하여 v4로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/150beb8"
       },
       {
         "id": "v2",

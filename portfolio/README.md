@@ -97,7 +97,7 @@ manifest는 최신 버전을 맨 앞에 두고, 최신 항목만 현재 별칭(`
 
 ### 공통 시각 문법
 
-`04-system`을 모든 현재 다이어그램의 시각 기준으로 사용한다. 흰 캔버스, 32px 제목과 17px 부제, `#f8fafc` 영역 밴드, 12px 모서리의 의미별 카드, `#607583` 2px 연결선, `Apple SD Gothic Neo, Noto Sans KR, sans-serif` 글꼴을 공통으로 쓴다. 유스케이스·IA·유저 저니처럼 구조가 다른 도면도 같은 토큰과 제목 계층을 유지한다.
+`04-system`을 모든 현재 다이어그램의 시각 기준으로 사용한다. 흰 캔버스, 32px 제목과 17px 부제, `#f8fafc` 영역 밴드, 12px 모서리의 의미별 카드, `#607583` 2px 연결선, `Apple SD Gothic Neo, Noto Sans KR, sans-serif` 글꼴을 공통으로 쓴다. 유스케이스처럼 구조가 다른 도면도 같은 토큰과 제목 계층을 유지한다. 예외는 IA·유저 저니 v4 이후로, 설계 쪽 R61 원본을 가공 없이 보여 주기 위해 원본의 시각 문법을 그대로 둔다(아래 "HTML 다이어그램의 표시").
 
 현재 도면을 고칠 때는 먼저 생성기의 `TARGET_VERSION` 또는 `TARGET_VERSIONS`를 올리고 manifest에 새 현재 버전과 이전 버전을 함께 등록한다. 생성기는 직전 현재 별칭을 해당 버전 파일로 한 번만 보존하며, 같은 버전으로 다시 실행해도 보존본을 덮어쓰지 않는다.
 
@@ -116,7 +116,7 @@ npm run build
 
 `00-usecase.svg`만 직접 고치면 XML 연결 그래프와 화면이 어긋나므로 두 산출물을 항상 같이 생성한다. 화면 구조는 IA, 상태 순서는 유저 저니가 정본이며 유스케이스에 중복해서 넣지 않는다.
 
-두 번째 생성기는 최초 실행 시 기존 IA·유저 저니를 `01-ia.v1.html`, `02-journey.v1.html`로 보존하고 v2 현재 별칭을 만든다. 다음 버전부터도 같은 순서로 현재 파일을 명시적 버전으로 보존한 뒤 별칭을 갱신한다.
+두 번째 생성기(`make-product-html-diagrams.mjs`)는 IA·유저 저니 v3까지만 만든다. v4부터 IA·유저 저니는 설계 쪽 R61 원본에서 `scripts/sync-r61-html.py`로 가져오며, 생성기는 manifest의 현재 버전이 자기 버전보다 높으면 덮어쓰지 않고 멈춘다 (아래 "HTML 다이어그램의 표시").
 
 ## 발전 기록 자동 생성
 
@@ -131,15 +131,22 @@ npm run check:evolution
 
 ## 기술 회고 추가
 
-`content/retrospective/`에 회고를 추가한다. 회고는 목표, Keep, Problem, Try, Action item, 근거 순서로 작성하고, 회의 기록이 없으면 팀의 감정이나 합의를 추정하지 않는다. 구현 문서·PR·커밋에서 확인되는 기술적 판단만 회고한다.
+`content/retrospective/`에 회고를 추가한다. 회고는 목표, Keep, Problem, Try, Action item, 근거 순서로 작성하고, 회의 기록이 없으## HTML 다이어그램의 표시
 
-## HTML 다이어그램의 표시
+IA와 유저 저니는 설계 쪽 R61 원본 HTML(`gachisup-R61-assets/문서/IA-R61.html`, `User-Journey-R61.html`)을 사이트용으로 가공해 표시합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 가공 결과이고 manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 이를 `public/diagrams/`에 복사하고 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 프레임 상단에 제목줄은 두지 않으며(위 선택기와 버전 버튼이 제목 역할) "새 창에서 보기" 링크는 프레임 아래에 있습니다.
 
-IA와 유저 저니는 검토한 R61 HTML을 그대로 표시합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 원본이며, manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 원본을 `public/diagrams/`에 복사하고 기존 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 새 창에서도 열 수 있습니다.
+원본이 바뀌면 다음을 실행합니다. 원본 위치가 다르면 `GROMO_R61_DOCS`로 지정합니다.
 
-HTML 형식에는 SVG·XML 연결 그래프를 요구하지 않으며, 기존 그래프의 `문서 보기` 토글을 표시하지 않습니다. 유저 저니는 전체 여정 표만 표시하며 하단 상세 여정과 상세 이동 링크를 포함하지 않습니다. IA는 `주요 기능`과 `세부 기능` 두 버튼으로 펼침 상태를 바꾸며, 개별 가지 펼침·구조 선택·검색은 제공하지 않습니다.
+```bash
+python3 scripts/sync-r61-html.py
+npm run build
+```
 
-별도 명세·draw.io 파일은 함께 배포하지 않습니다. `public/diagrams/`는 빌드 때 다시 생성되므로 직접 편집하지 않습니다.
+가공 내용: 원본의 제목·부제·푸터와 외부 문서 링크(상세 명세 MD, 정책 문서, 근거 파일), 데이터에 남은 로컬 절대경로를 제거합니다. IA는 `주요 기능`·`세부 기능 펼침` 버튼과 범례(개인·소셜·혼합·공통, 실선/점선)만 한 줄에 남기고 구역 선택·검색·화면 맞춤·SVG 저장은 숨깁니다(스크립트가 참조하므로 삭제 대신 CSS). 유저 저니는 흐름도만 남기고 프레임 높이에 맞춰 자동 축소해 스크롤 없이 보이게 합니다. 별도 명세·draw.io 파일은 함께 배포하지 않습니다.
+
+새 버전을 낼 때는 버전 보존 규칙대로 현재 파일을 `<id>.vN.html`로 먼저 보존하고 manifest `versions` 맨 앞에 새 항목을 넣은 뒤 스크립트를 실행합니다. `public/diagrams/`는 빌드 때 다시 생성되므로 직접 편집하지 않습니다.
+
+하지 않습니다. `public/diagrams/`는 빌드 때 다시 생성되므로 직접 편집하지 않습니다.
 
 ## 브랜드 바꾸기
 
