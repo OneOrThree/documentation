@@ -1,6 +1,13 @@
 [
   {
     "date": "2026-09-13",
+    "macrostructure": "Actor-goal map",
+    "theme": "04-system visual grammar across every current diagram",
+    "enrichment": "versioned interactive R61 diagrams",
+    "brief": "R61 유스케이스·IA·유저 저니를 한 제품 흐름으로 재구성하고 00–05 전체 도면 버전 강제, 시스템 다이어그램 기준으로 시각 문법 통일"
+  },
+  {
+    "date": "2026-09-13",
     "macrostructure": "Long Document + Versioned Workbench",
     "theme": "studied-DNA within existing OneOrThree system",
     "enrichment": "interactive architecture diagram",

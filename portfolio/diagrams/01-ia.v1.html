@@ -1,0 +1,5626 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GROMO R61 · 트리형 IA</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #fff;
+        color: #292929;
+        font:
+          13px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          "Apple SD Gothic Neo",
+          sans-serif;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+        color: inherit;
+      }
+      button {
+        cursor: pointer;
+        background: white;
+        border: 1px solid #d4d4d4;
+        border-radius: 4px;
+        padding: 8px 12px;
+        min-height: 36px;
+      }
+      button:hover {
+        background: #f2f2f2;
+      }
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      select:focus-visible {
+        outline: 2px solid #555;
+        outline-offset: 3px;
+      }
+      header {
+        padding: 18px 24px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        border-bottom: 1px solid #ddd;
+      }
+      h1 {
+        font-size: 18px;
+        font-weight: 650;
+        margin: 0;
+      }
+      header p {
+        font-size: 11px;
+        color: #777;
+        margin: 4px 0 0;
+      }
+      .links {
+        display: flex;
+        gap: 14px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      a {
+        color: #555;
+        text-underline-offset: 3px;
+      }
+      .toolbar {
+        padding: 10px 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid #e8e8e8;
+      }
+      button.active {
+        background: #333;
+        color: white;
+        border-color: #333;
+      }
+      .sep {
+        height: 22px;
+        width: 1px;
+        background: #ddd;
+        margin: 0 5px;
+      }
+      input,
+      select {
+        padding: 8px 10px;
+        background: #fff;
+        border: 1px solid #d4d4d4;
+        border-radius: 4px;
+        min-height: 36px;
+      }
+      input {
+        width: 230px;
+      }
+      #stage {
+        max-width: 190px;
+      }
+      .hint {
+        margin-left: auto;
+        color: #888;
+        font-size: 11px;
+      }
+      .canvas {
+        position: relative;
+        height: calc(100dvh - 158px);
+        min-height: 450px;
+        overflow: hidden;
+        touch-action: none;
+        cursor: grab;
+      }
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        user-select: none;
+      }
+      .edge {
+        fill: none;
+        stroke: #909090;
+        stroke-width: 1.1;
+      }
+      .node rect {
+        fill: #fff;
+        stroke: #797979;
+        stroke-width: 1;
+        rx: 2;
+      }
+      .node.root rect {
+        stroke: #333;
+        stroke-width: 1.5;
+        rx: 5;
+      }
+      .node text {
+        fill: #333;
+        font-size: 12px;
+      }
+      .node .sub {
+        font-size: 9px;
+        fill: #888;
+      }
+      .node {
+        cursor: pointer;
+      }
+      .node:hover rect,
+      .node:focus rect {
+        fill: #f3f3f3;
+        stroke: #111;
+        stroke-width: 1.5;
+      }
+      .node.selected rect {
+        fill: #ededed;
+        stroke: #222;
+        stroke-width: 1.8;
+      }
+      .node .toggle {
+        font-size: 14px;
+        fill: #555;
+      }
+      .node.locked rect {
+        stroke: #b5b5b5;
+        stroke-dasharray: 3 3;
+      }
+      .node.locked text {
+        fill: #999;
+      }
+      .node.group .label {
+        font-weight: 650;
+      }
+      .node.match rect {
+        stroke: #000;
+        stroke-width: 2;
+      }
+      .branch-tip {
+        position: absolute;
+        left: 24px;
+        bottom: 14px;
+        font-size: 11px;
+        color: #777;
+        background: #ffffffed;
+        padding: 6px 10px;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        pointer-events: none;
+      }
+      .zoom {
+        position: absolute;
+        right: 24px;
+        bottom: 14px;
+        display: flex;
+        gap: 4px;
+        background: white;
+      }
+      .zoom button {
+        min-width: 37px;
+      }
+      .info {
+        position: absolute;
+        right: 20px;
+        top: 18px;
+        width: 330px;
+        background: #fff;
+        border: 1px solid #aaa;
+        border-radius: 4px;
+        padding: 20px;
+        max-height: calc(100% - 90px);
+        overflow: auto;
+        box-shadow: 0 5px 20px #0000000c;
+        cursor: auto;
+        user-select: text;
+        touch-action: auto;
+      }
+      .info[hidden] {
+        display: none;
+      }
+      .info h2 {
+        font-size: 17px;
+        margin: 8px 25px 12px 0;
+      }
+      .info h3 {
+        font-size: 11px;
+        color: #777;
+        margin: 18px 0 5px;
+        font-weight: 600;
+      }
+      .info p {
+        margin: 5px 0;
+        line-height: 1.7;
+      }
+      .info .close {
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        border: 0;
+      }
+      .tag {
+        font:
+          11px ui-monospace,
+          monospace;
+        color: #777;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .chips button {
+        font-size: 11px;
+        padding: 4px 7px;
+        min-height: 30px;
+      }
+      .status {
+        font-size: 11px;
+        color: #777;
+        border-bottom: 1px solid #eee;
+        padding: 7px 24px;
+        height: 30px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .results {
+        position: absolute;
+        z-index: 5;
+        left: 24px;
+        top: 10px;
+        width: 330px;
+        max-height: 70%;
+        overflow: auto;
+        background: white;
+        border: 1px solid #aaa;
+        box-shadow: 0 4px 12px #0001;
+        padding: 8px;
+      }
+      .results[hidden] {
+        display: none;
+      }
+      .results button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        font-size: 12px;
+      }
+      .results small {
+        color: #888;
+        display: block;
+      }
+      .export {
+        font-size: 11px;
+      }
+      @media (max-width: 750px) {
+        header {
+          padding: 12px 14px;
+          align-items: flex-start;
+        }
+        .links {
+          display: none;
+        }
+        .toolbar {
+          padding: 8px 12px;
+          gap: 5px;
+        }
+        .hint {
+          display: none;
+        }
+        input {
+          width: 170px;
+        }
+        .canvas {
+          height: calc(100dvh - 220px);
+        }
+        .info {
+          left: 10px;
+          right: 10px;
+          width: auto;
+          max-height: 65%;
+        }
+        .branch-tip {
+          left: 10px;
+          max-width: 55%;
+        }
+        .zoom {
+          right: 10px;
+        }
+        .status {
+          padding-inline: 12px;
+        }
+      }
+      @media print {
+        header,
+        .toolbar,
+        .status,
+        .info,
+        .zoom,
+        .branch-tip,
+        .results {
+          display: none !important;
+        }
+        .canvas {
+          height: auto;
+          overflow: visible;
+        }
+        svg {
+          height: auto;
+        }
+      }
+
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      body > aside {
+        margin: 0 !important;
+        padding: 9px 20px !important;
+        border: 0 !important;
+        border-bottom: 1px solid #e5e8dc !important;
+        font:
+          11px/1.65 -apple-system,
+          BlinkMacSystemFont,
+          "Apple SD Gothic Neo",
+          sans-serif !important;
+      }
+      header {
+        padding: 16px 20px;
+      }
+      .toolbar {
+        padding: 12px 20px;
+      }
+      .canvas {
+        height: auto;
+        min-height: 280px;
+        flex: 1;
+      }
+      .status {
+        flex-shrink: 0;
+      }
+      .toolbar button {
+        border-radius: 7px;
+      }
+      #overview,
+      #all {
+        font-weight: 600;
+        padding: 8px 16px;
+      }
+      #overview.active,
+      #all.active {
+        background: #33312e;
+        border-color: #33312e;
+      }
+      .node.group {
+        cursor: default;
+      }
+      @media (max-width: 750px) {
+        body > aside {
+          display: none;
+        }
+        .canvas {
+          height: auto;
+        }
+        .toolbar {
+          padding: 10px;
+        }
+        .status {
+          font-size: 10px;
+        }
+        .status > span:last-child {
+          display: none;
+        }
+      }
+      #percent {
+        display: grid;
+        place-items: center;
+        min-width: 48px;
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <button id="overview" class="active">주요 기능</button
+      ><button id="all">세부 기능</button><span class="sep"></span
+      ><span class="hint">이름 클릭 상세 · 드래그 이동</span
+      ><button id="export" class="export">SVG 저장</button>
+    </div>
+    <div class="status"><span>실선: 분류 관계</span></div>
+    <div class="canvas" id="canvas">
+      <svg id="diagram" role="img" aria-label="GROMO 트리형 정보 구조">
+        <defs>
+          <marker
+            id="arrow"
+            viewBox="0 0 8 8"
+            refX="7"
+            refY="4"
+            markerWidth="6"
+            markerHeight="6"
+            orient="auto"
+          >
+            <path
+              d="M 1 1 L 7 4 L 1 7"
+              fill="none"
+              stroke="#888"
+              stroke-width="1"
+            />
+          </marker>
+        </defs>
+        <g id="world"></g>
+      </svg>
+      <aside class="info" id="info" hidden></aside>
+      <div class="branch-tip">
+        혼자 섬을 만들어 바로 집중할 수 있어요.<br />초기 시설: 모닥불·부두·기본
+        뗏목
+      </div>
+      <div class="zoom">
+        <button id="minus" aria-label="축소">−</button
+        ><span id="percent" aria-label="확대 비율">100%</span
+        ><button id="plus" aria-label="확대">+</button>
+      </div>
+    </div>
+    <script id="data" type="application/json">
+      {
+        "tree": {
+          "id": "root",
+          "label": "GROMO",
+          "children": [
+            {
+              "id": "PL-1",
+              "label": "섬 홈",
+              "children": [
+                {
+                  "id": "RT-1",
+                  "label": "내 배",
+                  "children": [
+                    {
+                      "id": "fn-profile",
+                      "label": "내 정보",
+                      "children": [
+                        {
+                          "id": "fn-field-1",
+                          "label": "닉네임·프로필",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-2",
+                          "label": "연동 계정",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-3",
+                          "label": "로그아웃·회원 탈퇴",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-settings",
+                      "label": "앱 설정",
+                      "children": [
+                        {
+                          "id": "fn-field-4",
+                          "label": "알림 설정",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-5",
+                          "label": "소리·동작 줄이기",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-6",
+                          "label": "기록 공개 범위",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-7",
+                          "label": "측정 권한",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-owned",
+                      "label": "내 꾸미기 · 보유품",
+                      "children": [
+                        {
+                          "id": "fn-clothes",
+                          "label": "옷 갈아입기",
+                          "children": [
+                            {
+                              "id": "fn-field-8",
+                              "label": "의상·장신구 선택",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-9",
+                              "label": "착용·해제",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-boat-style",
+                          "label": "배 꾸미기",
+                          "children": [
+                            {
+                              "id": "fn-field-10",
+                              "label": "보유 선체 선택",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-11",
+                              "label": "외양·소품 배치",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "focus",
+                  "label": "부두 · 낚시 집중",
+                  "children": [
+                    {
+                      "id": "FO-1",
+                      "label": "집중 설정",
+                      "children": [
+                        {
+                          "id": "fn-field-12",
+                          "label": "할 일·목표 시간",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-13",
+                          "label": "집중 시작",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "FO-2",
+                      "label": "집중하기",
+                      "children": [
+                        {
+                          "id": "fn-timer",
+                          "label": "집중 진행",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "GR-2",
+                          "label": "집중 화면의 꽃나팔 방송기",
+                          "children": [
+                            {
+                              "id": "fn-field-14",
+                              "label": "현재 공동 음원",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-15",
+                              "label": "보유 음원 선택·변경",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-16",
+                              "label": "기기 음량·음소거",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-emotes",
+                          "label": "이모티콘 소통",
+                          "children": [
+                            {
+                              "id": "fn-field-17",
+                              "label": "이모티콘 5종 선택",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-18",
+                              "label": "캐릭터 위 말풍선 · 잠시 표시",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-pause",
+                          "label": "잠시 휴식",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-end",
+                          "label": "집중 종료",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "FO-3",
+                      "label": "집중 결과",
+                      "children": [
+                        {
+                          "id": "fn-field-19",
+                          "label": "이번 집중 기록",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-20",
+                          "label": "물고기 획득량",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-21",
+                          "label": "퀘스트 달성 결과",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": true
+                },
+                {
+                  "id": "FO-5",
+                  "label": "모닥불",
+                  "children": [
+                    {
+                      "id": "fn-camp-rest",
+                      "label": "휴식",
+                      "children": [],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "VH-1",
+                  "label": "마을회관",
+                  "children": [
+                    {
+                      "id": "fn-stats",
+                      "label": "통계",
+                      "children": [
+                        {
+                          "id": "fn-field-22",
+                          "label": "집중 기록",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-23",
+                          "label": "스크린타임 기록",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-24",
+                          "label": "기간·대상 · 공개 범위 적용",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-island-manage",
+                      "label": "섬 관리",
+                      "children": [
+                        {
+                          "id": "fn-field-25",
+                          "label": "섬 이름·소개",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-26",
+                          "label": "가입 방식·승인",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-27",
+                          "label": "멤버 관리·초대",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-28",
+                          "label": "방장 위임·섬 탈퇴",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-resources",
+                      "label": "공동 자원 내역",
+                      "children": [
+                        {
+                          "id": "fn-field-29",
+                          "label": "적립 내역",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-30",
+                          "label": "건설·공동 구매 지출",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "VH-5",
+                      "label": "다음 건물 선택",
+                      "children": [
+                        {
+                          "id": "fn-field-31",
+                          "label": "전망대·우체국 선택",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-gram-build",
+                          "label": "꽃나팔 방송기 건설",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-32",
+                          "label": "마지막 상점 선택",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "BD-1",
+                  "label": "게시판",
+                  "children": [
+                    {
+                      "id": "fn-notices",
+                      "label": "공지",
+                      "children": [
+                        {
+                          "id": "BD-1a",
+                          "label": "공지 상세",
+                          "children": [
+                            {
+                              "id": "fn-field-33",
+                              "label": "본문·댓글",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-notice-write",
+                          "label": "공지 작성·수정",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-quests",
+                      "label": "퀘스트",
+                      "children": [
+                        {
+                          "id": "fn-quest-types",
+                          "label": "퀘스트 유형",
+                          "children": [
+                            {
+                              "id": "fn-field-34",
+                              "label": "시간대 집중",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-35",
+                              "label": "하루 폰 사용",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "BD-3",
+                          "label": "퀘스트 상세",
+                          "children": [
+                            {
+                              "id": "fn-field-36",
+                              "label": "조건·참여·진행 확인",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "BD-5",
+                          "label": "지난 결과",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-quest-write",
+                          "label": "퀘스트 생성·수정",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "OB-0",
+                  "label": "전망대",
+                  "children": [
+                    {
+                      "id": "fn-rankings",
+                      "label": "랭킹",
+                      "children": [
+                        {
+                          "id": "OB-1",
+                          "label": "섬 안 주간 랭킹",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "OB-2",
+                          "label": "섬 간 랭킹",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-travel",
+                      "label": "다른 섬 탐색·이동",
+                      "children": [
+                        {
+                          "id": "HB-1",
+                          "label": "내 소속 섬",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "HB-2",
+                          "label": "섬 찾기",
+                          "children": [
+                            {
+                              "id": "fn-field-37",
+                              "label": "공개 섬 검색",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-38",
+                              "label": "초대 입력",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "HB-3",
+                          "label": "다른 섬 구경",
+                          "children": [
+                            {
+                              "id": "fn-field-39",
+                              "label": "가입·이동",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-40",
+                              "label": "원래 섬 귀환",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "PO-1",
+                  "label": "우체국",
+                  "children": [
+                    {
+                      "id": "fn-group-letters",
+                      "label": "우리 섬 편지방",
+                      "children": [
+                        {
+                          "id": "fn-field-41",
+                          "label": "전체 대화 · 시간순",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-42",
+                          "label": "작성자·시간·편지 본문",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "PO-2",
+                          "label": "편지 쓰기",
+                          "children": [
+                            {
+                              "id": "fn-field-43",
+                              "label": "글 작성",
+                              "children": [],
+                              "group": false
+                            },
+                            {
+                              "id": "fn-field-44",
+                              "label": "그룹 전체에 보내기",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "SP-1",
+                  "label": "상점",
+                  "children": [
+                    {
+                      "id": "fn-wallets",
+                      "label": "잔액 표시",
+                      "children": [
+                        {
+                          "id": "fn-personal-balance",
+                          "label": "내 개인 물고기",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-village-balance",
+                          "label": "현재 섬 마을 포인트",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-personal-goods",
+                      "label": "내 꾸미기 · 구매",
+                      "children": [
+                        {
+                          "id": "fn-field-45",
+                          "label": "캐릭터 의상·장신구",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-46",
+                          "label": "배 소품·외양",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "SP-9",
+                          "label": "배 업그레이드",
+                          "children": [
+                            {
+                              "id": "fn-field-47",
+                              "label": "뗏목 → 돛단배 → 배",
+                              "children": [],
+                              "group": false
+                            }
+                          ],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-personal-owned",
+                          "label": "보유 상품 · 내 배에서 적용",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-shared-goods",
+                      "label": "우리 섬 꾸미기",
+                      "children": [
+                        {
+                          "id": "fn-field-48",
+                          "label": "섬 테마",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-49",
+                          "label": "건물별 테마",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-shared-owned",
+                          "label": "보유 테마 · 적용·해제",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "SP-4",
+                      "label": "우리 섬의 소리 · ASMR",
+                      "children": [
+                        {
+                          "id": "fn-field-50",
+                          "label": "판매 음원 · 미리듣기",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-51",
+                          "label": "보유 음원 확인",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-orders",
+                      "label": "구매 내역",
+                      "children": [
+                        {
+                          "id": "fn-field-52",
+                          "label": "내 구매 내역",
+                          "children": [],
+                          "group": false
+                        },
+                        {
+                          "id": "fn-field-53",
+                          "label": "섬 공동 구매 내역",
+                          "children": [],
+                          "group": false
+                        }
+                      ],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                },
+                {
+                  "id": "GR-1",
+                  "label": "꽃나팔 방송기",
+                  "children": [
+                    {
+                      "id": "fn-field-54",
+                      "label": "보유 음원",
+                      "children": [],
+                      "group": false
+                    },
+                    {
+                      "id": "fn-field-55",
+                      "label": "재생·변경·정지",
+                      "children": [],
+                      "group": false
+                    }
+                  ],
+                  "group": false
+                }
+              ],
+              "group": false
+            }
+          ],
+          "group": true
+        },
+        "onboarding": {
+          "id": "start",
+          "label": "온보딩 · 별도 흐름",
+          "children": [
+            {
+              "id": "ON-2",
+              "label": "로그인·약관",
+              "children": [],
+              "group": false
+            },
+            {
+              "id": "ON-4",
+              "label": "이름·기본 캐릭터",
+              "children": [],
+              "group": false
+            },
+            {
+              "id": "ON-5",
+              "label": "첫 섬 선택",
+              "children": [
+                {
+                  "id": "ON-5a",
+                  "label": "혼자 시작할 섬 만들기",
+                  "children": [],
+                  "group": false
+                },
+                {
+                  "id": "ON-5b",
+                  "label": "기존 섬 참여",
+                  "children": [],
+                  "group": false
+                }
+              ],
+              "group": false
+            }
+          ],
+          "group": true
+        },
+        "screens": {
+          "ON-1": {
+            "id": "ON-1",
+            "title": "시작·자동 로그인",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "유지",
+            "purpose": "인증과 기존 집중 세션을 확인하고 첫 진입을 분기한다.",
+            "entry": ["앱 실행"],
+            "next": ["ON-2", "ON-3", "ON-4", "ON-5", "PL-1", "SYS-3"],
+            "states": [
+              "자동 로그인",
+              "인증 만료",
+              "복원할 세션",
+              "실패 재시도"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "ON-2": {
+            "id": "ON-2",
+            "title": "로그인·약관",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "유지",
+            "purpose": "기존 소셜 로그인과 약관 동의를 유지한다.",
+            "entry": ["ON-1"],
+            "next": ["ON-3", "ON-4", "ON-5"],
+            "states": ["로그인 대기", "취소", "네트워크 실패"],
+            "source": ["OLD"]
+          },
+          "ON-3": {
+            "id": "ON-3",
+            "title": "기존 사용자 전환 안내",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "기존 계정에 새 해금·재화·배 구조를 안내한다. 기존 재화와 캐릭터의 이전 값은 미정이다.",
+            "entry": ["ON-1", "ON-2"],
+            "next": ["ON-4", "ON-5", "PL-1"],
+            "states": ["최초 전환", "이미 확인", "승계 정책 미정"],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "ON-4": {
+            "id": "ON-4",
+            "title": "이름·기본 캐릭터",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "이름과 기본 캐릭터를 준비하고 무료 기본 뗏목을 제공한다. 유료 개인 꾸미기는 상점에서 시작한다.",
+            "entry": ["ON-1", "ON-2", "ON-3"],
+            "next": ["ON-5"],
+            "states": ["이름 검증", "기본 외양", "기존 캐릭터 승계 미정"],
+            "source": ["OLD", "D7"]
+          },
+          "ON-5": {
+            "id": "ON-5",
+            "title": "첫 섬 선택",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "유지",
+            "purpose": "소속이 없는 사용자가 첫 섬 생성 또는 가입을 선택한다. 전망대 이동 잠금의 첫 가입 예외다.",
+            "entry": ["ON-1", "ON-2", "ON-3", "ON-4", "SYS-6"],
+            "next": ["ON-5a", "ON-5b"],
+            "states": ["첫 가입", "소속 없음", "초대 진입"],
+            "source": ["OLD", "D4"]
+          },
+          "ON-5a": {
+            "id": "ON-5a",
+            "title": "혼자 시작할 섬 만들기",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "이름·소개·가입 방식을 정한다. 생성자는 방장이며 모닥불·부두·기본 뗏목만 있는 섬으로 시작한다.",
+            "entry": ["ON-5"],
+            "next": ["ON-6"],
+            "states": ["입력 오류", "생성 중", "중복 요청 방지"],
+            "source": ["OLD", "D4"]
+          },
+          "ON-5b": {
+            "id": "ON-5b",
+            "title": "기존 섬 참여",
+            "domain": "ON",
+            "kind": "화면",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "공개 검색·초대 입력으로 첫 소속을 정한다. 기존 소속 사용자의 다른 섬 이동은 이 경로로 우회하지 않는다.",
+            "entry": ["ON-5", "외부 초대"],
+            "next": ["ON-6", "SYS-5"],
+            "states": ["코드 오류", "승인 대기", "거절", "첫 가입 예외"],
+            "source": ["OLD", "D4"]
+          },
+          "ON-6": {
+            "id": "ON-6",
+            "title": "입항 연출",
+            "domain": "ON",
+            "kind": "전환 화면",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "확정된 목적지로 도착해 같은 섬 홈으로 이어진다. 첫 뗏목 또는 보유 배 외양을 표현한다.",
+            "entry": ["ON-5a", "ON-5b", "HB-4"],
+            "next": ["PL-1"],
+            "states": ["스킵 가능", "목적지 권한 재확인", "도착 실패"],
+            "source": ["OLD", "D7"]
+          },
+          "PL-1": {
+            "id": "PL-1",
+            "title": "섬 홈",
+            "domain": "PL",
+            "kind": "홈",
+            "gate": "always",
+            "role": "all",
+            "change": "수정",
+            "purpose": "섬 홈에서 내 배·부두·모닥불·해금된 시설로 진입한다. 최초 회관과 다음 게시판 건설은 상황별 안내로 다룬다. 초기 운영·건설 예정지·공통 처리라는 독립 메뉴는 두지 않는다.",
+            "entry": ["ON-6", "각 화면 닫기"],
+            "next": [
+              "RT-1",
+              "FO-1",
+              "FO-5",
+              "BL-1",
+              "BL-2",
+              "PL-2",
+              "VH-1",
+              "BD-1",
+              "OB-0",
+              "PO-1",
+              "SP-1",
+              "GR-1",
+              "SYS-4"
+            ],
+            "states": [
+              "초기",
+              "회관 완성",
+              "게시판 완성",
+              "후속 시설",
+              "방문",
+              "오프라인"
+            ],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "PL-2": {
+            "id": "PL-2",
+            "title": "초기 섬 정보·최소 운영",
+            "domain": "PL",
+            "kind": "시트",
+            "gate": "preHall",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "이전 제안 기록. 초기 섬 정보·운영은 독립 메뉴로 사용하지 않는다. 마을회관 이전에 꼭 필요한 운영의 진입 방식은 미정이다.",
+            "entry": ["PL-1"],
+            "next": ["PL-1", "VH-3", "SH-2", "SH-3", "SH-4", "SH-5"],
+            "states": ["주민 읽기", "방장 관리", "회관 완성 시 진입 전환"],
+            "source": ["D4"]
+          },
+          "RT-1": {
+            "id": "RT-1",
+            "title": "내 배",
+            "domain": "RT",
+            "kind": "장소",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "내 정보·앱 설정·내 꾸미기만 제공한다. 건설·퀘스트·상점 결제·다른 섬 목록은 넣지 않는다.",
+            "entry": ["PL-1"],
+            "next": ["RT-2", "RT-3", "RT-4"],
+            "states": ["기본 뗏목", "돛단배", "배", "보유품 없음"],
+            "source": ["D4", "D7"]
+          },
+          "RT-2": {
+            "id": "RT-2",
+            "title": "내 정보·계정",
+            "domain": "RT",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+            "entry": ["RT-1"],
+            "next": ["RT-1", "SH-6", "ON-2"],
+            "states": ["본인 정보", "수정 실패", "연동 해제", "탈퇴 조건"],
+            "source": ["OLD", "D7"]
+          },
+          "RT-3": {
+            "id": "RT-3",
+            "title": "앱·알림·공개 설정",
+            "domain": "RT",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+            "entry": ["RT-1", "PO-1", "SYS-4"],
+            "next": ["RT-1", "SYS-1"],
+            "states": ["알림 거부", "측정 미동의", "차단 목록", "개인 음소거"],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "RT-4": {
+            "id": "RT-4",
+            "title": "내 꾸미기·보유품",
+            "domain": "RT",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "캐릭터와 배를 나누어 보유품을 고른다. 상점 없는 방문지에서도 이미 가진 물건을 적용한다.",
+            "entry": ["RT-1", "SP-6", "SP-7"],
+            "next": ["RT-5", "RT-6", "SP-1", "SYS-5"],
+            "states": ["기본 외양만", "보유품 있음", "상점 미해금 안내"],
+            "source": ["D7"]
+          },
+          "RT-5": {
+            "id": "RT-5",
+            "title": "옷 갈아입기",
+            "domain": "RT",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "구매한 머리·의상·장신구를 미리 입혀보고 적용·해제한다. 구매는 하지 않는다.",
+            "entry": ["RT-4"],
+            "next": ["RT-4", "PL-1"],
+            "states": ["미리보기", "적용", "취소", "동작 호환 안내"],
+            "source": ["D7"]
+          },
+          "RT-6": {
+            "id": "RT-6",
+            "title": "내 배 꾸미기·선체 선택",
+            "domain": "RT",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "보유한 뗏목·돛단배·배 단계, 외양 테마·이름표·소품을 적용한다. 미지원 소품은 보유 목록에 남는다.",
+            "entry": ["RT-4", "SP-6"],
+            "next": ["RT-4", "PL-1", "SP-9", "SYS-5"],
+            "states": ["기본 배", "하위 형태 복원", "소품 호환", "미보유 단계"],
+            "source": ["D7"]
+          },
+          "FO-1": {
+            "id": "FO-1",
+            "title": "집중 설정",
+            "domain": "FO",
+            "kind": "시트",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "부두에서 실제 할 일·과목·목표 시간·귀속 섬을 정하고 낚시를 시작한다. 게시판 전후 물고기 귀속을 안내한다.",
+            "entry": ["PL-1", "BD-3", "SYS-4"],
+            "next": ["SYS-1", "FO-2"],
+            "states": [
+              "신규 시작",
+              "권한 요청",
+              "진행 중 세션 있으면 이어보기"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "FO-2": {
+            "id": "FO-2",
+            "title": "집중하기",
+            "domain": "FO",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "배 위에서 유효 집중과 낚시 진행을 표시한다. 꽃나팔 방송기 건설 후 집중 화면에 꽃나팔 방송기를 표시하며 그룹원 누구나 보유 음원을 변경한다. 선택은 같은 섬의 공동 재생에 적용한다. 잠시 휴식 버튼을 누르면 모닥불로 이동해 쉬는 모습을 보여준다. 이모티콘 5종 중 하나를 골라 내 캐릭터 위 말풍선으로 보낸다. 같은 섬에서 집중 중인 모든 사람에게 몇 초간 보인 뒤 사라진다. 제안: 인사·힘내·열공·응원·쉬고 올게 5종, 표시 3초. 휴식 전환은 잠시 휴식 버튼으로만 실행한다.",
+            "entry": ["FO-1", "SYS-3"],
+            "next": ["SH-1", "FO-5", "GR-1", "FO-3"],
+            "states": [
+              "집중",
+              "휴식",
+              "섬·개인 귀속 전환",
+              "오프라인",
+              "동료 없음"
+            ],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "FO-3": {
+            "id": "FO-3",
+            "title": "집중 결과",
+            "domain": "FO",
+            "kind": "화면",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "이번 집중의 유효 시간과 개인/섬 물고기 획득량, 별도 퀘스트 포인트를 구분한다. 지갑 잔액 확인은 상점 진입에서 제공한다. 획득량과 잔액을 혼동하지 않게 한다.",
+            "entry": ["FO-2", "SH-1"],
+            "next": ["PL-1", "BD-5", "BL-1", "BL-2"],
+            "states": [
+              "게시판 전 섬만",
+              "이후 개인",
+              "중간 완성 분할",
+              "정산 대기"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "FO-4": {
+            "id": "FO-4",
+            "title": "잠금화면 진행",
+            "domain": "FO",
+            "kind": "OS 표면",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "기존 Live Activity 진입을 유지하고 집중 시간·상태·귀속을 정확히 표시한다. 별도 앱 화면으로 중복 계산하지 않는다.",
+            "entry": ["FO-2"],
+            "next": ["FO-2"],
+            "states": ["플랫폼 미지원", "세션 종료", "권한 제한"],
+            "source": ["OLD", "D4"]
+          },
+          "FO-5": {
+            "id": "FO-5",
+            "title": "모닥불",
+            "domain": "FO",
+            "kind": "장소",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "집중 중 잠시 휴식을 누르면 모닥불로 이동해 캐릭터가 쉬는 모습을 보여준다. 휴식 시간은 유효 집중과 낚시 보상에서 제외한다. 재개하면 배 위 집중으로 돌아가는 안이다.",
+            "entry": ["PL-1", "FO-2"],
+            "next": ["PL-1", "FO-2"],
+            "states": ["일반 휴식", "세션 휴식", "집중 재개"],
+            "source": ["D4"]
+          },
+          "BL-1": {
+            "id": "BL-1",
+            "title": "마을회관 건설 예정지",
+            "domain": "BL",
+            "kind": "시트",
+            "gate": "preHall",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "첫 고정 목표. 섬 물고기 준비량·남은 수량을 확인하고 방장이 회관 건설을 실행한다. 개인 기부·회수는 없다.",
+            "entry": ["PL-1", "FO-3"],
+            "next": ["BL-3", "PL-1"],
+            "states": ["20마리 제안", "자원 부족", "방장 확인", "이미 완성"],
+            "source": ["D4"]
+          },
+          "BL-2": {
+            "id": "BL-2",
+            "title": "게시판 건설 예정지",
+            "domain": "BL",
+            "kind": "시트",
+            "gate": "preBoard",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "회관 다음의 고정 목표로 자동 안내된다. 마을회관에서 선택하는 시설이 아니며 예정지에서 준비·건설한다.",
+            "entry": ["PL-1", "FO-3"],
+            "next": ["BL-3", "PL-1"],
+            "states": ["40마리 제안", "자원 부족", "방장 확인", "이미 완성"],
+            "source": ["D4"]
+          },
+          "BL-3": {
+            "id": "BL-3",
+            "title": "건설 비용 확인",
+            "domain": "BL",
+            "kind": "시트",
+            "gate": "always",
+            "role": "host",
+            "change": "신규",
+            "purpose": "현재 목표의 재화·차감액·잔액·선행 조건을 확인해 한 번 건설한다. 회관·게시판은 물고기, 후속 시설은 마을 포인트다.",
+            "entry": ["BL-1", "BL-2", "VH-6"],
+            "next": ["PL-1", "BL-1", "BL-2", "VH-6", "SP-0"],
+            "states": ["취소", "잔액 변경", "권한 변경", "중복 건설", "완성"],
+            "source": ["D4"]
+          },
+          "VH-1": {
+            "id": "VH-1",
+            "title": "마을회관",
+            "domain": "VH",
+            "kind": "장소",
+            "gate": "hall",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "섬 통계·섬 관리·공동 자원·다음 건물 선택·꽃나팔 방송기 건설을 제공한다. 게시판은 다음 건물 선택 목록에 넣지 않는다. 꽃나팔 방송기는 게시판 완성 후 100P로 건설할 수 있다. 상점보다 먼저 건설 가능하며 상점의 선행 조건은 아니다. 건설 실행은 방장 제안이다.",
+            "entry": ["PL-1"],
+            "next": ["VH-2", "VH-3", "VH-4", "VH-5", "BL-2"],
+            "states": ["게시판 전", "후속 선택 가능", "상점 조건 대기"],
+            "source": ["OLD", "D4"]
+          },
+          "VH-2": {
+            "id": "VH-2",
+            "title": "통계",
+            "domain": "VH",
+            "kind": "화면",
+            "gate": "hall",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+            "entry": ["VH-1"],
+            "next": ["VH-1", "VH-3"],
+            "states": [
+              "집중 기록",
+              "스크린타임 기록",
+              "기간 선택",
+              "공개 범위 제한",
+              "측정 권한 없음",
+              "기록 없음"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "VH-3": {
+            "id": "VH-3",
+            "title": "섬 정보·운영",
+            "domain": "VH",
+            "kind": "화면",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+            "entry": ["VH-1", "PL-2", "SYS-4"],
+            "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+            "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+            "source": ["OLD", "D4"]
+          },
+          "VH-4": {
+            "id": "VH-4",
+            "title": "공동 자원 장부",
+            "domain": "VH",
+            "kind": "화면",
+            "gate": "hall",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "초기 섬 물고기와 마을 포인트를 별도 잔액·적립·지출로 보여준다. 개인 지갑은 섞지 않는다.",
+            "entry": ["VH-1", "VH-6", "SP-10"],
+            "next": ["VH-1"],
+            "states": ["초기 물고기", "포인트", "건설·공동 구매 지출", "잔액0"],
+            "source": ["OLD", "D4"]
+          },
+          "VH-5": {
+            "id": "VH-5",
+            "title": "다음 건물 선택",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "board",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "게시판 완성 후 다음 건물 선택 목록에서 전망대·우체국·꽃나팔 방송기를 선택한다. 꽃나팔 방송기는 100P이며 상점보다 먼저 지을 수 있다. 전망대와 우체국을 모두 완성하면 마지막 상점을 선택한다. 꽃나팔 방송기는 상점의 선행 조건이 아니다.",
+            "entry": ["VH-1"],
+            "next": ["VH-6"],
+            "states": [
+              "미선택",
+              "전망대·우체국 자유 순서",
+              "마지막 상점",
+              "전체 완성"
+            ],
+            "source": ["D4"]
+          },
+          "VH-6": {
+            "id": "VH-6",
+            "title": "후속 시설 상세·건설 준비",
+            "domain": "VH",
+            "kind": "화면",
+            "gate": "board",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "시설 기능·선행 조건·포인트·필요 달성 횟수·선택 상태를 보여준다. 목표 선택 자체는 지출이 아니다.",
+            "entry": ["VH-5"],
+            "next": ["VH-5", "BL-3", "VH-4"],
+            "states": ["300P 전망대", "400P 우체국", "500P 상점", "선행 부족"],
+            "source": ["D4"]
+          },
+          "BD-1": {
+            "id": "BD-1",
+            "title": "게시판",
+            "domain": "BD",
+            "kind": "장소",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "게시판에서 공지와 집중·폰 사용 퀘스트를 이용한다.",
+            "entry": ["PL-1"],
+            "next": ["BD-1a", "BD-2", "BD-6"],
+            "states": ["공지 없음", "고정", "방장 작성", "방문 차단"],
+            "source": ["OLD", "D4"]
+          },
+          "BD-1a": {
+            "id": "BD-1a",
+            "title": "공지 상세",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "공지 본문과 댓글, 작성자·운영자의 삭제와 신고를 제공한다.",
+            "entry": ["BD-1"],
+            "next": ["BD-1", "BD-6", "SYS-2"],
+            "states": ["댓글 없음", "전송 실패", "신고", "삭제 확인"],
+            "source": ["OLD"]
+          },
+          "BD-2": {
+            "id": "BD-2",
+            "title": "집중·폰 사용 퀘스트 목록",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+            "entry": ["BD-1", "PL-1"],
+            "next": ["BD-3", "BD-4", "BD-5"],
+            "states": ["진행", "예정", "완료", "유형별 한도", "빈 목록"],
+            "source": ["OLD", "D4"]
+          },
+          "BD-3": {
+            "id": "BD-3",
+            "title": "퀘스트 상세",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "조건·시간창·개인 달성 목표·10P 제안·보상 귀속 섬을 확인해 참여한다. 전원 성공을 강제하지 않는다.",
+            "entry": ["BD-2", "SYS-4"],
+            "next": ["FO-1", "BD-2", "BD-5", "SYS-1"],
+            "states": [
+              "참여 전",
+              "참여",
+              "미달",
+              "달성",
+              "측정 확인 중",
+              "한도 소진"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "BD-4": {
+            "id": "BD-4",
+            "title": "퀘스트 생성·다음 회차 수정",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "host",
+            "change": "수정",
+            "purpose": "시간대 집중 또는 하루 폰 사용 조건·기간·반복·보상을 미리 보고 생성한다. 내기·에스크로 입력을 넣지 않는다.",
+            "entry": ["BD-2"],
+            "next": ["BD-3", "BD-2"],
+            "states": [
+              "집중 조건",
+              "하루 조건",
+              "시간 오류",
+              "시작 후 변경 제한"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "BD-5": {
+            "id": "BD-5",
+            "title": "지난 결과",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "실적 날짜·달성·미달·확인 중·확인 불가와 마을 포인트 지급 내역을 보여준다.",
+            "entry": ["BD-2", "BD-3", "FO-3"],
+            "next": ["BD-2", "BD-3", "VH-4"],
+            "states": ["보상 지급", "재판정 대기", "한도 중복 없음"],
+            "source": ["D4"]
+          },
+          "BD-6": {
+            "id": "BD-6",
+            "title": "공지 작성·수정",
+            "domain": "BD",
+            "kind": "화면",
+            "gate": "board",
+            "role": "host",
+            "change": "명시화",
+            "purpose": "기존 공지 작성 동작을 편집 화면으로 분리한다. 저장 전 미리보기·임시 입력·실패 복귀를 다룬다.",
+            "entry": ["BD-1", "BD-1a"],
+            "next": ["BD-1a", "BD-1"],
+            "states": ["신규", "수정", "게시 실패", "삭제"],
+            "source": ["OLD"]
+          },
+          "OB-0": {
+            "id": "OB-0",
+            "title": "전망대",
+            "domain": "OB",
+            "kind": "장소",
+            "gate": "tower",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "다른 섬 이동과 랭킹의 진입을 나눈다. 혼자 있어도 이동은 가능하고 랭킹만 2인 조건을 둔다.",
+            "entry": ["PL-1"],
+            "next": ["OB-1", "OB-2", "HB-1", "HB-2"],
+            "states": ["1인 이동 가능", "랭킹 잠김", "목적지 선택"],
+            "source": ["D4"]
+          },
+          "OB-1": {
+            "id": "OB-1",
+            "title": "섬 안 주간 랭킹",
+            "domain": "OB",
+            "kind": "화면",
+            "gate": "rank",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "기존 주간 순위·시간·리셋 안내를 유지하며 전망대 완성과 2인 조건을 모두 확인한다.",
+            "entry": ["OB-0", "SYS-4"],
+            "next": ["OB-0"],
+            "states": ["2인 미만", "순위 없음", "주간 갱신"],
+            "source": ["OLD", "D4"]
+          },
+          "OB-2": {
+            "id": "OB-2",
+            "title": "섬 간 랭킹",
+            "domain": "OB",
+            "kind": "화면",
+            "gate": "rank",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "기존 평균 기준 순위와 총합 보조 값을 유지하고 다른 섬 미리보기로 연결한다.",
+            "entry": ["OB-0"],
+            "next": ["HB-3", "OB-0"],
+            "states": ["기준 안내", "조회 실패", "목적지 권한"],
+            "source": ["OLD", "D4"]
+          },
+          "HB-1": {
+            "id": "HB-1",
+            "title": "내 소속 섬",
+            "domain": "OB",
+            "kind": "화면",
+            "gate": "tower",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "항구 기본 기능에서 전망대로 이동한다. 기존 소속 섬 전환도 해금과 집중 종료 조건을 확인한다.",
+            "entry": ["OB-0"],
+            "next": ["HB-4", "OB-0", "SYS-5"],
+            "states": ["현재 섬", "진행 중 집중", "접근권 만료"],
+            "source": ["OLD", "D4"]
+          },
+          "HB-2": {
+            "id": "HB-2",
+            "title": "섬 찾기",
+            "domain": "OB",
+            "kind": "화면",
+            "gate": "tower",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "전망대에서 공개 섬·초대 목적지를 찾는다. 기존 소속 사용자는 첫 가입 경로로 잠금을 우회하지 않는다.",
+            "entry": ["OB-0", "외부 초대"],
+            "next": ["HB-3", "HB-4", "SYS-5"],
+            "states": [
+              "검색 없음",
+              "초대 오류",
+              "가입 승인 대기",
+              "전망대 잠김"
+            ],
+            "source": ["OLD", "D4"]
+          },
+          "HB-3": {
+            "id": "HB-3",
+            "title": "다른 섬 구경",
+            "domain": "OB",
+            "kind": "화면",
+            "gate": "tower",
+            "role": "visitor",
+            "change": "수정",
+            "purpose": "읽기 전용 풍경과 가입·귀환을 제공한다. 공동 소리 듣기는 허용 제안, 조작·구매·관리는 차단한다.",
+            "entry": ["HB-2", "OB-2"],
+            "next": ["HB-4", "PL-1", "GR-1"],
+            "states": [
+              "구경 중",
+              "목적지 전망대 없음",
+              "원래 섬 귀환",
+              "권한 상실"
+            ],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "HB-4": {
+            "id": "HB-4",
+            "title": "이동·가입 확인",
+            "domain": "OB",
+            "kind": "시트",
+            "gate": "tower",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "출발 섬 전망대·목적지 권한·집중 종료를 확인한다. 첫 가입과 방문 후 원래 섬 귀환은 별도 예외로 분기한다.",
+            "entry": ["HB-1", "HB-2", "HB-3"],
+            "next": ["ON-6", "PL-1", "SYS-5", "SYS-6"],
+            "states": ["이동", "승인 대기", "취소", "원래 섬 귀환"],
+            "source": ["D4"]
+          },
+          "PO-1": {
+            "id": "PO-1",
+            "title": "우체국",
+            "domain": "PO",
+            "kind": "장소",
+            "gate": "mail",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "그룹 전체가 함께 읽고 쓰는 채팅방이다. 편지지 형태의 메시지에 작성자·작성 시각·본문을 표시하고 시간순으로 대화를 읽는다. 개인 수신자를 선택하지 않으며 현재 섬 그룹원에게 글이 공유된다.",
+            "entry": ["PL-1", "SYS-4"],
+            "next": ["PO-2", "RT-3"],
+            "states": [
+              "대화 없음",
+              "대화 목록",
+              "새 편지",
+              "이전 대화 불러오기"
+            ],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "PO-2": {
+            "id": "PO-2",
+            "title": "편지 쓰기",
+            "domain": "PO",
+            "kind": "화면",
+            "gate": "mail",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "자유롭게 글을 작성해 현재 섬의 그룹 전체 대화에 남긴다. 입력 영역을 편지지로, 전송을 편지 보내기로 표현한다. 전송 중·완료·실패 상태를 구분하고 실패 시 작성문을 유지하는 안이다.",
+            "entry": ["PO-1"],
+            "next": ["PO-1"],
+            "states": ["작성 중", "전송 중", "전송 완료", "전송 실패"],
+            "source": ["OLD"]
+          },
+          "SP-0": {
+            "id": "SP-0",
+            "title": "NPC 이사·개점 안내",
+            "domain": "SP",
+            "kind": "전환 화면",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "기존 네 시설 뒤 마지막 상점이 완성되면 운영 NPC가 입주해 개점한다. NPC는 실제 주민·퀘스트 인원으로 세지 않는다.",
+            "entry": ["BL-3", "PL-1"],
+            "next": ["SP-1", "PL-1"],
+            "states": ["첫 개점", "건너뛰기", "이미 봄"],
+            "source": ["D4", "D7"]
+          },
+          "SP-1": {
+            "id": "SP-1",
+            "title": "상점",
+            "domain": "SP",
+            "kind": "장소",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "상점 진입 시 본인의 개인 물고기와 현재 섬의 마을 포인트를 각각 표시한다. 내 꾸미기·우리 섬 꾸미기·우리 섬의 소리로 구분한다. 꽃나팔 방송기는 판매하지 않으며 건설 완료 후 ASMR을 구매한다.",
+            "entry": ["PL-1", "SP-0", "RT-4"],
+            "next": ["SP-2", "SP-3", "SP-4", "SP-7", "SP-8", "SP-10"],
+            "states": ["개점", "보유", "잔액 부족", "일반 주민 공동 열람"],
+            "source": ["D4", "D7"]
+          },
+          "SP-2": {
+            "id": "SP-2",
+            "title": "개인 상품 목록",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "캐릭터·배 소품·외양·업그레이드를 개인 물고기로 구매한다. 적용은 내 배에서 한다.",
+            "entry": ["SP-1"],
+            "next": ["SP-5", "SP-9", "SP-7"],
+            "states": ["캐릭터", "배 소품", "단계별 상품", "보유 중"],
+            "source": ["D7"]
+          },
+          "SP-3": {
+            "id": "SP-3",
+            "title": "섬·건물 테마 목록",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "shared",
+            "change": "이동",
+            "purpose": "섬 테마와 시설별 외양을 구분한다. 일반 주민은 미리보기·관심 표시, 방장은 공동 구매·적용한다.",
+            "entry": ["SP-1"],
+            "next": ["SP-5", "SP-8"],
+            "states": ["섬 외양", "건물별", "보유", "관심 표시"],
+            "source": ["D4", "D7"]
+          },
+          "SP-4": {
+            "id": "SP-4",
+            "title": "우리 섬의 소리 · ASMR",
+            "domain": "SP",
+            "kind": "상품 분류",
+            "gate": "shop",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "마을회관에서 꽃나팔 방송기를 건설한 뒤 상점에서 ASMR을 구매한다. 미건설이면 선행 조건을 안내한다. 미리듣기는 본인만 듣고 구매 자체는 공동 재생을 시작하지 않는다.",
+            "entry": ["SP-1"],
+            "next": ["SP-5", "SP-8"],
+            "states": [
+              "꽃나팔 방송기 미건설·구매 잠김",
+              "건설 완료·구매 가능",
+              "보유 음원",
+              "본인 미리듣기"
+            ],
+            "source": ["D4", "D7"]
+          },
+          "SP-5": {
+            "id": "SP-5",
+            "title": "상품 상세·미리보기",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "all",
+            "change": "신규",
+            "purpose": "개인/섬 소유·가격·적용 대상·지원 배 단계를 표시한다. 상점 개인 미리보기는 착용 확정이 아니다.",
+            "entry": ["SP-2", "SP-3", "SP-4"],
+            "next": ["SP-6", "SP-7", "SP-8"],
+            "states": [
+              "본인 미리보기",
+              "일반 주민 구매불가",
+              "미지원",
+              "보유 중"
+            ],
+            "source": ["D7"]
+          },
+          "SP-6": {
+            "id": "SP-6",
+            "title": "구매 확인·결과",
+            "domain": "SP",
+            "kind": "시트",
+            "gate": "shop",
+            "role": "all",
+            "change": "신규",
+            "purpose": "정확한 지갑·차감액·잔액·소유권을 확인해 한 번 구매한다. 개인은 내 배로, 공동 외양은 보유목록으로 연결한다.",
+            "entry": ["SP-5", "SP-9"],
+            "next": ["RT-4", "RT-6", "SP-8", "SP-10"],
+            "states": ["취소", "잔액 변경", "중복 구매", "구매 완료"],
+            "source": ["D7"]
+          },
+          "SP-7": {
+            "id": "SP-7",
+            "title": "내 구매품 조회",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "상점에서 개인 보유 여부를 확인한다. 적용·해제 버튼 대신 내 배에서 꾸미기로 연결한다.",
+            "entry": ["SP-1", "SP-2", "SP-5"],
+            "next": ["RT-4", "RT-5", "RT-6"],
+            "states": ["보유 없음", "현재 착용", "배 단계별"],
+            "source": ["D7"]
+          },
+          "SP-8": {
+            "id": "SP-8",
+            "title": "섬 보유품·공동 외양 적용",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "구매한 섬·건물 테마를 적용·해제·기본값 복원한다. 구매한 소리는 꽃나팔 방송기에서 재생하도록 연결한다.",
+            "entry": ["SP-1", "SP-3", "SP-4", "SP-6"],
+            "next": ["SH-7", "GR-1", "SP-1"],
+            "states": [
+              "미리보기",
+              "공동 적용",
+              "집중 중 외양 지연",
+              "기본 복원"
+            ],
+            "source": ["D4", "D7"]
+          },
+          "SP-9": {
+            "id": "SP-9",
+            "title": "배 업그레이드",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "뗏목→돛단배→배를 순서대로 구매한다. 추가60·180마리 제안, 현재 외양이 아닌 최고 보유 단계로 자격 판단한다.",
+            "entry": ["SP-2", "RT-6"],
+            "next": ["SP-6", "SP-2"],
+            "states": [
+              "선행 미보유",
+              "지원 소품",
+              "잔액 부족",
+              "최고 단계 보유"
+            ],
+            "source": ["D7"]
+          },
+          "SP-10": {
+            "id": "SP-10",
+            "title": "구매 내역",
+            "domain": "SP",
+            "kind": "화면",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "본인 구매 내역과 현재 섬의 공동 구매 내역을 구분한다. 다른 주민의 개인 지갑은 공개하지 않는다.",
+            "entry": ["SP-1", "SP-6"],
+            "next": ["SP-1", "VH-4"],
+            "states": ["개인 내역", "공동 내역", "조회 실패"],
+            "source": ["D7"]
+          },
+          "GR-1": {
+            "id": "GR-1",
+            "title": "꽃나팔 방송기",
+            "domain": "GR",
+            "kind": "공동 소품",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "건설된 꽃나팔 방송기에서 보유 음원을 재생한다. 집중 화면에서도 그룹원 누구나 음원을 변경하며 같은 섬의 공동 재생에 반영한다. 방문자 듣기만·늦은 합류 방식은 제안이다.",
+            "entry": ["PL-1", "FO-2", "HB-3", "SP-8"],
+            "next": ["PL-1", "FO-2", "GR-2"],
+            "states": ["정지", "재생", "조작자 표시", "늦은 합류", "방문 읽기"],
+            "source": ["D4", "D7"]
+          },
+          "GR-2": {
+            "id": "GR-2",
+            "title": "집중 화면의 꽃나팔 방송기",
+            "domain": "GR",
+            "kind": "화면 내 기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "집중 화면에 꽃나팔 방송기를 표시한다. 현재 음원 확인과 보유 음원 선택·변경을 제공하고 그룹원 누구나 조작한다. 음원 변경은 공동 적용, 기기 음량·음소거는 개인에게만 적용한다.",
+            "entry": ["FO-2", "GR-1"],
+            "next": ["GR-1", "FO-2"],
+            "states": [
+              "공동 음원 변경",
+              "동기화 중",
+              "재생 불가",
+              "기기 음소거"
+            ],
+            "source": ["D7"]
+          },
+          "SYS-1": {
+            "id": "SYS-1",
+            "title": "측정·알림·집중 권한",
+            "domain": "SYS",
+            "kind": "시스템 흐름",
+            "gate": "always",
+            "role": "all",
+            "change": "유지",
+            "purpose": "OS 권한 요청·측정 상태·설정 연결을 유지한다. 권한 거부가 초기 개인 설정까지 잠그지 않게 한다.",
+            "entry": ["FO-1", "BD-3", "RT-3"],
+            "next": ["FO-1", "BD-3", "RT-3"],
+            "states": ["허용", "거부", "미지원", "재설정"],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "SYS-2": {
+            "id": "SYS-2",
+            "title": "신고·차단",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "관련 사용자·콘텐츠에서 신고·차단을 연다. 별도 뗏목 마을 관리 메뉴로 넣지 않는다.",
+            "entry": ["BD-1a", "PO-1", "사용자 카드"],
+            "next": ["BD-1a", "PO-1", "PL-1"],
+            "states": ["접수", "실패", "대상 권한"],
+            "source": ["OLD", "D4"]
+          },
+          "SYS-3": {
+            "id": "SYS-3",
+            "title": "진행 세션 복원·정산 대기",
+            "domain": "SYS",
+            "kind": "시스템 흐름",
+            "gate": "always",
+            "role": "resident",
+            "change": "명시화",
+            "purpose": "앱 종료·연결 복구 시 유효 집중과 게시판 완성 시각으로 귀속을 복원한다. 동일 구간을 중복 지급하지 않는다.",
+            "entry": ["ON-1", "FO-2"],
+            "next": ["FO-2", "FO-3"],
+            "states": ["복원", "오프라인", "정산 지연", "복원 실패"],
+            "source": ["OLD", "D4"]
+          },
+          "SYS-4": {
+            "id": "SYS-4",
+            "title": "알림 진입·목적지 분기",
+            "domain": "SYS",
+            "kind": "시스템 흐름",
+            "gate": "always",
+            "role": "resident",
+            "change": "명시화",
+            "purpose": "푸시·딥링크의 목적지를 찾되 인증·소속·해금·권한을 재검사한다. 알림으로 이동 잠금을 우회하지 않는다.",
+            "entry": ["푸시", "앱 링크"],
+            "next": [
+              "PO-1",
+              "FO-1",
+              "BD-3",
+              "OB-1",
+              "VH-3",
+              "ON-5b",
+              "SYS-5",
+              "SYS-6"
+            ],
+            "states": ["인증 만료", "목표 삭제", "미해금", "소속 상실"],
+            "source": ["OLD", "D4"]
+          },
+          "SYS-5": {
+            "id": "SYS-5",
+            "title": "해금·권한·이동 제한 안내",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "all",
+            "change": "신규",
+            "purpose": "부족한 해금·보유·권한과 다음 행동을 안내한다. 스크린 URL이나 초대로 잠금을 우회하지 못하게 한다.",
+            "entry": ["잠긴 장소", "직접 링크"],
+            "next": ["PL-1", "BL-1", "BL-2", "VH-5", "ON-5", "SYS-6"],
+            "states": ["선행 시설", "방문 제한", "상점 없음", "전망대 없음"],
+            "source": ["D4", "D7"]
+          },
+          "SYS-6": {
+            "id": "SYS-6",
+            "title": "소속 상실·재가입 분기",
+            "domain": "SYS",
+            "kind": "시스템 흐름",
+            "gate": "always",
+            "role": "all",
+            "change": "신규",
+            "purpose": "탈퇴·강퇴·섬 종료 뒤 접근할 수 없는 홈에서 빠져나와 첫 소속 선택으로 연결한다. 기존 자산과 과거 기록은 별도로 보존한다.",
+            "entry": ["SYS-4", "HB-4", "SH-4", "ON-1"],
+            "next": ["ON-5", "ON-2"],
+            "states": ["탈퇴", "강퇴", "섬 종료", "이동 예외 검토"],
+            "source": ["OLD", "D4"]
+          },
+          "SH-1": {
+            "id": "SH-1",
+            "title": "집중 종료 확인",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "종료와 취소를 확인한다. 목표 미달이어도 실제 집중 기록은 남는다.",
+            "entry": ["FO-2"],
+            "next": ["FO-2", "FO-3"],
+            "states": ["취소", "종료", "정산 대기"],
+            "source": ["OLD", "D4"]
+          },
+          "SH-2": {
+            "id": "SH-2",
+            "title": "강퇴 확인",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "host",
+            "change": "유지",
+            "purpose": "대상과 강퇴 결과를 명확히 확인한다. 초기 운영과 회관에서 같은 시트를 재사용한다.",
+            "entry": ["PL-2", "VH-3"],
+            "next": ["PL-2", "VH-3"],
+            "states": ["취소", "대상 상태 변경", "완료"],
+            "source": ["OLD"]
+          },
+          "SH-3": {
+            "id": "SH-3",
+            "title": "방장 위임",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "host",
+            "change": "유지",
+            "purpose": "위임 대상을 선택·확인한다. 공동 자원·구매품을 이전 방장의 개인 자산으로 보지 않는다.",
+            "entry": ["PL-2", "VH-3", "SH-4"],
+            "next": ["PL-2", "VH-3", "SH-4"],
+            "states": ["대상 선택", "재확인", "실패"],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "SH-4": {
+            "id": "SH-4",
+            "title": "섬 탈퇴·종료 확인",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "계정 삭제와 구분한다. 방장은 위임, 마지막 주민은 섬 종료 결과를 안내한다.",
+            "entry": ["PL-2", "VH-3"],
+            "next": ["SH-3", "SYS-6", "PL-1"],
+            "states": [
+              "취소",
+              "방장 위임 필요",
+              "마지막 주민",
+              "개인 자산 유지"
+            ],
+            "source": ["OLD", "D4", "D7"]
+          },
+          "SH-5": {
+            "id": "SH-5",
+            "title": "초대 공유",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "섬 가입 방식과 권한에 맞춰 초대를 공유한다. 첫 가입 초대와 기존 소속 사용자의 이동 잠금은 별개다.",
+            "entry": ["PL-2", "VH-3"],
+            "next": ["PL-2", "VH-3"],
+            "states": ["공유 취소", "초대 갱신", "권한 없음"],
+            "source": ["OLD", "D4"]
+          },
+          "SH-6": {
+            "id": "SH-6",
+            "title": "회원 탈퇴 확인",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "always",
+            "role": "resident",
+            "change": "명시화",
+            "purpose": "계정 삭제 범위와 소유 섬 조건을 확인한다. 섬 탈퇴와 구분하며 삭제 정책 수치는 별도 검토한다.",
+            "entry": ["RT-2"],
+            "next": ["RT-2", "ON-2"],
+            "states": ["취소", "소유 섬 처리", "삭제 확인"],
+            "source": ["OLD", "D7"]
+          },
+          "SH-7": {
+            "id": "SH-7",
+            "title": "공동 외양 적용 확인",
+            "domain": "SYS",
+            "kind": "시트",
+            "gate": "shop",
+            "role": "host",
+            "change": "신규",
+            "purpose": "적용 대상 섬·시설과 새 테마를 확인한다. 개인 기기 미리보기를 공통 상태로 확정하며 오디오는 바꾸지 않는다.",
+            "entry": ["SP-8"],
+            "next": ["SP-8", "PL-1"],
+            "states": ["취소", "권한 변경", "적용", "집중 화면 반영 대기"],
+            "source": ["D7"]
+          },
+          "fn-field-1": {
+            "id": "fn-field-1",
+            "title": "닉네임·프로필",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "닉네임·프로필 — 내 정보·계정의 세부 기능.",
+            "entry": ["RT-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D7"],
+            "refs": ["RT-2"]
+          },
+          "fn-field-2": {
+            "id": "fn-field-2",
+            "title": "연동 계정",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "연동 계정 — 내 정보·계정의 세부 기능.",
+            "entry": ["RT-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D7"],
+            "refs": ["RT-2"]
+          },
+          "fn-field-3": {
+            "id": "fn-field-3",
+            "title": "로그아웃·회원 탈퇴",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "로그아웃·회원 탈퇴 — 내 정보·계정의 세부 기능.",
+            "entry": ["RT-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D7"],
+            "refs": ["RT-2"]
+          },
+          "fn-profile": {
+            "id": "fn-profile",
+            "title": "내 정보",
+            "domain": "RT",
+            "kind": "기능 묶음",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "내 정보 기능. 닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+            "entry": ["RT-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D7"],
+            "refs": ["RT-2"]
+          },
+          "fn-field-4": {
+            "id": "fn-field-4",
+            "title": "알림 설정",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "알림 설정 — 앱·알림·공개 설정의 세부 기능.",
+            "entry": ["RT-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["RT-3"]
+          },
+          "fn-field-5": {
+            "id": "fn-field-5",
+            "title": "소리·동작 줄이기",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "소리·동작 줄이기 — 앱·알림·공개 설정의 세부 기능.",
+            "entry": ["RT-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["RT-3"]
+          },
+          "fn-field-6": {
+            "id": "fn-field-6",
+            "title": "기록 공개 범위",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "기록 공개 범위 — 앱·알림·공개 설정의 세부 기능.",
+            "entry": ["RT-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["RT-3"]
+          },
+          "fn-field-7": {
+            "id": "fn-field-7",
+            "title": "측정 권한",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "측정 권한 — 앱·알림·공개 설정의 세부 기능.",
+            "entry": ["RT-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["RT-3"]
+          },
+          "fn-settings": {
+            "id": "fn-settings",
+            "title": "앱 설정",
+            "domain": "RT",
+            "kind": "기능 묶음",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "앱 설정 기능. 알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+            "entry": ["RT-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["RT-3"]
+          },
+          "fn-field-8": {
+            "id": "fn-field-8",
+            "title": "의상·장신구 선택",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "의상·장신구 선택 — 옷 갈아입기의 세부 기능.",
+            "entry": ["RT-5"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-5"]
+          },
+          "fn-field-9": {
+            "id": "fn-field-9",
+            "title": "착용·해제",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "착용·해제 — 옷 갈아입기의 세부 기능.",
+            "entry": ["RT-5"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-5"]
+          },
+          "fn-clothes": {
+            "id": "fn-clothes",
+            "title": "옷 갈아입기",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "옷 갈아입기 기능. 구매한 머리·의상·장신구를 미리 입혀보고 적용·해제한다. 구매는 하지 않는다.",
+            "entry": ["RT-5"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-5"]
+          },
+          "fn-field-10": {
+            "id": "fn-field-10",
+            "title": "보유 선체 선택",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "보유 선체 선택 — 내 배 꾸미기·선체 선택의 세부 기능.",
+            "entry": ["RT-6"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-6"]
+          },
+          "fn-field-11": {
+            "id": "fn-field-11",
+            "title": "외양·소품 배치",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "외양·소품 배치 — 내 배 꾸미기·선체 선택의 세부 기능.",
+            "entry": ["RT-6"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-6"]
+          },
+          "fn-boat-style": {
+            "id": "fn-boat-style",
+            "title": "배 꾸미기",
+            "domain": "RT",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "배 꾸미기 기능. 보유한 뗏목·돛단배·배 단계, 외양 테마·이름표·소품을 적용한다. 미지원 소품은 보유 목록에 남는다.",
+            "entry": ["RT-6"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-6"]
+          },
+          "fn-owned": {
+            "id": "fn-owned",
+            "title": "내 꾸미기 · 보유품",
+            "domain": "RT",
+            "kind": "기능 묶음",
+            "gate": "always",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "내 꾸미기 · 보유품 기능. 캐릭터와 배를 나누어 보유품을 고른다. 상점 없는 방문지에서도 이미 가진 물건을 적용한다.",
+            "entry": ["RT-4"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["RT-4"]
+          },
+          "fn-field-12": {
+            "id": "fn-field-12",
+            "title": "할 일·목표 시간",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "할 일·목표 시간 — 부두·집중 준비의 세부 기능.",
+            "entry": ["FO-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["FO-1"]
+          },
+          "fn-field-13": {
+            "id": "fn-field-13",
+            "title": "집중 시작",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "집중 시작 — 부두·집중 준비의 세부 기능.",
+            "entry": ["FO-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["FO-1"]
+          },
+          "fn-timer": {
+            "id": "fn-timer",
+            "title": "집중 진행",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "유효 집중 시간과 낚시 진행을 확인한다.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-field-14": {
+            "id": "fn-field-14",
+            "title": "현재 공동 음원",
+            "domain": "GR",
+            "kind": "기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "현재 공동 음원 — 집중 화면의 꽃나팔 방송기의 세부 기능.",
+            "entry": ["GR-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["GR-2"]
+          },
+          "fn-field-15": {
+            "id": "fn-field-15",
+            "title": "보유 음원 선택·변경",
+            "domain": "GR",
+            "kind": "기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "보유 음원 선택·변경 — 집중 화면의 꽃나팔 방송기의 세부 기능.",
+            "entry": ["GR-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["GR-2"]
+          },
+          "fn-field-16": {
+            "id": "fn-field-16",
+            "title": "기기 음량·음소거",
+            "domain": "GR",
+            "kind": "기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "기기 음량·음소거 — 집중 화면의 꽃나팔 방송기의 세부 기능.",
+            "entry": ["GR-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["GR-2"]
+          },
+          "fn-field-17": {
+            "id": "fn-field-17",
+            "title": "이모티콘 5종 선택",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "이모티콘 5종 선택 — 배 위 집중·낚시의 세부 기능.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-field-18": {
+            "id": "fn-field-18",
+            "title": "캐릭터 위 말풍선 · 잠시 표시",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "캐릭터 위 말풍선 · 잠시 표시 — 배 위 집중·낚시의 세부 기능.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-emotes": {
+            "id": "fn-emotes",
+            "title": "이모티콘 소통",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "같은 섬에서 집중 중인 모든 사람이 볼 수 있다. 몇 초 후 사라진다. 인사·힘내·열공·응원·쉬고 올게 5종과 표시 3초는 제안이다. 이모티콘 전송은 집중 상태를 바꾸지 않는다.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-pause": {
+            "id": "fn-pause",
+            "title": "잠시 휴식",
+            "domain": "FO",
+            "kind": "버튼",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "섬 홈에 있는 동일한 모닥불로 이동해 캐릭터가 쉬는 모습을 보여준다. 별도의 모닥불 장소를 만들지 않는다. 휴식은 유효 집중·낚시 보상에서 제외한다.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-end": {
+            "id": "fn-end",
+            "title": "집중 종료",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "집중을 종료하고 결과를 확인한다.",
+            "entry": ["FO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["FO-2"]
+          },
+          "fn-field-19": {
+            "id": "fn-field-19",
+            "title": "이번 집중 기록",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "이번 집중 기록 — 귀항·집중 결과의 세부 기능.",
+            "entry": ["FO-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["FO-3"]
+          },
+          "fn-field-20": {
+            "id": "fn-field-20",
+            "title": "물고기 획득량",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "물고기 획득량 — 귀항·집중 결과의 세부 기능.",
+            "entry": ["FO-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["FO-3"]
+          },
+          "fn-field-21": {
+            "id": "fn-field-21",
+            "title": "퀘스트 달성 결과",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "퀘스트 달성 결과 — 귀항·집중 결과의 세부 기능.",
+            "entry": ["FO-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["FO-3"]
+          },
+          "fn-camp-rest": {
+            "id": "fn-camp-rest",
+            "title": "휴식",
+            "domain": "FO",
+            "kind": "기능",
+            "gate": "always",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "집중 중 잠시 휴식을 누르면 모닥불로 이동해 캐릭터가 쉬는 모습을 보여준다. 휴식 시간은 유효 집중과 낚시 보상에서 제외한다. 재개하면 배 위 집중으로 돌아가는 안이다.",
+            "entry": ["FO-5"],
+            "next": [],
+            "states": [],
+            "source": ["D4"],
+            "refs": ["FO-5"]
+          },
+          "fn-field-22": {
+            "id": "fn-field-22",
+            "title": "집중 기록",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "집중 기록 — 통계의 세부 기능.",
+            "entry": ["VH-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-2"]
+          },
+          "fn-field-23": {
+            "id": "fn-field-23",
+            "title": "스크린타임 기록",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "스크린타임 기록 — 통계의 세부 기능.",
+            "entry": ["VH-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-2"]
+          },
+          "fn-field-24": {
+            "id": "fn-field-24",
+            "title": "기간·대상 · 공개 범위 적용",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "기간·대상 · 공개 범위 적용 — 통계의 세부 기능.",
+            "entry": ["VH-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-2"]
+          },
+          "fn-stats": {
+            "id": "fn-stats",
+            "title": "통계",
+            "domain": "VH",
+            "kind": "기능 묶음",
+            "gate": "hall",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "통계 기능. 마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+            "entry": ["VH-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-2"]
+          },
+          "fn-field-25": {
+            "id": "fn-field-25",
+            "title": "섬 이름·소개",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "섬 이름·소개 — 섬 정보·운영의 세부 기능.",
+            "entry": ["VH-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-3"]
+          },
+          "fn-field-26": {
+            "id": "fn-field-26",
+            "title": "가입 방식·승인",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "가입 방식·승인 — 섬 정보·운영의 세부 기능.",
+            "entry": ["VH-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-3"]
+          },
+          "fn-field-27": {
+            "id": "fn-field-27",
+            "title": "멤버 관리·초대",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "멤버 관리·초대 — 섬 정보·운영의 세부 기능.",
+            "entry": ["VH-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-3"]
+          },
+          "fn-field-28": {
+            "id": "fn-field-28",
+            "title": "방장 위임·섬 탈퇴",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "방장 위임·섬 탈퇴 — 섬 정보·운영의 세부 기능.",
+            "entry": ["VH-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-3"]
+          },
+          "fn-island-manage": {
+            "id": "fn-island-manage",
+            "title": "섬 관리",
+            "domain": "VH",
+            "kind": "기능 묶음",
+            "gate": "hall",
+            "role": "shared",
+            "change": "수정",
+            "purpose": "섬 관리 기능. 섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+            "entry": ["VH-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-3"]
+          },
+          "fn-field-29": {
+            "id": "fn-field-29",
+            "title": "적립 내역",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "적립 내역 — 공동 자원 장부의 세부 기능.",
+            "entry": ["VH-4"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-4"]
+          },
+          "fn-field-30": {
+            "id": "fn-field-30",
+            "title": "건설·공동 구매 지출",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "hall",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "건설·공동 구매 지출 — 공동 자원 장부의 세부 기능.",
+            "entry": ["VH-4"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-4"]
+          },
+          "fn-resources": {
+            "id": "fn-resources",
+            "title": "공동 자원 내역",
+            "domain": "VH",
+            "kind": "기능 묶음",
+            "gate": "hall",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "공동 자원 내역 기능. 초기 섬 물고기와 마을 포인트를 별도 잔액·적립·지출로 보여준다. 개인 지갑은 섞지 않는다.",
+            "entry": ["VH-4"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["VH-4"]
+          },
+          "fn-field-31": {
+            "id": "fn-field-31",
+            "title": "전망대·우체국 선택",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "board",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "전망대·우체국 선택 — 다음 건물 선택의 세부 기능.",
+            "entry": ["VH-5"],
+            "next": [],
+            "states": [],
+            "source": ["D4"],
+            "refs": ["VH-5"]
+          },
+          "fn-gram-build": {
+            "id": "fn-gram-build",
+            "title": "꽃나팔 방송기 건설",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "board",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "게시판 완성 후 다음 건물 선택 목록에서 꽃나팔 방송기를 선택해 100 마을 포인트로 건설한다. 상점보다 먼저 건설할 수 있으며 상점 해금의 선행 조건은 아니다. 건설 실행은 방장 제안이다.",
+            "entry": ["VH-5"],
+            "next": [],
+            "states": [],
+            "source": ["D4"],
+            "refs": ["VH-5"]
+          },
+          "fn-field-32": {
+            "id": "fn-field-32",
+            "title": "마지막 상점 선택",
+            "domain": "VH",
+            "kind": "기능",
+            "gate": "board",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "마지막 상점 선택 — 다음 건물 선택의 세부 기능.",
+            "entry": ["VH-5"],
+            "next": [],
+            "states": [],
+            "source": ["D4"],
+            "refs": ["VH-5"]
+          },
+          "fn-field-33": {
+            "id": "fn-field-33",
+            "title": "본문·댓글",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "본문·댓글 — 공지 상세·댓글의 세부 기능.",
+            "entry": ["BD-1a"],
+            "next": [],
+            "states": [],
+            "source": ["OLD"],
+            "refs": ["BD-1a"]
+          },
+          "fn-notice-write": {
+            "id": "fn-notice-write",
+            "title": "공지 작성·수정",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "host",
+            "change": "명시화",
+            "purpose": "방장에게 제공하는 공지 작성·수정 기능.",
+            "entry": ["BD-6"],
+            "next": [],
+            "states": [],
+            "source": ["OLD"],
+            "refs": ["BD-6"]
+          },
+          "fn-notices": {
+            "id": "fn-notices",
+            "title": "공지",
+            "domain": "BD",
+            "kind": "콘텐츠 분류",
+            "gate": "board",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "공지 기능. 공지 본문과 댓글, 작성자·운영자의 삭제와 신고를 제공한다.",
+            "entry": ["BD-1a"],
+            "next": [],
+            "states": [],
+            "source": ["OLD"],
+            "refs": ["BD-1a"]
+          },
+          "fn-field-34": {
+            "id": "fn-field-34",
+            "title": "시간대 집중",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "시간대 집중 — 집중·폰 사용 퀘스트 목록의 세부 기능.",
+            "entry": ["BD-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-2"]
+          },
+          "fn-field-35": {
+            "id": "fn-field-35",
+            "title": "하루 폰 사용",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "하루 폰 사용 — 집중·폰 사용 퀘스트 목록의 세부 기능.",
+            "entry": ["BD-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-2"]
+          },
+          "fn-quest-types": {
+            "id": "fn-quest-types",
+            "title": "퀘스트 유형",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "퀘스트 유형 기능. 참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+            "entry": ["BD-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-2"]
+          },
+          "fn-field-36": {
+            "id": "fn-field-36",
+            "title": "조건·참여·진행 확인",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "조건·참여·진행 확인 — 퀘스트 상세·참여의 세부 기능.",
+            "entry": ["BD-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-3"]
+          },
+          "fn-quest-write": {
+            "id": "fn-quest-write",
+            "title": "퀘스트 생성·수정",
+            "domain": "BD",
+            "kind": "기능",
+            "gate": "board",
+            "role": "host",
+            "change": "수정",
+            "purpose": "방장 생성·다음 회차 수정은 기존 제안. 자료 공유 퀘스트와 내기는 넣지 않는다.",
+            "entry": ["BD-4"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-4"]
+          },
+          "fn-quests": {
+            "id": "fn-quests",
+            "title": "퀘스트",
+            "domain": "BD",
+            "kind": "콘텐츠 분류",
+            "gate": "board",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "퀘스트 기능. 참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+            "entry": ["BD-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["BD-2"]
+          },
+          "fn-rankings": {
+            "id": "fn-rankings",
+            "title": "랭킹",
+            "domain": "OB",
+            "kind": "기능 묶음",
+            "gate": "rank",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "전망대 완성 및 멤버 2인 이상 조건. 이동 기능과 조건을 분리한다.",
+            "entry": ["OB-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["OB-1"]
+          },
+          "fn-field-37": {
+            "id": "fn-field-37",
+            "title": "공개 섬 검색",
+            "domain": "OB",
+            "kind": "기능",
+            "gate": "tower",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "공개 섬 검색 — 다른 섬 검색·초대 입력의 세부 기능.",
+            "entry": ["HB-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["HB-2"]
+          },
+          "fn-field-38": {
+            "id": "fn-field-38",
+            "title": "초대 입력",
+            "domain": "OB",
+            "kind": "기능",
+            "gate": "tower",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "초대 입력 — 다른 섬 검색·초대 입력의 세부 기능.",
+            "entry": ["HB-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["HB-2"]
+          },
+          "fn-field-39": {
+            "id": "fn-field-39",
+            "title": "가입·이동",
+            "domain": "OB",
+            "kind": "기능",
+            "gate": "tower",
+            "role": "visitor",
+            "change": "수정",
+            "purpose": "가입·이동 — 다른 섬 구경의 세부 기능.",
+            "entry": ["HB-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["HB-3"]
+          },
+          "fn-field-40": {
+            "id": "fn-field-40",
+            "title": "원래 섬 귀환",
+            "domain": "OB",
+            "kind": "기능",
+            "gate": "tower",
+            "role": "visitor",
+            "change": "수정",
+            "purpose": "원래 섬 귀환 — 다른 섬 구경의 세부 기능.",
+            "entry": ["HB-3"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["HB-3"]
+          },
+          "fn-travel": {
+            "id": "fn-travel",
+            "title": "다른 섬 탐색·이동",
+            "domain": "OB",
+            "kind": "기능 묶음",
+            "gate": "tower",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "전망대 완성 후 이용한다. 혼자 있는 섬도 이동 가능. 첫 가입·귀환·소속 복구 예외는 별도 검토.",
+            "entry": ["HB-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4"],
+            "refs": ["HB-2"]
+          },
+          "fn-field-41": {
+            "id": "fn-field-41",
+            "title": "전체 대화 · 시간순",
+            "domain": "PO",
+            "kind": "기능",
+            "gate": "mail",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "전체 대화 · 시간순 — 우체국 · 우리 섬 편지방의 세부 기능.",
+            "entry": ["PO-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["PO-1"]
+          },
+          "fn-field-42": {
+            "id": "fn-field-42",
+            "title": "작성자·시간·편지 본문",
+            "domain": "PO",
+            "kind": "기능",
+            "gate": "mail",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "작성자·시간·편지 본문 — 우체국 · 우리 섬 편지방의 세부 기능.",
+            "entry": ["PO-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["PO-1"]
+          },
+          "fn-field-43": {
+            "id": "fn-field-43",
+            "title": "글 작성",
+            "domain": "PO",
+            "kind": "기능",
+            "gate": "mail",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "글 작성 — 편지 쓰기의 세부 기능.",
+            "entry": ["PO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD"],
+            "refs": ["PO-2"]
+          },
+          "fn-field-44": {
+            "id": "fn-field-44",
+            "title": "그룹 전체에 보내기",
+            "domain": "PO",
+            "kind": "기능",
+            "gate": "mail",
+            "role": "resident",
+            "change": "유지",
+            "purpose": "그룹 전체에 보내기 — 편지 쓰기의 세부 기능.",
+            "entry": ["PO-2"],
+            "next": [],
+            "states": [],
+            "source": ["OLD"],
+            "refs": ["PO-2"]
+          },
+          "fn-group-letters": {
+            "id": "fn-group-letters",
+            "title": "우리 섬 편지방",
+            "domain": "PO",
+            "kind": "기능 묶음",
+            "gate": "mail",
+            "role": "resident",
+            "change": "수정",
+            "purpose": "우리 섬 편지방 기능. 그룹 전체가 함께 읽고 쓰는 채팅방이다. 편지지 형태의 메시지에 작성자·작성 시각·본문을 표시하고 시간순으로 대화를 읽는다. 개인 수신자를 선택하지 않으며 현재 섬 그룹원에게 글이 공유된다.",
+            "entry": ["PO-1"],
+            "next": [],
+            "states": [],
+            "source": ["OLD", "D4", "D7"],
+            "refs": ["PO-1"]
+          },
+          "fn-personal-balance": {
+            "id": "fn-personal-balance",
+            "title": "내 개인 물고기",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "상점에 들어가면 본인의 개인 물고기 잔액을 표시한다.",
+            "entry": ["SP-1"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-1"]
+          },
+          "fn-village-balance": {
+            "id": "fn-village-balance",
+            "title": "현재 섬 마을 포인트",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "상점에 들어가면 현재 섬의 마을 포인트 잔액을 표시한다. 개인 잔액과 합치지 않는다.",
+            "entry": ["SP-1"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-1"]
+          },
+          "fn-wallets": {
+            "id": "fn-wallets",
+            "title": "잔액 표시",
+            "domain": "SP",
+            "kind": "화면 구성",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "잔액 표시 기능. 상점 진입 시 본인의 개인 물고기와 현재 섬의 마을 포인트를 각각 표시한다. 내 꾸미기·우리 섬 꾸미기·우리 섬의 소리로 구분한다. 꽃나팔 방송기는 판매하지 않으며 건설 완료 후 ASMR을 구매한다.",
+            "entry": ["SP-1"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-1"]
+          },
+          "fn-field-45": {
+            "id": "fn-field-45",
+            "title": "캐릭터 의상·장신구",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "캐릭터 의상·장신구 — 개인 상품 목록의 세부 기능.",
+            "entry": ["SP-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-2"]
+          },
+          "fn-field-46": {
+            "id": "fn-field-46",
+            "title": "배 소품·외양",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "배 소품·외양 — 개인 상품 목록의 세부 기능.",
+            "entry": ["SP-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-2"]
+          },
+          "fn-field-47": {
+            "id": "fn-field-47",
+            "title": "뗏목 → 돛단배 → 배",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "뗏목 → 돛단배 → 배 — 개인 배 업그레이드 상품의 세부 기능.",
+            "entry": ["SP-9"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-9"]
+          },
+          "fn-personal-owned": {
+            "id": "fn-personal-owned",
+            "title": "보유 상품 · 내 배에서 적용",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "상점에서 보유 여부를 확인하고 내 배로 이동해 착용·배치한다. 상점에서는 개인 꾸밈을 적용하지 않는다.",
+            "entry": ["SP-7"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-7"]
+          },
+          "fn-personal-goods": {
+            "id": "fn-personal-goods",
+            "title": "내 꾸미기 · 구매",
+            "domain": "SP",
+            "kind": "상품 분류",
+            "gate": "shop",
+            "role": "resident",
+            "change": "이동",
+            "purpose": "내 꾸미기 · 구매 기능. 캐릭터·배 소품·외양·업그레이드를 개인 물고기로 구매한다. 적용은 내 배에서 한다.",
+            "entry": ["SP-2"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-2"]
+          },
+          "fn-field-48": {
+            "id": "fn-field-48",
+            "title": "섬 테마",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "shared",
+            "change": "이동",
+            "purpose": "섬 테마 — 섬·건물 테마 목록의 세부 기능.",
+            "entry": ["SP-3"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-3"]
+          },
+          "fn-field-49": {
+            "id": "fn-field-49",
+            "title": "건물별 테마",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "shared",
+            "change": "이동",
+            "purpose": "건물별 테마 — 섬·건물 테마 목록의 세부 기능.",
+            "entry": ["SP-3"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-3"]
+          },
+          "fn-shared-owned": {
+            "id": "fn-shared-owned",
+            "title": "보유 테마 · 적용·해제",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "공동 외양은 상점에서 적용·해제한다. 방장 실행은 기존 제안. 음원 변경과 별개다.",
+            "entry": ["SP-8"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-8"]
+          },
+          "fn-shared-goods": {
+            "id": "fn-shared-goods",
+            "title": "우리 섬 꾸미기",
+            "domain": "SP",
+            "kind": "상품 분류",
+            "gate": "shop",
+            "role": "shared",
+            "change": "이동",
+            "purpose": "우리 섬 꾸미기 기능. 섬 테마와 시설별 외양을 구분한다. 일반 주민은 미리보기·관심 표시, 방장은 공동 구매·적용한다.",
+            "entry": ["SP-3"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-3"]
+          },
+          "fn-field-50": {
+            "id": "fn-field-50",
+            "title": "판매 음원 · 미리듣기",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "판매 음원 · 미리듣기 — ASMR 상품의 세부 기능.",
+            "entry": ["SP-4"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-4"]
+          },
+          "fn-field-51": {
+            "id": "fn-field-51",
+            "title": "보유 음원 확인",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "shared",
+            "change": "신규",
+            "purpose": "보유 음원 확인 — ASMR 상품의 세부 기능.",
+            "entry": ["SP-4"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["SP-4"]
+          },
+          "fn-field-52": {
+            "id": "fn-field-52",
+            "title": "내 구매 내역",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "내 구매 내역 — 구매 내역의 세부 기능.",
+            "entry": ["SP-10"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-10"]
+          },
+          "fn-field-53": {
+            "id": "fn-field-53",
+            "title": "섬 공동 구매 내역",
+            "domain": "SP",
+            "kind": "기능",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "섬 공동 구매 내역 — 구매 내역의 세부 기능.",
+            "entry": ["SP-10"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-10"]
+          },
+          "fn-orders": {
+            "id": "fn-orders",
+            "title": "구매 내역",
+            "domain": "SP",
+            "kind": "콘텐츠 분류",
+            "gate": "shop",
+            "role": "resident",
+            "change": "신규",
+            "purpose": "구매 내역 기능. 본인 구매 내역과 현재 섬의 공동 구매 내역을 구분한다. 다른 주민의 개인 지갑은 공개하지 않는다.",
+            "entry": ["SP-10"],
+            "next": [],
+            "states": [],
+            "source": ["D7"],
+            "refs": ["SP-10"]
+          },
+          "fn-field-54": {
+            "id": "fn-field-54",
+            "title": "보유 음원",
+            "domain": "GR",
+            "kind": "기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "보유 음원 — 꽃나팔 방송기·공동 재생의 세부 기능.",
+            "entry": ["GR-1"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["GR-1"]
+          },
+          "fn-field-55": {
+            "id": "fn-field-55",
+            "title": "재생·변경·정지",
+            "domain": "GR",
+            "kind": "기능",
+            "gate": "gram",
+            "role": "listener",
+            "change": "신규",
+            "purpose": "재생·변경·정지 — 꽃나팔 방송기·공동 재생의 세부 기능.",
+            "entry": ["GR-1"],
+            "next": [],
+            "states": [],
+            "source": ["D4", "D7"],
+            "refs": ["GR-1"]
+          }
+        },
+        "support": {
+          "root": [],
+          "PL-1": [
+            {
+              "id": "PL-2",
+              "title": "초기 섬 정보·최소 운영",
+              "domain": "PL",
+              "kind": "시트",
+              "gate": "preHall",
+              "role": "shared",
+              "change": "신규",
+              "purpose": "이전 제안 기록. 초기 섬 정보·운영은 독립 메뉴로 사용하지 않는다. 마을회관 이전에 꼭 필요한 운영의 진입 방식은 미정이다.",
+              "entry": ["PL-1"],
+              "next": ["PL-1", "VH-3", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민 읽기", "방장 관리", "회관 완성 시 진입 전환"],
+              "source": ["D4"]
+            },
+            {
+              "id": "BL-1",
+              "title": "마을회관 건설 예정지",
+              "domain": "BL",
+              "kind": "시트",
+              "gate": "preHall",
+              "role": "shared",
+              "change": "신규",
+              "purpose": "첫 고정 목표. 섬 물고기 준비량·남은 수량을 확인하고 방장이 회관 건설을 실행한다. 개인 기부·회수는 없다.",
+              "entry": ["PL-1", "FO-3"],
+              "next": ["BL-3", "PL-1"],
+              "states": ["20마리 제안", "자원 부족", "방장 확인", "이미 완성"],
+              "source": ["D4"]
+            },
+            {
+              "id": "BL-2",
+              "title": "게시판 건설 예정지",
+              "domain": "BL",
+              "kind": "시트",
+              "gate": "preBoard",
+              "role": "shared",
+              "change": "신규",
+              "purpose": "회관 다음의 고정 목표로 자동 안내된다. 마을회관에서 선택하는 시설이 아니며 예정지에서 준비·건설한다.",
+              "entry": ["PL-1", "FO-3"],
+              "next": ["BL-3", "PL-1"],
+              "states": ["40마리 제안", "자원 부족", "방장 확인", "이미 완성"],
+              "source": ["D4"]
+            },
+            {
+              "id": "SYS-5",
+              "title": "해금·권한·이동 제한 안내",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "all",
+              "change": "신규",
+              "purpose": "부족한 해금·보유·권한과 다음 행동을 안내한다. 스크린 URL이나 초대로 잠금을 우회하지 못하게 한다.",
+              "entry": ["잠긴 장소", "직접 링크"],
+              "next": ["PL-1", "BL-1", "BL-2", "VH-5", "ON-5", "SYS-6"],
+              "states": ["선행 시설", "방문 제한", "상점 없음", "전망대 없음"],
+              "source": ["D4", "D7"]
+            }
+          ],
+          "RT-1": [],
+          "fn-profile": [
+            {
+              "id": "RT-2",
+              "title": "내 정보·계정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+              "entry": ["RT-1"],
+              "next": ["RT-1", "SH-6", "ON-2"],
+              "states": ["본인 정보", "수정 실패", "연동 해제", "탈퇴 조건"],
+              "source": ["OLD", "D7"]
+            },
+            {
+              "id": "SH-6",
+              "title": "회원 탈퇴 확인",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "resident",
+              "change": "명시화",
+              "purpose": "계정 삭제 범위와 소유 섬 조건을 확인한다. 섬 탈퇴와 구분하며 삭제 정책 수치는 별도 검토한다.",
+              "entry": ["RT-2"],
+              "next": ["RT-2", "ON-2"],
+              "states": ["취소", "소유 섬 처리", "삭제 확인"],
+              "source": ["OLD", "D7"]
+            }
+          ],
+          "fn-field-1": [
+            {
+              "id": "RT-2",
+              "title": "내 정보·계정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+              "entry": ["RT-1"],
+              "next": ["RT-1", "SH-6", "ON-2"],
+              "states": ["본인 정보", "수정 실패", "연동 해제", "탈퇴 조건"],
+              "source": ["OLD", "D7"]
+            }
+          ],
+          "fn-field-2": [
+            {
+              "id": "RT-2",
+              "title": "내 정보·계정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+              "entry": ["RT-1"],
+              "next": ["RT-1", "SH-6", "ON-2"],
+              "states": ["본인 정보", "수정 실패", "연동 해제", "탈퇴 조건"],
+              "source": ["OLD", "D7"]
+            }
+          ],
+          "fn-field-3": [
+            {
+              "id": "RT-2",
+              "title": "내 정보·계정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "닉네임·프로필·연동 계정·로그아웃·회원 탈퇴를 다룬다. 꾸미기 구매와 통계 진입은 분리한다.",
+              "entry": ["RT-1"],
+              "next": ["RT-1", "SH-6", "ON-2"],
+              "states": ["본인 정보", "수정 실패", "연동 해제", "탈퇴 조건"],
+              "source": ["OLD", "D7"]
+            }
+          ],
+          "fn-settings": [
+            {
+              "id": "RT-3",
+              "title": "앱·알림·공개 설정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+              "entry": ["RT-1", "PO-1", "SYS-4"],
+              "next": ["RT-1", "SYS-1"],
+              "states": [
+                "알림 거부",
+                "측정 미동의",
+                "차단 목록",
+                "개인 음소거"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-field-4": [
+            {
+              "id": "RT-3",
+              "title": "앱·알림·공개 설정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+              "entry": ["RT-1", "PO-1", "SYS-4"],
+              "next": ["RT-1", "SYS-1"],
+              "states": [
+                "알림 거부",
+                "측정 미동의",
+                "차단 목록",
+                "개인 음소거"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-field-5": [
+            {
+              "id": "RT-3",
+              "title": "앱·알림·공개 설정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+              "entry": ["RT-1", "PO-1", "SYS-4"],
+              "next": ["RT-1", "SYS-1"],
+              "states": [
+                "알림 거부",
+                "측정 미동의",
+                "차단 목록",
+                "개인 음소거"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-field-6": [
+            {
+              "id": "RT-3",
+              "title": "앱·알림·공개 설정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+              "entry": ["RT-1", "PO-1", "SYS-4"],
+              "next": ["RT-1", "SYS-1"],
+              "states": [
+                "알림 거부",
+                "측정 미동의",
+                "차단 목록",
+                "개인 음소거"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-field-7": [
+            {
+              "id": "RT-3",
+              "title": "앱·알림·공개 설정",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "알림 종류·소리·동작 줄이기·공개 범위·권한 상태를 관리한다. 기존 우체국 수신 설정을 통합한다.",
+              "entry": ["RT-1", "PO-1", "SYS-4"],
+              "next": ["RT-1", "SYS-1"],
+              "states": [
+                "알림 거부",
+                "측정 미동의",
+                "차단 목록",
+                "개인 음소거"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-owned": [
+            {
+              "id": "RT-4",
+              "title": "내 꾸미기·보유품",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "캐릭터와 배를 나누어 보유품을 고른다. 상점 없는 방문지에서도 이미 가진 물건을 적용한다.",
+              "entry": ["RT-1", "SP-6", "SP-7"],
+              "next": ["RT-5", "RT-6", "SP-1", "SYS-5"],
+              "states": ["기본 외양만", "보유품 있음", "상점 미해금 안내"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-clothes": [
+            {
+              "id": "RT-5",
+              "title": "옷 갈아입기",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "구매한 머리·의상·장신구를 미리 입혀보고 적용·해제한다. 구매는 하지 않는다.",
+              "entry": ["RT-4"],
+              "next": ["RT-4", "PL-1"],
+              "states": ["미리보기", "적용", "취소", "동작 호환 안내"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-8": [
+            {
+              "id": "RT-5",
+              "title": "옷 갈아입기",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "구매한 머리·의상·장신구를 미리 입혀보고 적용·해제한다. 구매는 하지 않는다.",
+              "entry": ["RT-4"],
+              "next": ["RT-4", "PL-1"],
+              "states": ["미리보기", "적용", "취소", "동작 호환 안내"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-9": [
+            {
+              "id": "RT-5",
+              "title": "옷 갈아입기",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "구매한 머리·의상·장신구를 미리 입혀보고 적용·해제한다. 구매는 하지 않는다.",
+              "entry": ["RT-4"],
+              "next": ["RT-4", "PL-1"],
+              "states": ["미리보기", "적용", "취소", "동작 호환 안내"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-boat-style": [
+            {
+              "id": "RT-6",
+              "title": "내 배 꾸미기·선체 선택",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "보유한 뗏목·돛단배·배 단계, 외양 테마·이름표·소품을 적용한다. 미지원 소품은 보유 목록에 남는다.",
+              "entry": ["RT-4", "SP-6"],
+              "next": ["RT-4", "PL-1", "SP-9", "SYS-5"],
+              "states": [
+                "기본 배",
+                "하위 형태 복원",
+                "소품 호환",
+                "미보유 단계"
+              ],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-10": [
+            {
+              "id": "RT-6",
+              "title": "내 배 꾸미기·선체 선택",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "보유한 뗏목·돛단배·배 단계, 외양 테마·이름표·소품을 적용한다. 미지원 소품은 보유 목록에 남는다.",
+              "entry": ["RT-4", "SP-6"],
+              "next": ["RT-4", "PL-1", "SP-9", "SYS-5"],
+              "states": [
+                "기본 배",
+                "하위 형태 복원",
+                "소품 호환",
+                "미보유 단계"
+              ],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-11": [
+            {
+              "id": "RT-6",
+              "title": "내 배 꾸미기·선체 선택",
+              "domain": "RT",
+              "kind": "화면",
+              "gate": "always",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "보유한 뗏목·돛단배·배 단계, 외양 테마·이름표·소품을 적용한다. 미지원 소품은 보유 목록에 남는다.",
+              "entry": ["RT-4", "SP-6"],
+              "next": ["RT-4", "PL-1", "SP-9", "SYS-5"],
+              "states": [
+                "기본 배",
+                "하위 형태 복원",
+                "소품 호환",
+                "미보유 단계"
+              ],
+              "source": ["D7"]
+            }
+          ],
+          "focus": [],
+          "FO-1": [
+            {
+              "id": "SYS-1",
+              "title": "측정·알림·집중 권한",
+              "domain": "SYS",
+              "kind": "시스템 흐름",
+              "gate": "always",
+              "role": "all",
+              "change": "유지",
+              "purpose": "OS 권한 요청·측정 상태·설정 연결을 유지한다. 권한 거부가 초기 개인 설정까지 잠그지 않게 한다.",
+              "entry": ["FO-1", "BD-3", "RT-3"],
+              "next": ["FO-1", "BD-3", "RT-3"],
+              "states": ["허용", "거부", "미지원", "재설정"],
+              "source": ["OLD", "D4", "D7"]
+            }
+          ],
+          "fn-field-12": [],
+          "fn-field-13": [],
+          "FO-2": [
+            {
+              "id": "FO-4",
+              "title": "잠금화면 진행",
+              "domain": "FO",
+              "kind": "OS 표면",
+              "gate": "always",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "기존 Live Activity 진입을 유지하고 집중 시간·상태·귀속을 정확히 표시한다. 별도 앱 화면으로 중복 계산하지 않는다.",
+              "entry": ["FO-2"],
+              "next": ["FO-2"],
+              "states": ["플랫폼 미지원", "세션 종료", "권한 제한"],
+              "source": ["OLD", "D4"]
+            },
+            {
+              "id": "SYS-3",
+              "title": "진행 세션 복원·정산 대기",
+              "domain": "SYS",
+              "kind": "시스템 흐름",
+              "gate": "always",
+              "role": "resident",
+              "change": "명시화",
+              "purpose": "앱 종료·연결 복구 시 유효 집중과 게시판 완성 시각으로 귀속을 복원한다. 동일 구간을 중복 지급하지 않는다.",
+              "entry": ["ON-1", "FO-2"],
+              "next": ["FO-2", "FO-3"],
+              "states": ["복원", "오프라인", "정산 지연", "복원 실패"],
+              "source": ["OLD", "D4"]
+            },
+            {
+              "id": "SH-1",
+              "title": "집중 종료 확인",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "종료와 취소를 확인한다. 목표 미달이어도 실제 집중 기록은 남는다.",
+              "entry": ["FO-2"],
+              "next": ["FO-2", "FO-3"],
+              "states": ["취소", "종료", "정산 대기"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-timer": [],
+          "GR-2": [],
+          "fn-field-14": [],
+          "fn-field-15": [],
+          "fn-field-16": [],
+          "fn-emotes": [],
+          "fn-field-17": [],
+          "fn-field-18": [],
+          "fn-pause": [],
+          "fn-end": [],
+          "FO-3": [],
+          "fn-field-19": [],
+          "fn-field-20": [],
+          "fn-field-21": [],
+          "FO-5": [],
+          "fn-camp-rest": [],
+          "VH-1": [],
+          "fn-stats": [
+            {
+              "id": "VH-2",
+              "title": "통계",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+              "entry": ["VH-1"],
+              "next": ["VH-1", "VH-3"],
+              "states": [
+                "집중 기록",
+                "스크린타임 기록",
+                "기간 선택",
+                "공개 범위 제한",
+                "측정 권한 없음",
+                "기록 없음"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-22": [
+            {
+              "id": "VH-2",
+              "title": "통계",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+              "entry": ["VH-1"],
+              "next": ["VH-1", "VH-3"],
+              "states": [
+                "집중 기록",
+                "스크린타임 기록",
+                "기간 선택",
+                "공개 범위 제한",
+                "측정 권한 없음",
+                "기록 없음"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-23": [
+            {
+              "id": "VH-2",
+              "title": "통계",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+              "entry": ["VH-1"],
+              "next": ["VH-1", "VH-3"],
+              "states": [
+                "집중 기록",
+                "스크린타임 기록",
+                "기간 선택",
+                "공개 범위 제한",
+                "측정 권한 없음",
+                "기록 없음"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-24": [
+            {
+              "id": "VH-2",
+              "title": "통계",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "마을회관 통계에서 집중 기록과 스크린타임 기록을 각각 조회한다. 개인·섬 전체·멤버 조회는 기록 공개 범위를 따른다. 스크린타임 측정 권한 없음·기록 없음은 사용 시간 0과 구분한다.",
+              "entry": ["VH-1"],
+              "next": ["VH-1", "VH-3"],
+              "states": [
+                "집중 기록",
+                "스크린타임 기록",
+                "기간 선택",
+                "공개 범위 제한",
+                "측정 권한 없음",
+                "기록 없음"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-island-manage": [
+            {
+              "id": "VH-3",
+              "title": "섬 정보·운영",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+              "entry": ["VH-1", "PL-2", "SYS-4"],
+              "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+              "source": ["OLD", "D4"]
+            },
+            {
+              "id": "SH-2",
+              "title": "강퇴 확인",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "host",
+              "change": "유지",
+              "purpose": "대상과 강퇴 결과를 명확히 확인한다. 초기 운영과 회관에서 같은 시트를 재사용한다.",
+              "entry": ["PL-2", "VH-3"],
+              "next": ["PL-2", "VH-3"],
+              "states": ["취소", "대상 상태 변경", "완료"],
+              "source": ["OLD"]
+            },
+            {
+              "id": "SH-3",
+              "title": "방장 위임",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "host",
+              "change": "유지",
+              "purpose": "위임 대상을 선택·확인한다. 공동 자원·구매품을 이전 방장의 개인 자산으로 보지 않는다.",
+              "entry": ["PL-2", "VH-3", "SH-4"],
+              "next": ["PL-2", "VH-3", "SH-4"],
+              "states": ["대상 선택", "재확인", "실패"],
+              "source": ["OLD", "D4", "D7"]
+            },
+            {
+              "id": "SH-4",
+              "title": "섬 탈퇴·종료 확인",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "계정 삭제와 구분한다. 방장은 위임, 마지막 주민은 섬 종료 결과를 안내한다.",
+              "entry": ["PL-2", "VH-3"],
+              "next": ["SH-3", "SYS-6", "PL-1"],
+              "states": [
+                "취소",
+                "방장 위임 필요",
+                "마지막 주민",
+                "개인 자산 유지"
+              ],
+              "source": ["OLD", "D4", "D7"]
+            },
+            {
+              "id": "SH-5",
+              "title": "초대 공유",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 가입 방식과 권한에 맞춰 초대를 공유한다. 첫 가입 초대와 기존 소속 사용자의 이동 잠금은 별개다.",
+              "entry": ["PL-2", "VH-3"],
+              "next": ["PL-2", "VH-3"],
+              "states": ["공유 취소", "초대 갱신", "권한 없음"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-25": [
+            {
+              "id": "VH-3",
+              "title": "섬 정보·운영",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+              "entry": ["VH-1", "PL-2", "SYS-4"],
+              "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-26": [
+            {
+              "id": "VH-3",
+              "title": "섬 정보·운영",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+              "entry": ["VH-1", "PL-2", "SYS-4"],
+              "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-27": [
+            {
+              "id": "VH-3",
+              "title": "섬 정보·운영",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+              "entry": ["VH-1", "PL-2", "SYS-4"],
+              "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-28": [
+            {
+              "id": "VH-3",
+              "title": "섬 정보·운영",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "shared",
+              "change": "수정",
+              "purpose": "섬 이름·소개·가입 방식·승인·멤버 관리·방장 위임·섬 탈퇴. 주민은 읽기와 본인 탈퇴만 한다.",
+              "entry": ["VH-1", "PL-2", "SYS-4"],
+              "next": ["VH-1", "SH-2", "SH-3", "SH-4", "SH-5"],
+              "states": ["주민", "방장", "마지막 주민", "승인 대기"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-resources": [
+            {
+              "id": "VH-4",
+              "title": "공동 자원 장부",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "초기 섬 물고기와 마을 포인트를 별도 잔액·적립·지출로 보여준다. 개인 지갑은 섞지 않는다.",
+              "entry": ["VH-1", "VH-6", "SP-10"],
+              "next": ["VH-1"],
+              "states": [
+                "초기 물고기",
+                "포인트",
+                "건설·공동 구매 지출",
+                "잔액0"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-29": [
+            {
+              "id": "VH-4",
+              "title": "공동 자원 장부",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "초기 섬 물고기와 마을 포인트를 별도 잔액·적립·지출로 보여준다. 개인 지갑은 섞지 않는다.",
+              "entry": ["VH-1", "VH-6", "SP-10"],
+              "next": ["VH-1"],
+              "states": [
+                "초기 물고기",
+                "포인트",
+                "건설·공동 구매 지출",
+                "잔액0"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-30": [
+            {
+              "id": "VH-4",
+              "title": "공동 자원 장부",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "hall",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "초기 섬 물고기와 마을 포인트를 별도 잔액·적립·지출로 보여준다. 개인 지갑은 섞지 않는다.",
+              "entry": ["VH-1", "VH-6", "SP-10"],
+              "next": ["VH-1"],
+              "states": [
+                "초기 물고기",
+                "포인트",
+                "건설·공동 구매 지출",
+                "잔액0"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "VH-5": [
+            {
+              "id": "BL-3",
+              "title": "건설 비용 확인",
+              "domain": "BL",
+              "kind": "시트",
+              "gate": "always",
+              "role": "host",
+              "change": "신규",
+              "purpose": "현재 목표의 재화·차감액·잔액·선행 조건을 확인해 한 번 건설한다. 회관·게시판은 물고기, 후속 시설은 마을 포인트다.",
+              "entry": ["BL-1", "BL-2", "VH-6"],
+              "next": ["PL-1", "BL-1", "BL-2", "VH-6", "SP-0"],
+              "states": ["취소", "잔액 변경", "권한 변경", "중복 건설", "완성"],
+              "source": ["D4"]
+            },
+            {
+              "id": "VH-6",
+              "title": "후속 시설 상세·건설 준비",
+              "domain": "VH",
+              "kind": "화면",
+              "gate": "board",
+              "role": "shared",
+              "change": "신규",
+              "purpose": "시설 기능·선행 조건·포인트·필요 달성 횟수·선택 상태를 보여준다. 목표 선택 자체는 지출이 아니다.",
+              "entry": ["VH-5"],
+              "next": ["VH-5", "BL-3", "VH-4"],
+              "states": [
+                "300P 전망대",
+                "400P 우체국",
+                "500P 상점",
+                "선행 부족"
+              ],
+              "source": ["D4"]
+            }
+          ],
+          "fn-field-31": [],
+          "fn-gram-build": [],
+          "fn-field-32": [],
+          "BD-1": [],
+          "fn-notices": [],
+          "BD-1a": [
+            {
+              "id": "SYS-2",
+              "title": "신고·차단",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "always",
+              "role": "resident",
+              "change": "유지",
+              "purpose": "관련 사용자·콘텐츠에서 신고·차단을 연다. 별도 뗏목 마을 관리 메뉴로 넣지 않는다.",
+              "entry": ["BD-1a", "PO-1", "사용자 카드"],
+              "next": ["BD-1a", "PO-1", "PL-1"],
+              "states": ["접수", "실패", "대상 권한"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-33": [],
+          "fn-notice-write": [
+            {
+              "id": "BD-6",
+              "title": "공지 작성·수정",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "host",
+              "change": "명시화",
+              "purpose": "기존 공지 작성 동작을 편집 화면으로 분리한다. 저장 전 미리보기·임시 입력·실패 복귀를 다룬다.",
+              "entry": ["BD-1", "BD-1a"],
+              "next": ["BD-1a", "BD-1"],
+              "states": ["신규", "수정", "게시 실패", "삭제"],
+              "source": ["OLD"]
+            }
+          ],
+          "fn-quests": [
+            {
+              "id": "BD-2",
+              "title": "집중·폰 사용 퀘스트 목록",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+              "entry": ["BD-1", "PL-1"],
+              "next": ["BD-3", "BD-4", "BD-5"],
+              "states": ["진행", "예정", "완료", "유형별 한도", "빈 목록"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-quest-types": [
+            {
+              "id": "BD-2",
+              "title": "집중·폰 사용 퀘스트 목록",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+              "entry": ["BD-1", "PL-1"],
+              "next": ["BD-3", "BD-4", "BD-5"],
+              "states": ["진행", "예정", "완료", "유형별 한도", "빈 목록"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-34": [
+            {
+              "id": "BD-2",
+              "title": "집중·폰 사용 퀘스트 목록",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+              "entry": ["BD-1", "PL-1"],
+              "next": ["BD-3", "BD-4", "BD-5"],
+              "states": ["진행", "예정", "완료", "유형별 한도", "빈 목록"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "fn-field-35": [
+            {
+              "id": "BD-2",
+              "title": "집중·폰 사용 퀘스트 목록",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "resident",
+              "change": "수정",
+              "purpose": "참여 가능한 두 유형과 내 진행·보상 대상 여부·지난 결과를 보여준다. 내기·자료공유 보상은 본 흐름에서 제외한다.",
+              "entry": ["BD-1", "PL-1"],
+              "next": ["BD-3", "BD-4", "BD-5"],
+              "states": ["진행", "예정", "완료", "유형별 한도", "빈 목록"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "BD-3": [],
+          "fn-field-36": [],
+          "BD-5": [],
+          "fn-quest-write": [
+            {
+              "id": "BD-4",
+              "title": "퀘스트 생성·다음 회차 수정",
+              "domain": "BD",
+              "kind": "화면",
+              "gate": "board",
+              "role": "host",
+              "change": "수정",
+              "purpose": "시간대 집중 또는 하루 폰 사용 조건·기간·반복·보상을 미리 보고 생성한다. 내기·에스크로 입력을 넣지 않는다.",
+              "entry": ["BD-2"],
+              "next": ["BD-3", "BD-2"],
+              "states": [
+                "집중 조건",
+                "하루 조건",
+                "시간 오류",
+                "시작 후 변경 제한"
+              ],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "OB-0": [],
+          "fn-rankings": [],
+          "OB-1": [],
+          "OB-2": [],
+          "fn-travel": [
+            {
+              "id": "HB-4",
+              "title": "이동·가입 확인",
+              "domain": "OB",
+              "kind": "시트",
+              "gate": "tower",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "출발 섬 전망대·목적지 권한·집중 종료를 확인한다. 첫 가입과 방문 후 원래 섬 귀환은 별도 예외로 분기한다.",
+              "entry": ["HB-1", "HB-2", "HB-3"],
+              "next": ["ON-6", "PL-1", "SYS-5", "SYS-6"],
+              "states": ["이동", "승인 대기", "취소", "원래 섬 귀환"],
+              "source": ["D4"]
+            }
+          ],
+          "HB-1": [],
+          "HB-2": [],
+          "fn-field-37": [],
+          "fn-field-38": [],
+          "HB-3": [],
+          "fn-field-39": [],
+          "fn-field-40": [],
+          "PO-1": [],
+          "fn-group-letters": [],
+          "fn-field-41": [],
+          "fn-field-42": [],
+          "PO-2": [],
+          "fn-field-43": [],
+          "fn-field-44": [],
+          "SP-1": [
+            {
+              "id": "SP-0",
+              "title": "NPC 이사·개점 안내",
+              "domain": "SP",
+              "kind": "전환 화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "기존 네 시설 뒤 마지막 상점이 완성되면 운영 NPC가 입주해 개점한다. NPC는 실제 주민·퀘스트 인원으로 세지 않는다.",
+              "entry": ["BL-3", "PL-1"],
+              "next": ["SP-1", "PL-1"],
+              "states": ["첫 개점", "건너뛰기", "이미 봄"],
+              "source": ["D4", "D7"]
+            }
+          ],
+          "fn-wallets": [],
+          "fn-personal-balance": [],
+          "fn-village-balance": [],
+          "fn-personal-goods": [
+            {
+              "id": "SP-2",
+              "title": "개인 상품 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "캐릭터·배 소품·외양·업그레이드를 개인 물고기로 구매한다. 적용은 내 배에서 한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-9", "SP-7"],
+              "states": ["캐릭터", "배 소품", "단계별 상품", "보유 중"],
+              "source": ["D7"]
+            },
+            {
+              "id": "SP-5",
+              "title": "상품 상세·미리보기",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "개인/섬 소유·가격·적용 대상·지원 배 단계를 표시한다. 상점 개인 미리보기는 착용 확정이 아니다.",
+              "entry": ["SP-2", "SP-3", "SP-4"],
+              "next": ["SP-6", "SP-7", "SP-8"],
+              "states": [
+                "본인 미리보기",
+                "일반 주민 구매불가",
+                "미지원",
+                "보유 중"
+              ],
+              "source": ["D7"]
+            },
+            {
+              "id": "SP-6",
+              "title": "구매 확인·결과",
+              "domain": "SP",
+              "kind": "시트",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "정확한 지갑·차감액·잔액·소유권을 확인해 한 번 구매한다. 개인은 내 배로, 공동 외양은 보유목록으로 연결한다.",
+              "entry": ["SP-5", "SP-9"],
+              "next": ["RT-4", "RT-6", "SP-8", "SP-10"],
+              "states": ["취소", "잔액 변경", "중복 구매", "구매 완료"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-45": [
+            {
+              "id": "SP-2",
+              "title": "개인 상품 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "캐릭터·배 소품·외양·업그레이드를 개인 물고기로 구매한다. 적용은 내 배에서 한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-9", "SP-7"],
+              "states": ["캐릭터", "배 소품", "단계별 상품", "보유 중"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-46": [
+            {
+              "id": "SP-2",
+              "title": "개인 상품 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "이동",
+              "purpose": "캐릭터·배 소품·외양·업그레이드를 개인 물고기로 구매한다. 적용은 내 배에서 한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-9", "SP-7"],
+              "states": ["캐릭터", "배 소품", "단계별 상품", "보유 중"],
+              "source": ["D7"]
+            }
+          ],
+          "SP-9": [],
+          "fn-field-47": [],
+          "fn-personal-owned": [
+            {
+              "id": "SP-7",
+              "title": "내 구매품 조회",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "상점에서 개인 보유 여부를 확인한다. 적용·해제 버튼 대신 내 배에서 꾸미기로 연결한다.",
+              "entry": ["SP-1", "SP-2", "SP-5"],
+              "next": ["RT-4", "RT-5", "RT-6"],
+              "states": ["보유 없음", "현재 착용", "배 단계별"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-shared-goods": [
+            {
+              "id": "SP-3",
+              "title": "섬·건물 테마 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "shared",
+              "change": "이동",
+              "purpose": "섬 테마와 시설별 외양을 구분한다. 일반 주민은 미리보기·관심 표시, 방장은 공동 구매·적용한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-8"],
+              "states": ["섬 외양", "건물별", "보유", "관심 표시"],
+              "source": ["D4", "D7"]
+            },
+            {
+              "id": "SP-5",
+              "title": "상품 상세·미리보기",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "개인/섬 소유·가격·적용 대상·지원 배 단계를 표시한다. 상점 개인 미리보기는 착용 확정이 아니다.",
+              "entry": ["SP-2", "SP-3", "SP-4"],
+              "next": ["SP-6", "SP-7", "SP-8"],
+              "states": [
+                "본인 미리보기",
+                "일반 주민 구매불가",
+                "미지원",
+                "보유 중"
+              ],
+              "source": ["D7"]
+            },
+            {
+              "id": "SP-6",
+              "title": "구매 확인·결과",
+              "domain": "SP",
+              "kind": "시트",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "정확한 지갑·차감액·잔액·소유권을 확인해 한 번 구매한다. 개인은 내 배로, 공동 외양은 보유목록으로 연결한다.",
+              "entry": ["SP-5", "SP-9"],
+              "next": ["RT-4", "RT-6", "SP-8", "SP-10"],
+              "states": ["취소", "잔액 변경", "중복 구매", "구매 완료"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-48": [
+            {
+              "id": "SP-3",
+              "title": "섬·건물 테마 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "shared",
+              "change": "이동",
+              "purpose": "섬 테마와 시설별 외양을 구분한다. 일반 주민은 미리보기·관심 표시, 방장은 공동 구매·적용한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-8"],
+              "states": ["섬 외양", "건물별", "보유", "관심 표시"],
+              "source": ["D4", "D7"]
+            }
+          ],
+          "fn-field-49": [
+            {
+              "id": "SP-3",
+              "title": "섬·건물 테마 목록",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "shared",
+              "change": "이동",
+              "purpose": "섬 테마와 시설별 외양을 구분한다. 일반 주민은 미리보기·관심 표시, 방장은 공동 구매·적용한다.",
+              "entry": ["SP-1"],
+              "next": ["SP-5", "SP-8"],
+              "states": ["섬 외양", "건물별", "보유", "관심 표시"],
+              "source": ["D4", "D7"]
+            }
+          ],
+          "fn-shared-owned": [
+            {
+              "id": "SP-8",
+              "title": "섬 보유품·공동 외양 적용",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "shared",
+              "change": "신규",
+              "purpose": "구매한 섬·건물 테마를 적용·해제·기본값 복원한다. 구매한 소리는 꽃나팔 방송기에서 재생하도록 연결한다.",
+              "entry": ["SP-1", "SP-3", "SP-4", "SP-6"],
+              "next": ["SH-7", "GR-1", "SP-1"],
+              "states": [
+                "미리보기",
+                "공동 적용",
+                "집중 중 외양 지연",
+                "기본 복원"
+              ],
+              "source": ["D4", "D7"]
+            },
+            {
+              "id": "SH-7",
+              "title": "공동 외양 적용 확인",
+              "domain": "SYS",
+              "kind": "시트",
+              "gate": "shop",
+              "role": "host",
+              "change": "신규",
+              "purpose": "적용 대상 섬·시설과 새 테마를 확인한다. 개인 기기 미리보기를 공통 상태로 확정하며 오디오는 바꾸지 않는다.",
+              "entry": ["SP-8"],
+              "next": ["SP-8", "PL-1"],
+              "states": ["취소", "권한 변경", "적용", "집중 화면 반영 대기"],
+              "source": ["D7"]
+            }
+          ],
+          "SP-4": [
+            {
+              "id": "SP-5",
+              "title": "상품 상세·미리보기",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "개인/섬 소유·가격·적용 대상·지원 배 단계를 표시한다. 상점 개인 미리보기는 착용 확정이 아니다.",
+              "entry": ["SP-2", "SP-3", "SP-4"],
+              "next": ["SP-6", "SP-7", "SP-8"],
+              "states": [
+                "본인 미리보기",
+                "일반 주민 구매불가",
+                "미지원",
+                "보유 중"
+              ],
+              "source": ["D7"]
+            },
+            {
+              "id": "SP-6",
+              "title": "구매 확인·결과",
+              "domain": "SP",
+              "kind": "시트",
+              "gate": "shop",
+              "role": "all",
+              "change": "신규",
+              "purpose": "정확한 지갑·차감액·잔액·소유권을 확인해 한 번 구매한다. 개인은 내 배로, 공동 외양은 보유목록으로 연결한다.",
+              "entry": ["SP-5", "SP-9"],
+              "next": ["RT-4", "RT-6", "SP-8", "SP-10"],
+              "states": ["취소", "잔액 변경", "중복 구매", "구매 완료"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-50": [],
+          "fn-field-51": [],
+          "fn-orders": [
+            {
+              "id": "SP-10",
+              "title": "구매 내역",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "본인 구매 내역과 현재 섬의 공동 구매 내역을 구분한다. 다른 주민의 개인 지갑은 공개하지 않는다.",
+              "entry": ["SP-1", "SP-6"],
+              "next": ["SP-1", "VH-4"],
+              "states": ["개인 내역", "공동 내역", "조회 실패"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-52": [
+            {
+              "id": "SP-10",
+              "title": "구매 내역",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "본인 구매 내역과 현재 섬의 공동 구매 내역을 구분한다. 다른 주민의 개인 지갑은 공개하지 않는다.",
+              "entry": ["SP-1", "SP-6"],
+              "next": ["SP-1", "VH-4"],
+              "states": ["개인 내역", "공동 내역", "조회 실패"],
+              "source": ["D7"]
+            }
+          ],
+          "fn-field-53": [
+            {
+              "id": "SP-10",
+              "title": "구매 내역",
+              "domain": "SP",
+              "kind": "화면",
+              "gate": "shop",
+              "role": "resident",
+              "change": "신규",
+              "purpose": "본인 구매 내역과 현재 섬의 공동 구매 내역을 구분한다. 다른 주민의 개인 지갑은 공개하지 않는다.",
+              "entry": ["SP-1", "SP-6"],
+              "next": ["SP-1", "VH-4"],
+              "states": ["개인 내역", "공동 내역", "조회 실패"],
+              "source": ["D7"]
+            }
+          ],
+          "GR-1": [],
+          "fn-field-54": [],
+          "fn-field-55": [],
+          "start": [],
+          "ON-2": [
+            {
+              "id": "ON-1",
+              "title": "시작·자동 로그인",
+              "domain": "ON",
+              "kind": "화면",
+              "gate": "always",
+              "role": "all",
+              "change": "유지",
+              "purpose": "인증과 기존 집중 세션을 확인하고 첫 진입을 분기한다.",
+              "entry": ["앱 실행"],
+              "next": ["ON-2", "ON-3", "ON-4", "ON-5", "PL-1", "SYS-3"],
+              "states": [
+                "자동 로그인",
+                "인증 만료",
+                "복원할 세션",
+                "실패 재시도"
+              ],
+              "source": ["OLD", "D4"]
+            },
+            {
+              "id": "ON-3",
+              "title": "기존 사용자 전환 안내",
+              "domain": "ON",
+              "kind": "화면",
+              "gate": "always",
+              "role": "all",
+              "change": "수정",
+              "purpose": "기존 계정에 새 해금·재화·배 구조를 안내한다. 기존 재화와 캐릭터의 이전 값은 미정이다.",
+              "entry": ["ON-1", "ON-2"],
+              "next": ["ON-4", "ON-5", "PL-1"],
+              "states": ["최초 전환", "이미 확인", "승계 정책 미정"],
+              "source": ["OLD", "D4", "D7"]
+            },
+            {
+              "id": "SYS-4",
+              "title": "알림 진입·목적지 분기",
+              "domain": "SYS",
+              "kind": "시스템 흐름",
+              "gate": "always",
+              "role": "resident",
+              "change": "명시화",
+              "purpose": "푸시·딥링크의 목적지를 찾되 인증·소속·해금·권한을 재검사한다. 알림으로 이동 잠금을 우회하지 않는다.",
+              "entry": ["푸시", "앱 링크"],
+              "next": [
+                "PO-1",
+                "FO-1",
+                "BD-3",
+                "OB-1",
+                "VH-3",
+                "ON-5b",
+                "SYS-5",
+                "SYS-6"
+              ],
+              "states": ["인증 만료", "목표 삭제", "미해금", "소속 상실"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "ON-4": [],
+          "ON-5": [
+            {
+              "id": "ON-6",
+              "title": "입항 연출",
+              "domain": "ON",
+              "kind": "전환 화면",
+              "gate": "always",
+              "role": "all",
+              "change": "수정",
+              "purpose": "확정된 목적지로 도착해 같은 섬 홈으로 이어진다. 첫 뗏목 또는 보유 배 외양을 표현한다.",
+              "entry": ["ON-5a", "ON-5b", "HB-4"],
+              "next": ["PL-1"],
+              "states": ["스킵 가능", "목적지 권한 재확인", "도착 실패"],
+              "source": ["OLD", "D7"]
+            },
+            {
+              "id": "SYS-6",
+              "title": "소속 상실·재가입 분기",
+              "domain": "SYS",
+              "kind": "시스템 흐름",
+              "gate": "always",
+              "role": "all",
+              "change": "신규",
+              "purpose": "탈퇴·강퇴·섬 종료 뒤 접근할 수 없는 홈에서 빠져나와 첫 소속 선택으로 연결한다. 기존 자산과 과거 기록은 별도로 보존한다.",
+              "entry": ["SYS-4", "HB-4", "SH-4", "ON-1"],
+              "next": ["ON-5", "ON-2"],
+              "states": ["탈퇴", "강퇴", "섬 종료", "이동 예외 검토"],
+              "source": ["OLD", "D4"]
+            }
+          ],
+          "ON-5a": [],
+          "ON-5b": []
+        },
+        "supportOwners": {
+          "ON-2": ["ON-2"],
+          "ON-4": ["ON-4"],
+          "ON-5": ["ON-5"],
+          "ON-5a": ["ON-5a"],
+          "ON-5b": ["ON-5b"],
+          "PL-1": ["PL-1"],
+          "RT-1": ["RT-1"],
+          "RT-2": ["fn-profile", "fn-field-1", "fn-field-2", "fn-field-3"],
+          "RT-3": [
+            "fn-settings",
+            "fn-field-4",
+            "fn-field-5",
+            "fn-field-6",
+            "fn-field-7"
+          ],
+          "RT-4": ["fn-owned"],
+          "RT-5": ["fn-clothes", "fn-field-8", "fn-field-9"],
+          "RT-6": ["fn-boat-style", "fn-field-10", "fn-field-11"],
+          "FO-1": ["FO-1"],
+          "FO-2": ["FO-2"],
+          "FO-3": ["FO-3"],
+          "FO-5": ["FO-5"],
+          "VH-1": ["VH-1"],
+          "VH-2": ["fn-stats", "fn-field-22", "fn-field-23", "fn-field-24"],
+          "VH-3": [
+            "fn-island-manage",
+            "fn-field-25",
+            "fn-field-26",
+            "fn-field-27",
+            "fn-field-28"
+          ],
+          "VH-4": ["fn-resources", "fn-field-29", "fn-field-30"],
+          "VH-5": ["VH-5"],
+          "BD-1": ["BD-1"],
+          "BD-1a": ["BD-1a"],
+          "BD-2": ["fn-quests", "fn-quest-types", "fn-field-34", "fn-field-35"],
+          "BD-3": ["BD-3"],
+          "BD-4": ["fn-quest-write"],
+          "BD-5": ["BD-5"],
+          "BD-6": ["fn-notice-write"],
+          "OB-0": ["OB-0"],
+          "OB-1": ["OB-1"],
+          "OB-2": ["OB-2"],
+          "HB-1": ["HB-1"],
+          "HB-2": ["HB-2"],
+          "HB-3": ["HB-3"],
+          "PO-1": ["PO-1"],
+          "PO-2": ["PO-2"],
+          "SP-1": ["SP-1"],
+          "SP-2": ["fn-personal-goods", "fn-field-45", "fn-field-46"],
+          "SP-3": ["fn-shared-goods", "fn-field-48", "fn-field-49"],
+          "SP-4": ["SP-4"],
+          "SP-7": ["fn-personal-owned"],
+          "SP-8": ["fn-shared-owned"],
+          "SP-9": ["SP-9"],
+          "SP-10": ["fn-orders", "fn-field-52", "fn-field-53"],
+          "GR-1": ["GR-1"],
+          "GR-2": ["GR-2"],
+          "fn-field-1": ["fn-field-1"],
+          "fn-field-2": ["fn-field-2"],
+          "fn-field-3": ["fn-field-3"],
+          "fn-profile": ["fn-profile"],
+          "fn-field-4": ["fn-field-4"],
+          "fn-field-5": ["fn-field-5"],
+          "fn-field-6": ["fn-field-6"],
+          "fn-field-7": ["fn-field-7"],
+          "fn-settings": ["fn-settings"],
+          "fn-field-8": ["fn-field-8"],
+          "fn-field-9": ["fn-field-9"],
+          "fn-clothes": ["fn-clothes"],
+          "fn-field-10": ["fn-field-10"],
+          "fn-field-11": ["fn-field-11"],
+          "fn-boat-style": ["fn-boat-style"],
+          "fn-owned": ["fn-owned"],
+          "fn-field-12": ["fn-field-12"],
+          "fn-field-13": ["fn-field-13"],
+          "fn-timer": ["fn-timer"],
+          "fn-field-14": ["fn-field-14"],
+          "fn-field-15": ["fn-field-15"],
+          "fn-field-16": ["fn-field-16"],
+          "fn-field-17": ["fn-field-17"],
+          "fn-field-18": ["fn-field-18"],
+          "fn-emotes": ["fn-emotes"],
+          "fn-pause": ["fn-pause"],
+          "fn-end": ["fn-end"],
+          "fn-field-19": ["fn-field-19"],
+          "fn-field-20": ["fn-field-20"],
+          "fn-field-21": ["fn-field-21"],
+          "fn-camp-rest": ["fn-camp-rest"],
+          "fn-field-22": ["fn-field-22"],
+          "fn-field-23": ["fn-field-23"],
+          "fn-field-24": ["fn-field-24"],
+          "fn-stats": ["fn-stats"],
+          "fn-field-25": ["fn-field-25"],
+          "fn-field-26": ["fn-field-26"],
+          "fn-field-27": ["fn-field-27"],
+          "fn-field-28": ["fn-field-28"],
+          "fn-island-manage": ["fn-island-manage"],
+          "fn-field-29": ["fn-field-29"],
+          "fn-field-30": ["fn-field-30"],
+          "fn-resources": ["fn-resources"],
+          "fn-field-31": ["fn-field-31"],
+          "fn-gram-build": ["fn-gram-build"],
+          "fn-field-32": ["fn-field-32"],
+          "fn-field-33": ["fn-field-33"],
+          "fn-notice-write": ["fn-notice-write"],
+          "fn-notices": ["fn-notices"],
+          "fn-field-34": ["fn-field-34"],
+          "fn-field-35": ["fn-field-35"],
+          "fn-quest-types": ["fn-quest-types"],
+          "fn-field-36": ["fn-field-36"],
+          "fn-quest-write": ["fn-quest-write"],
+          "fn-quests": ["fn-quests"],
+          "fn-rankings": ["fn-rankings"],
+          "fn-field-37": ["fn-field-37"],
+          "fn-field-38": ["fn-field-38"],
+          "fn-field-39": ["fn-field-39"],
+          "fn-field-40": ["fn-field-40"],
+          "fn-travel": ["fn-travel"],
+          "fn-field-41": ["fn-field-41"],
+          "fn-field-42": ["fn-field-42"],
+          "fn-field-43": ["fn-field-43"],
+          "fn-field-44": ["fn-field-44"],
+          "fn-group-letters": ["fn-group-letters"],
+          "fn-personal-balance": ["fn-personal-balance"],
+          "fn-village-balance": ["fn-village-balance"],
+          "fn-wallets": ["fn-wallets"],
+          "fn-field-45": ["fn-field-45"],
+          "fn-field-46": ["fn-field-46"],
+          "fn-field-47": ["fn-field-47"],
+          "fn-personal-owned": ["fn-personal-owned"],
+          "fn-personal-goods": ["fn-personal-goods"],
+          "fn-field-48": ["fn-field-48"],
+          "fn-field-49": ["fn-field-49"],
+          "fn-shared-owned": ["fn-shared-owned"],
+          "fn-shared-goods": ["fn-shared-goods"],
+          "fn-field-50": ["fn-field-50"],
+          "fn-field-51": ["fn-field-51"],
+          "fn-field-52": ["fn-field-52"],
+          "fn-field-53": ["fn-field-53"],
+          "fn-orders": ["fn-orders"],
+          "fn-field-54": ["fn-field-54"],
+          "fn-field-55": ["fn-field-55"],
+          "ON-1": ["ON-2"],
+          "ON-3": ["ON-2"],
+          "ON-6": ["ON-5"],
+          "PL-2": ["PL-1"],
+          "BL-1": ["PL-1"],
+          "BL-2": ["PL-1"],
+          "BL-3": ["VH-5"],
+          "FO-4": ["FO-2"],
+          "VH-6": ["VH-5"],
+          "SP-0": ["SP-1"],
+          "SP-5": ["fn-personal-goods"],
+          "SP-6": ["fn-personal-goods"],
+          "HB-4": ["fn-travel"],
+          "SYS-1": ["FO-1"],
+          "SYS-2": ["BD-1a"],
+          "SYS-3": ["FO-2"],
+          "SYS-4": ["ON-2"],
+          "SYS-5": ["PL-1"],
+          "SYS-6": ["ON-5"],
+          "SH-1": ["FO-2"],
+          "SH-2": ["fn-island-manage"],
+          "SH-3": ["fn-island-manage"],
+          "SH-4": ["fn-island-manage"],
+          "SH-5": ["fn-island-manage"],
+          "SH-6": ["fn-profile"],
+          "SH-7": ["fn-shared-owned"]
+        },
+        "count": 115,
+        "gates": {
+          "always": "처음부터 / 조건부 시스템 진입",
+          "preHall": "마을회관 완성 전",
+          "hall": "마을회관 완성",
+          "preBoard": "마을회관 완성 후 · 게시판 전",
+          "board": "게시판 완성",
+          "tower": "전망대 완성",
+          "rank": "전망대 완성 + 멤버 2인 이상",
+          "mail": "우체국 완성",
+          "shop": "기존 네 시설 + 상점 완성",
+          "gram": "마을회관에서 꽃나팔 방송기 건설 완료"
+        },
+        "roles": {
+          "all": "사용자 / 문맥에 따른 본인 권한",
+          "resident": "주민 열람·개인 행동",
+          "host": "방장만 실행",
+          "shared": "주민 열람 · 방장 구매/수정",
+          "visitor": "방문자 읽기 전용",
+          "listener": "그룹원 누구나 음원 변경 · 방문자는 듣기만 제안"
+        },
+        "sources": [
+          {
+            "id": "D4",
+            "name": "4번 · 함께 도전하고 섬 키우기",
+            "priority": 1,
+            "sha256": "6bbabb91d305e076c817508d462953b6f656c238d395138decbe9cb9f210a980"
+          },
+          {
+            "id": "D7",
+            "name": "7번 · 내 취향은 뗏목에, 우리 살림은 섬에",
+            "priority": 1,
+            "sha256": "8e79e51cd48cb15f48b61b64a6b305f9cf1227b532b830715f454be14db2543a"
+          },
+          {
+            "id": "OLD",
+            "name": "기존 IA · 2026-09-08",
+            "priority": 2,
+            "sha256": "53fa2c85d467ad89932554492ceb7a8159b135fd21763b516a54482e8bd6d8a7"
+          }
+        ]
+      }
+    </script>
+    <script>
+      const D = JSON.parse(document.getElementById("data").textContent),
+        $ = (id) => document.getElementById(id),
+        NS = "http://www.w3.org/2000/svg";
+      const T = {},
+        parent = {};
+      function index(n, p) {
+        T[n.id] = n;
+        if (p) parent[n.id] = p;
+        for (const c of n.children) index(c, n.id);
+      }
+      index(D.tree);
+      index(D.onboarding);
+      const names = Object.fromEntries(
+        Object.values(T).map((n) => [n.id, n.label]),
+      );
+      const gate = {
+        "RT-1": "개인 설정 · 구매한 보유품",
+        "VH-1": "통계 · 섬 관리 · 건설",
+        "BD-1": "공지 · 퀘스트",
+        "SP-1": "두 잔액 · 개인/공동 상품",
+        "OB-0": "랭킹 · 다른 섬 탐색",
+        "GR-1": "같은 섬의 공동 재생",
+        focus: "집중 설정 · 진행 · 결과",
+        start: "가입 · 초기 설정 흐름",
+      };
+      let expanded = new Set([
+          "root",
+          "PL-1",
+          ...T["PL-1"].children.map((n) => n.id),
+        ]),
+        scope = "root",
+        selected = null,
+        coords = {},
+        scale = 1,
+        tx = 0,
+        ty = 0,
+        extent = { w: 1000, h: 800 },
+        mode = "overview";
+      const W = 215,
+        H = 40,
+        DX = 285,
+        GAP = 55;
+      function el(tag, attrs = {}, text) {
+        const e = document.createElementNS(NS, tag);
+        for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+        if (text !== undefined) e.textContent = text;
+        return e;
+      }
+      function children(n) {
+        return expanded.has(n.id) ? n.children : [];
+      }
+      function render(fit = true) {
+        coords = {};
+        let leaf = 0;
+        const visible = [];
+        const balanced =
+          scope === "root" && expanded.has("root") && expanded.has("PL-1");
+        function subtree(n, x, top) {
+          let cursor = top;
+          function walk(t, depth) {
+            const cc = children(t);
+            let y;
+            if (cc.length) {
+              const ys = cc.map((c) => walk(c, depth + 1));
+              y = (ys[0] + ys.at(-1)) / 2;
+            } else {
+              y = cursor;
+              cursor += 55;
+            }
+            coords[t.id] = { x: x + depth * DX, y };
+            visible.push(t);
+            return y;
+          }
+          walk(n, 0);
+          return cursor + 30;
+        }
+        let columns = [];
+        if (balanced) {
+          const buckets = [
+            ["RT-1", "focus", "FO-5"],
+            ["VH-1", "BD-1", "PO-1"],
+            ["OB-0", "SP-1", "GR-1"],
+          ];
+          let x = 70;
+          for (const ids of buckets) {
+            let y = 220;
+            const before = visible.length;
+            for (const id of ids) y = subtree(T[id], x, y);
+            const maxX = Math.max(
+              ...visible.slice(before).map((n) => coords[n.id].x + W),
+            );
+            columns.push({ x, ids });
+            x = maxX + 100;
+          }
+          const mid = (70 + x - 100) / 2;
+          coords.root = { x: mid - W / 2, y: 20 };
+          coords["PL-1"] = { x: mid - W / 2, y: 110 };
+          visible.push(T.root, T["PL-1"]);
+        } else subtree(T[scope], 40, 40);
+        extent = {
+          w: Math.max(...Object.values(coords).map((c) => c.x)) + W + 40,
+          h: Math.max(...Object.values(coords).map((c) => c.y)) + H + 40,
+        };
+        const world = $("world");
+        world.replaceChildren();
+        for (const n of visible) {
+          const cc = children(n);
+          if (!cc.length) continue;
+          const p = coords[n.id];
+          if (balanced && n.id === "root") {
+            world.append(
+              el("path", {
+                d: `M${p.x + W / 2},${p.y + H}V${coords["PL-1"].y - 3}`,
+                class: "edge",
+                "marker-end": "url(#arrow)",
+              }),
+            );
+            continue;
+          }
+          if (balanced && n.id === "PL-1") {
+            const cx = p.x + W / 2;
+            world.append(
+              el("path", { d: `M${cx},${p.y + H}V190`, class: "edge" }),
+            );
+            world.append(
+              el("path", {
+                d: `M${columns[0].x - 30},190H${columns.at(-1).x - 30}`,
+                class: "edge",
+              }),
+            );
+            for (const col of columns) {
+              const bus = col.x - 30,
+                max = Math.max(...col.ids.map((id) => coords[id].y + H / 2));
+              world.append(
+                el("path", { d: `M${bus},190V${max}`, class: "edge" }),
+              );
+              for (const id of col.ids) {
+                const q = coords[id];
+                world.append(
+                  el("path", {
+                    d: `M${bus},${q.y + H / 2}H${q.x - 3}`,
+                    class: "edge",
+                    "marker-end": "url(#arrow)",
+                  }),
+                );
+              }
+            }
+            continue;
+          }
+          const start = p.x + W,
+            y = p.y + H / 2,
+            bus = start + 35;
+          world.append(
+            el("path", { d: `M${start},${y}H${bus}`, class: "edge" }),
+          );
+          const ys = cc.map((c) => coords[c.id].y + H / 2);
+          world.append(
+            el("path", {
+              d: `M${bus},${Math.min(y, ...ys)}V${Math.max(y, ...ys)}`,
+              class: "edge",
+            }),
+          );
+          for (const c of cc) {
+            const q = coords[c.id];
+            world.append(
+              el("path", {
+                d: `M${bus},${q.y + H / 2}H${q.x - 3}`,
+                class: "edge",
+                "marker-end": "url(#arrow)",
+              }),
+            );
+          }
+        }
+        for (const n of visible) {
+          const p = coords[n.id],
+            g = el("g", {
+              class:
+                "node" +
+                (n.group ? " group" : "") +
+                (n.id === scope ? " root" : "") +
+                (n.id === selected ? " selected" : ""),
+              "data-id": n.id,
+              transform: `translate(${p.x},${p.y})`,
+              tabindex: n.group ? "-1" : "0",
+              role: n.group ? "group" : "button",
+              "aria-label":
+                (names[n.id] || n.label) +
+                (n.children.length ? " 하위 " + n.children.length + "개" : ""),
+            });
+          g.append(
+            el(
+              "title",
+              {},
+              (n.group ? "분류" : D.screens[n.id].kind + " · " + n.id) +
+                " · " +
+                n.label +
+                (D.screens[n.id] ? "\n" + D.screens[n.id].purpose : ""),
+            ),
+          );
+          g.append(el("rect", { width: W, height: H }));
+          const title = names[n.id] || n.label,
+            sub = gate[n.id] || (n.group ? "분류" : D.screens[n.id].kind);
+          g.append(
+            el(
+              "text",
+              {
+                x: 10,
+                y: 17,
+                class: "label",
+                "font-size": title.length > 20 ? "10" : "12",
+              },
+              title,
+            ),
+          );
+          g.append(el("text", { x: 10, y: 31, class: "sub" }, sub));
+          g.addEventListener("click", () => {
+            if (!n.group) inspect(n.id);
+          });
+          g.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (!n.group) inspect(n.id);
+            }
+          });
+          world.append(g);
+        }
+        $("overview").classList.toggle("active", mode === "overview");
+        $("all").classList.toggle("active", mode === "all");
+        $("overview").setAttribute("aria-pressed", mode === "overview");
+        $("all").setAttribute("aria-pressed", mode === "all");
+        if (fit) fitView();
+        else transform();
+      }
+      function transform() {
+        $("world").setAttribute(
+          "transform",
+          `translate(${tx},${ty}) scale(${scale})`,
+        );
+        $("percent").textContent = Math.round(scale * 100) + "%";
+      }
+      function fitView() {
+        const r = $("canvas").getBoundingClientRect();
+        scale = Math.min(
+          1.35,
+          (r.width - 70) / extent.w,
+          (r.height - 90) / extent.h,
+        );
+        tx = (r.width - extent.w * scale) / 2;
+        ty = Math.max(10, (r.height - extent.h * scale) / 2 - 10);
+        transform();
+      }
+      function zoom(f, x, y) {
+        const r = $("canvas").getBoundingClientRect();
+        x ??= r.width / 2;
+        y ??= r.height / 2;
+        const next = Math.min(3, Math.max(0.12, scale * f));
+        tx = x - ((x - tx) * next) / scale;
+        ty = y - ((y - ty) * next) / scale;
+        scale = next;
+        transform();
+      }
+      function esc(s) {
+        return String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
+      function inspect(id) {
+        if (T[id].group) return;
+        selected = id;
+        const s = D.screens[id];
+        $("info").hidden = false;
+        $("info").innerHTML =
+          `<button class="close" aria-label="상세 닫기">×</button><span class="tag">${id} · ${esc(s.kind)}</span><h2>${esc(s.title)}</h2><p>${esc(s.purpose)}</p><h3>해금 조건</h3><p>${esc(D.gates[s.gate])}</p><h3>권한</h3><p>${esc(D.roles[s.role])}</p><h3>화면 상태</h3><p>${s.states.map(esc).join(" · ")}</p><h3>연결 가능한 화면 · 트리 선과 별도</h3><div class="chips">${s.next
+            .filter((i) => T[i])
+            .map(
+              (i) =>
+                `<button data-go="${i}">${i} ${esc(D.screens[i].title)}</button>`,
+            )
+            .join(
+              "",
+            )}</div>${(D.support[id] || []).length ? "<h3>이 화면에서 필요한 동작</h3>" + D.support[id].map((x) => "<p><strong>" + esc(x.title) + "</strong><br>" + esc(x.purpose) + "</p>").join("") : ""}`;
+        $("info").querySelector(".close").onclick = () => {
+          $("info").hidden = true;
+          selected = null;
+          render(false);
+        };
+        $("info")
+          .querySelectorAll("[data-go]")
+          .forEach((b) => (b.onclick = () => reveal(b.dataset.go)));
+        history.replaceState(
+          null,
+          "",
+          "#focus=" +
+            encodeURIComponent(
+              id === "PL-1" ? "plaza" : id.toLowerCase().replace("-", ""),
+            ),
+        );
+        render(false);
+      }
+      function setMode(next) {
+        mode = next;
+        expanded =
+          next === "all"
+            ? new Set(Object.keys(T))
+            : new Set(["root", "PL-1", ...T["PL-1"].children.map((n) => n.id)]);
+        if (scope === "start") {
+          expanded.add("start");
+        }
+        selected = null;
+        $("info").hidden = true;
+        render();
+      }
+      function reveal(id) {
+        if (!T[id]) id = (D.supportOwners[id] || [])[0];
+        if (!id) return;
+        let branch = id;
+        while (parent[branch]) branch = parent[branch];
+        scope = branch === "start" ? "start" : "root";
+        render();
+        inspect(id);
+        const r = $("canvas").getBoundingClientRect();
+        let anchor = id;
+        while (!coords[anchor] && parent[anchor]) anchor = parent[anchor];
+        const c = coords[anchor];
+        if (c) {
+          scale = 1;
+          tx = Math.max(20, (r.width - 360) / 2) - (c.x + W / 2) * scale;
+          ty = r.height / 2 - (c.y + H / 2) * scale;
+          transform();
+        }
+      }
+      $("overview").onclick = () => {
+        scope = "root";
+        setMode("overview");
+      };
+      $("all").onclick = () => {
+        scope = "root";
+        setMode("all");
+      };
+      $("plus").onclick = () => zoom(1.25);
+      $("minus").onclick = () => zoom(0.8);
+      let drag = null;
+      $("diagram").addEventListener("pointerdown", (e) => {
+        if (e.target.closest(".node")) return;
+        drag = { x: e.clientX, y: e.clientY, tx, ty };
+        $("diagram").setPointerCapture(e.pointerId);
+      });
+      $("diagram").addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        tx = drag.tx + e.clientX - drag.x;
+        ty = drag.ty + e.clientY - drag.y;
+        transform();
+      });
+      $("diagram").addEventListener("pointerup", () => (drag = null));
+      $("diagram").addEventListener("pointercancel", () => (drag = null));
+      $("canvas").addEventListener(
+        "wheel",
+        (e) => {
+          if (e.target.closest(".info,.results")) return;
+          e.preventDefault();
+          const r = $("canvas").getBoundingClientRect();
+          zoom(
+            Math.exp(-e.deltaY * 0.0015),
+            e.clientX - r.left,
+            e.clientY - r.top,
+          );
+        },
+        { passive: false },
+      );
+      window.addEventListener("resize", fitView);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          $("info").hidden = true;
+        }
+        if (e.target.matches("input,select")) return;
+        if (e.key === "+") zoom(1.25);
+        if (e.key === "-") zoom(0.8);
+        if (e.key === "0") fitView();
+      });
+      $("export").onclick = () => {
+        const svg = $("diagram").cloneNode(true);
+        svg.setAttribute("xmlns", NS);
+        svg.setAttribute("viewBox", `0 0 ${extent.w} ${extent.h}`);
+        svg.setAttribute("width", extent.w);
+        svg.setAttribute("height", extent.h);
+        svg.querySelector("#world").removeAttribute("transform");
+        const style = el(
+          "style",
+          {},
+          document.querySelector("style").textContent,
+        );
+        svg.prepend(style);
+        const blob = new Blob([new XMLSerializer().serializeToString(svg)], {
+          type: "image/svg+xml",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "IA-R61-tree.svg";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      };
+      function restoreFromHash() {
+        const focus = new URLSearchParams(location.hash.slice(1)).get("focus");
+        if (focus) {
+          const id = Object.keys(D.screens).find(
+            (id) =>
+              (id === "PL-1" ? "plaza" : id.toLowerCase().replace("-", "")) ===
+              focus,
+          );
+          if (id) reveal(id);
+        }
+      }
+      render();
+      window.addEventListener("hashchange", restoreFromHash);
+      restoreFromHash();
+    </script>
+  </body>
+</html>

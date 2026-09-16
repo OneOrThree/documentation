@@ -1,0 +1,159 @@
+---
+title: "느리니까 분리하자는 근거가 실측에서 사라졌다 — 알림 서버 분리 6일"
+summary: "알림 서버 분리(GROMO-1659)를 '느리니까'로 정당화하려고 Datadog을 실측했더니 팬아웃 최장 53.2s(384명)·큐잉 0.44s·에러 0이라 성능 근거가 없어졌고, 가시성·문구 하드코딩 16곳·다국어·리포지토리 18개 직결로 근거를 바꿨습니다. 브로커는 SQS 추천을 뒤집어 Kafka 도커로, 구현은 Orca 워커들이 outbox V51부터 깔았고, PR #745는 리뷰가 잠금 결함 4종을 잡은 뒤 Codex 무인 루프 21라운드 끝에 👍를 받아 머지됐습니다. squash 머지는 뒤의 스택 PR(#747~#753)을 깨뜨렸습니다."
+status: "완료"
+date: "2026-09-13"
+author: "조재영"
+order: 66
+keywords:
+  - 알림 서버 분리
+  - Datadog 실측
+  - 브로커 선정
+  - outbox
+  - 잠금 순서
+  - Codex 리뷰 루프
+  - squash 머지
+related:
+  - label: "발송 후 기록에서 사건 선점으로 — 알림 파이프라인 재편"
+    href: "/research/notification-pipeline"
+  - label: "ADR-003 — 커밋된 사건의 재전달은 같은 트랜잭션의 outbox와 Kafka relay로"
+    href: "/adr/adr-003-kafka-outbox"
+  - label: "ADR-008 — 알림은 사건 선점 후 발송으로 한다"
+    href: "/adr/adr-008-notification-claim-first"
+  - label: "크론 11종이 한 스레드 풀에서 — 배치 처리의 함정들"
+    href: "/research/batch-traps"
+---
+
+알림을 `server/notification` 으로 떼어내는 티켓(GROMO-1659, 선행 1658 브로커)은 09-08 아침에 "푸시 전용 스프링을 따로 만들까"로 시작해 09-13 낮에 PR #745 머지로 끝났습니다. 결론부터 적으면 셋입니다. **분리의 근거는 성능이 아니었습니다** — 실측이 그 가설을 지웠습니다. **브로커는 추천(SQS)과 결정(Kafka 도커)이 달랐고**, 그 이유를 조건 3개로 남겼습니다. 그리고 **구현 결함은 거의 전부 잠금의 범위와 순서**에서 나왔고, 리뷰 루프가 그것을 잡았습니다. [outbox 계약 자체](/adr/adr-003-kafka-outbox)는 ADR-003이 다루므로 여기서는 실측·결정 경위·구현 결함에 집중합니다.
+
+| 날짜 | 일어난 일 | 뒤집힌 것 |
+| --- | --- | --- |
+| 09-08 | Datadog 실측 → PRD·policy(D1~D20)·HLD §1~§9 하루에 작성 | 성능 근거 폐기 · 순위 추월 알림 폐기 · 콘솔 OAuth → 비밀번호 슬롯(D18) |
+| 09-09 | 브로커 비교 → Kafka 도커(KRaft 단일 노드) 확정 | SQS 추천 철회 · D19 "HTTP 입구로 시작" 철회 · 착수 보류 |
+| 09-11 | Orca 워커 C1·C2·N2·N3·리뷰·통합계획·수정 | "AccessTokenVerifier 가 상위집합" 판정 오류 |
+| 09-12 | PR #745(471파일·23커밋) 리뷰 R5~R10 | 잠금 결함 4종 · 앱 변경 전량 철회 |
+| 09-13 | Codex 무인 루프 r2~r22 → 👍 → squash 머지 | 스택 PR #747~#753 파손 |
+
+## 1. 09-08 — "느리니까"를 증명하려다 근거를 바꿨다
+
+분리를 정당화하는 첫 문장은 "크론이 느리다"였습니다. 그래서 Datadog APM 의 `scheduled.call` 스팬(dd-java-agent 자동 계측, 샘플 20%)으로 prod 7일(09-01~09-08)을 셌습니다.
+
+| 잡 | 소요 | 비고 |
+| --- | --- | --- |
+| `sendFinalDeadlineReminders` (일 22:00) | **53.2s** | 대상 384명 → 139ms/명 |
+| `sendWeeklyResultNotifications` (월 07:00) | **50.3s** | 대상 384명 → 131ms/명 |
+| `sendRankOvertakeNotifications` (매일 19:00) | max **46.0s** | 다른 날은 0.34s, "발송 대상 없음" — 계산 비용 |
+| `sendInactiveReturnNotifications` (매일 10:00) | 7.5s | |
+| 매 5분 잡 6종 | avg 200~500ms | `BotScheduler` 가 avg 498ms 로 제일 무거움 |
+| `rescanBetEventNotifications` (매 15분) | 672회 **전부 대상 0건** | 15분마다 빈손으로 도는 잡 |
+
+큐잉은 일 22:00 KST 버스트(공용 풀 수요 8이 스레드 6을 넘는 틱)에서 최대 **0.44s**, 크론 에러는 dev·prod 7일 **0건**이었습니다. 팬아웃 53s 는 6스레드 중 1개를 1분 점유할 뿐입니다. 이 숫자로는 "느리니까 분리"를 쓸 수 없었습니다. 그래서 근거를 실측이 뒷받침하는 네 가지로 바꿨습니다.
+
+- **가시성.** 크론 23잡 / 26개 표현식이 5파일에 흩어져 있고, 일 09:00 에는 13개가 동시에 발화합니다. 잡 시작·종료 표준 로그가 없고 `elapsedMillis` 는 3개 잡에만 있어서, 대시보드가 읽을 수 있는 건 샘플 20% 스팬뿐입니다.
+- **문구.** 푸시 문구 생성 지점 23곳 중 **16곳이 문자열 `+` 연결**입니다. 어순이 코드에 박혀 영어·일본어로 재배열이 안 됩니다.
+- **다국어.** 앱은 4개 언어(`ko` `en` `ja` `zh-Hant`)를 지원하는데 서버 `users` 에는 locale 컬럼이 **없습니다**(V1~V49 에 0건).
+- **구도.** `notification` 패키지가 **리포지토리 18개 / 8도메인**에 직결돼 있고, data-api 는 DB 서빙만 남긴다는 TO-BE 와 어긋납니다.
+
+같은 실측이 결정 두 개를 냈습니다. **순위 추월 알림(RankOvertake)은 폐기** — 매일 19:00 에 46s 를 스캔하고 prod 실발송은 0건이었습니다. 18개 리포지토리는 알림 소유 3·도메인 15 로 갈라 알림 서버는 도메인 테이블 직결 0, 판정 재료는 Business API 가 발행하는 이벤트와 스냅샷으로 받기로 했습니다. 이 결정 조건표(팬아웃 5분 초과·대상 2,000명 초과·큐잉 5s 초과·주 1건 에러면 재검토)는 `doc/architecture/notification-cron-measurement-2026-09-08.md` 에 그대로 남겼습니다.
+
+### 코드 발견이 설계를 바꾼 자리
+
+HLD §5 스키마(14테이블, 원칙 "큐 = 이력", V45 `notification_sent_logs` 일반화)와 §6 템플릿 규칙(ICU MessageFormat, 폴백 ko, 변환표 23곳 → 22 kind)을 쓰던 중 하나를 더 찾았습니다. **티어명 5종("뽀시래기"…"집중 정복자")과 `formatShortfall`("2시간 30분")도 Java 에 박혀 있었습니다.** 그래서 규칙 하나가 핵심이 됐습니다 — **params 는 원시값(초·티어 레벨·개수)만 담고, 포맷은 렌더러가 locale 별로 한다.** 이 규칙이 없으면 템플릿을 콘솔로 옮겨도 번역할 수 없는 문자열이 봉투에 실립니다.
+
+### 콘솔 인증 D18 — "하드코딩"을 env 로 바꾼 한 가지
+
+콘솔은 link 대시보드에 동거시키기로 했고(D17), 처음 설계는 NextAuth Google + 허용 목록이었습니다. 저는 팀 3명 내부 콘솔에 개인 인증은 과하니 **비밀번호 3개를 하드코딩**하자고 했습니다. 받아들여진 것은 구조(1차 입장 비밀번호 3개 = 팀원별 슬롯이 actor 기록을 대신, 알림 **쓰기**에 2차 비밀번호 1개 10분 유효, 읽기는 1차만)이고, 바뀐 것은 저장 위치 하나입니다 — **코드가 아니라 env(해시)**. 코드에 박으면 깃에 남고, 별도 레포라도 한 번 유출되면 회전이 곧 커밋입니다. 32자 랜덤·실패 5회/10분 잠금도 같이 붙였습니다. 이 결정은 링크 장부의 Q5("Google + 허용목록")를 뒤집는 것이라 그쪽 §7 에도 후속을 적었습니다.
+
+### D19 와 D20 — 하루 만에 뒤집힌 것과 동결한 것
+
+§9 이행 순서를 쓰려고 compose·gradle·워크플로를 실측하니 `redis|kafka|rabbit|sqs` 가 **0건**이었습니다. 1658(브로커)은 미선정, 1661(Business API)은 미착수. "MQ 선행"을 두면 알림 서버가 두 티켓 뒤에 줄을 섭니다. 그래서 **D19(잠정)** — 이벤트 입구는 브로커 무관 어댑터로 두고 첫 단계는 `POST /internal/events`(HTTP, 서비스 토큰)로 시작. 이 결정은 다음날 저녁 브로커가 확정되면서 뒤집혔습니다(§2).
+
+같은 밤 저는 "기존 리팩토링부터 쳐내는 게 낫지 않냐"고 물었고, 근거가 구체적이라 **D20** 으로 박았습니다. 1656(도메인 방향 확정) PR #721 이 열려 있었고, 알림 서버 P2·P4 가 옮길 리스너·정산·리포지토리 배선이 정확히 1656 이 손대는 자리였으며, `notification` 의 리포지토리 직결이 아직 17개 남아 있었습니다. 레이어가 움직이는 동안 옮기면 두 번 옮깁니다. 알림 서버는 설계 동결, 병행은 P0 `users.locale` 과 1658 브로커 조사뿐. [리팩토링 에픽 1643](/research/backend-layering-refactor)이 그렇게 먼저 갔습니다.
+
+## 2. 09-09 — SQS 를 추천받았고 Kafka 도커로 확정했다
+
+1658 범위 1 의 실측은 이렇습니다.
+
+| 항목 | 실측 |
+| --- | --- |
+| 이벤트 타입 | 6종 (`FriendRequestSent` `FriendRequestAccepted` `GroupChallengeCreated` `GroupBetWon` `GroupBetSessionClosed` `BetResultAcknowledged`) |
+| 발행처 | 8곳 |
+| MQ 로 갈 수 있는 소비자 | 알림 리스너 5개 — 전부 `AFTER_COMMIT + @Async` |
+| **MQ 로 가면 안 되는 소비자** | 2 — `GroupBetEarlySettlementListener`(group 도메인 내부 반응) · `BetResultAckSuppressionListener`(동기·발행 TX 안이어야 함, 1656 에서 못박음) |
+| 인프라 | prod EC2 1대, compose = app·nginx·datadog-agent, **브로커·Redis 0** |
+
+비교표의 추천은 **SQS 표준 큐**였습니다. 근거는 두 행 — 운영 부담 0(관리형), 순서 불필요(알림 5종은 유저별 독립 사건이고 멱등 키로 dedup) — 에 1660 링크 서버(Vercel)와 공유 가능이 더해졌습니다. 그 조건에서 RabbitMQ·Kafka 는 "내가 관리할 것을 하나 더 만드는" 선택이라는 판단이었습니다.
+
+저는 Kafka 를 도커로 올리자고 했고, 조건 3개를 듣고 확정했습니다. ① prod t4g 사양은 실측이 필요하다(SSO 만료로 그날은 못 쟀고, 이틀 뒤 t4g.medium 2vCPU·4GB 로 확인돼 A14 사이즈업 권장이 붙었습니다) ② SQS 에 내장된 retention·재시도·DLQ 를 Spring Kafka `DefaultErrorHandler` + `DeadLetterPublishingRecoverer` 로 우리가 구현한다 ③ Vercel 링크 서버는 EC2 브로커에 붙기 어려우니 브로커를 공유하지 않는다. 추천의 근거였던 "운영 인력 0"은 **감수**로 닫혔고, 얻는 것은 리플레이·스트림·벤더 비종속, 서버 분리 시 소비자를 어디 둬도 같은 클라이언트였습니다. 비교표의 Kafka 열이 MSK(관리형 2~3 브로커) 기준이라 단일 노드 컨테이너는 다른 셈이었다는 것도 이때 적었습니다. 메모리가 문제면 Redpanda 로 이미지만 바꾸는 대안을 남겼습니다.
+
+세 가지가 따라 바뀌었습니다. **D19 는 "브로커 확정 뒤 브로커로 바로"** — HTTP 입구는 폴백·수동 재전송·리컨실용으로만 남고, 1659 P1 은 1658 완료 후입니다. 조건 ③의 문구 "클릭 적재는 HTTP 로 data-api 에" 는 다른 세션이 링크 단방향(link → 코어 금지) 위반이라고 지적해 지웠습니다 — 클릭은 link 가 Neon 에 직접 적재하므로 불필요합니다. 그리고 결정 직후 착수는 보류했습니다. 목표 아키텍처 정본이 다른 세션에서 진행 중이라 그것이 확정될 때까지 data-api 수정 티켓부터 처리하기로 했고, 브랜치 `bfeat/GROMO-1658-kafka-events` 는 커밋 0 으로 남았습니다.
+
+## 3. 09-11 — Orca 워커들이 outbox 기반을 깔았다
+
+착수는 이틀 뒤, 코디네이터가 워커를 dispatch 하는 Orca 멀티에이전트 구조로 갔습니다. `bfeat-GROMO-1659-notification-foundation` 워크스페이스 한 곳에서 워커들이 소유 파일만 만지고 `worker_done` 으로 넘겼습니다.
+
+| 워커 | 만든 것 | 로그가 남긴 결함·판정 |
+| --- | --- | --- |
+| C1 | V51 마이그레이션 4테이블(`event_outbox` `event_outbox_deliveries` `aggregate_versions` `command_idempotency`), `OutboxCommandPort.append` 는 `Propagation.MANDATORY` 로 같은 TX 강제, `allocateVersion` 은 aggregate 행 배타 락, relay 는 선점(TX)→전달(TX 밖)→표시(TX) 3구간 + lease 펜싱, `apache/kafka` KRaft compose 오버레이 | 같은 워크트리에서 소유 아닌 `FilterConfig` 변경으로 `compileTestJava` 가 깨져 escalation |
+| C2 | `server/business-api` 무상태 위성 서비스(소스 74·테스트 18·109파일), 계약 yaml 1,484줄 | 컨테이너 실측에서 **필수 시크릿이 없어도 Spring 이 `${...}` 리터럴을 남기고 부팅 성공** → `RequiredConfig` 로 거절. claim 이 큐 commit 후 202 를 주는데 재개 주체가 없어 영구 대기 → 재개 CLI |
+| N2 | 기존 알림 크론 17 `@Scheduled` 를 지우지 않고 `notification.dispatch.mode` 스위치(LEGACY 또는 OUTBOX)로 출력만 분기, kind 19종(RANK_OVERTAKE·bot 제외), 요청형 5종은 `BEFORE_COMMIT + MANDATORY` 리스너로 AFTER_COMMIT 유실 차단 | eligibility 는 모르는 kind fail-closed |
+| N3 | 알림 서버 콘솔·이관 표면(643/852/757줄), 계약 14 path·18 schema | Docker VM 디스크 포화로 Testcontainers PG 가 exit 1 |
+| 리뷰어 r5 | — | P1: 재개 CLI 가 **성공할 때마다 실패로 집계** — `intent.consume()` 이 `completedByLeaseToken=null` 을 박고 직후 `completeClaimIntent` 의 토큰 비교가 `T.equals(null)` → 409 → `failed++` → 컷오버 gate 통과 불가 |
+| 통합 계획 | main 머지 계획(읽기 전용) | 실제 충돌 8건보다 **충돌 없이 조용히 들어온 5건**(`RequestFilter` `ApiExceptionHandler` `JwtValidator` `business-ci.yml` `docker-compose.business.yml`)이 더 위험하다고 판정 |
+| 수정 워커 | `JwtValidator` 제거 전 두 검증기 대조 | 계획서의 "`AccessTokenVerifier` 가 상위집합"은 틀렸음 — **`exp` 존재 검사가 없어 서명만 맞으면 영구 유효한 AT** 가 성립 |
+
+투영 bootstrap(20:31)에서 못 박은 규칙 하나도 적어 둡니다. 스냅샷의 versionstamp 는 그 유저의 현재 `aggregate_versions.last_version` 이어야 합니다. **0 을 박으면 백로그에 남은 사건(version ≥ 1)이 전부 통과해 최신 스냅샷을 옛 상태로 덮습니다.** 밤의 마지막 발견(23:40)은 반대 방향의 오독이었습니다 — 구 앱도 새 `AuthService` 가 발급한 AT 를 쓰므로 `gen=0` 이 실려 오는데, 옛 조건은 `gen` 유무를 "소유권 프로토콜 지원 여부"로 읽어 구 앱의 신규 등록·FCM 토큰 회전을 전부 거절하고 있었습니다. 판정 기준을 요청의 모양으로 옮겼습니다.
+
+이날의 비용도 남깁니다. `API ENOTFOUND` 로 중단 후 재개 2회, 컴퓨터 sleep 으로 응답 중단 3회, 공유 Docker VM 디스크 포화 1회. 워커 보고는 "재발 시 오류를 그대로 코디네이터에 보고, 새 조사나 계획 승인으로 되돌아가지 마라"는 지시 아래 이어졌습니다.
+
+## 4. 09-12 — PR #745 리뷰가 잡은 것은 전부 잠금이었다
+
+PR #745 는 통합 브랜치 대비 **471파일·23커밋**이었습니다. Codex 리뷰가 하루에 세 차례 라운드(미답변 5 → 10건, 밤에 7건)를 냈고, 워커가 소유 파일만 고쳐 넘기는 방식으로 닫았습니다. 결함은 종류가 하나였습니다 — **잠금의 범위와 순서.**
+
+| # | 자리 | 결함 | 수정 |
+| --- | --- | --- | --- |
+| R5 | `SettingsService.java:108-111` | 설정 GET/PATCH 와 `DispatchService.dispatch()` 가 사용자 구분 없는 `device-ownership` 전역 잠금을 공유 → A 의 FCM 응답이 4초 읽기 제한까지 지연되면 B 의 설정 요청이 Business 3초 deadline 초과 | 사용자별 잠금 분리, Business 설정 33건·Notification 125건 통과 후 approve |
+| R6 | `recordNotificationSettings` | `findById` 로 **락 없이** 읽고 직렬화는 뒤의 `aggregate_versions` FOR UPDATE → 두 요청이 같은 `enabled=true` 를 읽고, 끄기가 먼저 커밋된 뒤 둘째가 version 2 의 "켬" 봉투를 내보내면서 **엔티티 스냅샷이 그대로라 Hibernate 가 UPDATE 를 생략** — 행은 꺼짐, 알림 서버는 켬 | `findByIdForUpdate`(PESSIMISTIC_WRITE) 신설 |
+| R9 | `GroupMember` | `transferOwner`·`updateGroupSettings` 가 잠금 없이 로드한 엔티티의 역할 하나만 고쳐도 **전 컬럼 UPDATE** 가 나가 그 사이 커밋된 `snapshot_version` 이 옛 값으로 되감김 — 링크 서버엔 새 버전, 코어 원장만 뒤로 | `@DynamicUpdate` |
+| R10 | `claimBatch` | (target, aggregate=userId)별 가장 낮은 미전달 하나만 후보로 잡고 고갈 처리가 없어, 깨진 봉투 하나가 그 유저의 **모든** 이벤트(세션 폐기·탈퇴 tombstone 포함)를 무기한 차단 | head-of-line 해소, `UUID.fromString` 이 `"1-1-1-1-1"` 축약형을 받는 것도 8-4-4-4-12 정규식으로 차단 |
+
+R10 의 다른 하나는 `AuthService.refreshToken` 의 **락 선두 순서**였습니다. 첫 구현은 세션 원장 `auth_sessions` 를 `users.refresh_token_hash` 보다 먼저 보되 유저 행 잠금은 뒤에 잡았는데, 조건부 UPDATE 는 술어가 어긋나면 행을 잠그지 않아서 B 가 단일 해시를 가져간 뒤 A 가 회전하는 케이스에선 `users` 를 전혀 안 잡은 채 aggregate → session 을 잡으러 갔습니다. 순서 주석이 그 케이스에서 거짓이었습니다. `findActiveByIdForUpdate` 를 맨 앞에 두어 로그인·갱신·로그아웃·탈퇴 네 경로가 같은 유저 행을 선두에서 잡게 했습니다 — 사이클이 성립하지 못합니다.
+
+저녁의 두 라운드는 "고치면 다른 테스트가 깨지는" 자리였습니다. TOCTOU 를 완전히 닫으려 `transport.send` 를 가로질러 행 잠금을 쥐면 `theExternalSendRunsWithNoTransactionOpen` 이 즉시 깨지고, `registerLocked` 가 행 잠금 전에 전역 advisory 잠금을 잡으니 같은 토큰을 노리는 등록 하나가 뒤의 모든 등록을 막아 이전 P1 두 건으로 회귀합니다. 기존 테스트 둘은 `transport.send` 스텁 안에서 `devices.register` 를 불러 "등록이 발송 lease 를 기다린다" 설계가 같은 스레드 자기 대기가 됩니다. 판단이 갈려 제게 물었고, 발송 임대는 고정 증가가 아니라 **바닥값 120초를 유지하고 기기 수가 많을 때만 늘어나는 max 형태**로 풀었습니다 — 고정 증가면 `LEASE_SECONDS+1` 만 시계를 돌리는 기존 테스트가 깨집니다.
+
+같은 날 제가 뒤집은 것도 있습니다. PR 이 앱 파일(`notificationCommands.ts` 의 `ownershipCritical()` 잠금 등 회귀 10건)까지 건드린 것을 발견하고 **앱 변경을 전부 걷어내라**고 했습니다 — 앱 담당자 영역이고 명시적으로 요청한 적이 없었습니다. 걷어내면서 satellite-ci 가 깨져 스택 PR 5건(#745·#747·#751·#752·#753)이 전부 빨개졌고 그것부터 복구했습니다. 밤에는 `$code-review` 내부 3라운드로 결함 3건을 더 잡아 `f9770aa5a` 를 푸시했지만, 자정까지 GitHub Codex 는 👀 상태였습니다.
+
+## 5. 09-13 — Codex 무인 루프 r2~r22
+
+새벽에 규칙 하나를 먼저 정했습니다. **푸시 전에 4서비스 `norm.sh`(data-api·business-api·notification·realtime 로컬 CI 게이트)·Python 검사 43개·계약·마이그레이션 체크섬·amd64 이미지 빌드를 전부 로컬에서 통과시킨다.** 첫 푸시 `37db435d1` 이 그 규칙으로 나갔고(Data 실패 0, 기존 비활성 테스트 8개), 저는 수동 `@codex review` 대신 푸시가 자동으로 붙이는 리뷰만 기다리라고 바꿨습니다.
+
+그 뒤 약 11.7시간 동안 사람 개입 없이 r2~r22 가 돌았습니다. 라운드마다 지적을 **먼저 실패하는 테스트로** 만들고(red 로그 24건: activation·recipient·logout·legacy-device·confirm·boundary·issue·claim-pair·cli·snapshot·retention·slug·intent·settings·pending·observation·prepare·friend·ack·epoch·business-ack·export) 고친 뒤 위 게이트를 다시 통과시키고 푸시했습니다. `[FIX]` 커밋은 6개입니다.
+
+- 알림 전달 순서와 세션별 삭제 범위 보강
+- 빈 상류 응답의 정상 완료 처리 차단
+- 내구 명령 응답의 양수 버전 검증
+- claim 미완료 카운트의 잘못된 정상화 차단
+- 선택 후보 관측의 매치 시간 예산 보호
+- 사용자 재조정 분리와 공개 배포 설정 검증
+
+12:30 에 `9d426f1b7` 이 Codex 👍를 받았습니다. 로컬 CI·Docker 이미지 4개 통과, 테스트 실패 0, 기존 skip 8개. 루프 도중 로컬 Testcontainers 가 한 번 죽어 `docker builder prune` 후 재실행했고, 원격 러너는 디스크 100% 라 이미지·볼륨·빌더 캐시를 지워 79% 로 내렸습니다.
+
+<Callout label="👍는 APPROVE 가 아닙니다" tone="warn">
+👍는 "추가 지적이 없다"는 신호이지 GitHub 의 정식 APPROVED 상태가 아닙니다. 이 레포는 브랜치 보호가 없고 봇은 형식 승인을 못 하므로, 머지는 사람 몫이었습니다.
+</Callout>
+
+제 평가는 "Claude 로 3일 걸린 것을 Codex 는 하루에 했다"였습니다. 09-11~09-12 의 워커 라운드가 그 3일에 해당한다고 보지만, 두 루프의 지적 건수를 같은 기준으로 센 기록은 없어 비교로 쓰지는 않습니다.
+
+머지 직후 문제가 하나 왔습니다. **#745 를 squash 머지하자 뒤의 스택 PR 이 깨졌습니다.** 스택과 main 의 커밋 이력이 달라진 것이 원인이고, 실제 머지 충돌은 #747 하나, #751·#752·#753 은 각자 부모 기준 정상, #740 문서 PR 도 무충돌이었습니다. `git merge-tree --write-tree` 로 사전 계산해 충돌 127건을 10곳으로 좁혔는데, 충돌 표시만 지우면 안 되는 이유가 하나 더 있었습니다 — 알림 DB 마이그레이션 **V4 번호 중복**(main 의 `V4__bundle_completion_manifests.sql` vs 브랜치의 `V4__result_bundle_completion.sql`). 복구는 #747 의 고유 변경만 최신 main 위에 옮기고 #751 → #752 → #753 순서로 정렬하는 계획이며, 이 문서 시점에 원격 브랜치는 아직 바꾸지 않았습니다.
+
+## 남은 규칙 다섯 줄
+
+1. **"느리다"는 분리 근거가 아니라 실측 대상이다.** 큐잉·에러·최장 소요를 먼저 세고, 재검토 트리거를 숫자로 적는다.
+2. **params 는 원시값만.** 포맷·어순은 렌더러가 locale 별로 한다. 티어명도 예외가 아니다.
+3. **추천과 결정이 다르면 조건을 적는다.** 감수하는 것·얻는 것·되돌리는 길(Redpanda)을 한 줄씩.
+4. **읽고 쓰는 행은 처음부터 배타 락으로, 부분 갱신은 `@DynamicUpdate` 로.** Hibernate 는 스냅샷이 같으면 UPDATE 를 생략하고, 다르면 전 컬럼을 쓴다 — 둘 다 예외 없이 조용히 어긋난다.
+5. **푸시 전 로컬 게이트 전부, 👍는 신호일 뿐.** squash 머지 뒤 스택은 부모부터 다시 세운다.
+
+### 관련 기록
+
+PR #745 · #747 · #751 · #752 · #753 · #754 · GROMO-1658 · GROMO-1659 · GROMO-1660 · GROMO-1661 · `doc/architecture/notification-cron-measurement-2026-09-08.md` · `doc/prd/notification-server/{README,prd,policy,high-level-design}.md` · `doc/prd/mq/broker-decision.md` · `server/notification` · `server/business-api` · `server/data-api/src/main/resources/db/migration/V51__*.sql` · `server/norm.sh`

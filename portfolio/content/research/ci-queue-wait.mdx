@@ -1,0 +1,188 @@
+---
+title: "실행이 느린 게 아니라 줄을 서 있다 — CI 속도 실측과 세 번 정정된 문서"
+summary: "self-hosted 러너의 ci 라벨 슬롯이 3개뿐이라 잡은 27~36분을 기다리고 7분 안에 끝났습니다. 같은 날 제 판단 셋이 실측으로 뒤집혔고(91% 이동 가능 · 3잡→1잡이 44.6→32분 · maxParallelForks 는 self-hosted 에선 못 켬), 그 뒤 세 번째 판단의 근거 하나가 저장소에 없는 설정이었음이 드러나 로컬 실측 곡선(1/2/4포크 190.3/138.7/143.3초)으로 결론만 유지했습니다. 워크플로 18개의 원인은 재사용 파일이 입력을 0개 받는 것이었고, be-gradle.yml 통합(#755)·norm.sh(#754)·스택 PR CI 분리(GROMO-1791)로 갈랐습니다."
+status: "일부 해소"
+date: "2026-09-13"
+author: "조재영"
+order: 65
+keywords:
+  - CI 큐 대기
+  - self-hosted 러너
+  - GitHub-hosted
+  - maxParallelForks
+  - 워크플로 재사용
+  - Testcontainers
+  - 자기 정정
+related:
+  - label: "성공률 0%의 만성 원인은 60초였다 — CI/CD 트러블슈팅"
+    href: "/research/cicd-infra"
+  - label: "패키지 경로가 계층을 말하게 — 리팩토링 에픽 1643"
+    href: "/research/backend-layering-refactor"
+  - label: "ADR-014 — 관측은 Datadog push 로, 헬스게이트는 기동 실측에 맞춘다"
+    href: "/adr/adr-014-observability-push"
+---
+
+9월 12일 오후, 열린 PR 5건의 CI 가 전부 큐에 걸려 있었습니다. "CI 가 너무 느린데 더 빠르게 할 방법이 없나"라는 질문에 잡 단위로 대기와 실행을 갈라 재 보니 답은 하나였습니다. **실행이 느린 게 아니라 줄을 서 있습니다.** 대기가 실행의 4~6배였습니다.
+
+| 잡 | 대기 | 실행 | 러너 |
+| --- | ---: | ---: | --- |
+| `notification 검증` | **36.1분** | 6.5분 | gromo-dev-build-2 (self-hosted) |
+| `business-api 검증` | **27.1분** | 6.3분 | gromo-dev-build-1 (self-hosted) |
+| `공개 명령 원자성 · 계약` | 0.1분 | 4.7분 | GitHub-hosted |
+| `서비스별 시크릿 · DB 격리` | 0.1분 | 1.4분 | GitHub-hosted |
+| `spotbugs` | 1.3분 | 3.0분 | gromo-dev-build-2 |
+
+워크플로 전체 소요(대기 포함) 중앙값은 `Business · Notification CI` 67.4분, `Lint` 60.5분, `Business API CI` 56.6분이었는데 실행만 보면 전부 7분 안쪽입니다. self-hosted 는 27~36분, GitHub-hosted 는 0.1분 — 같은 실행 시간에 대기만 300배 차이가 났습니다.
+
+이 문서는 그날 하루에 세 번 고쳐 쓴 분석 문서(`doc/ci-speed-analysis-2026-09-12.md`)의 기록입니다. 첫 판단 셋이 저녁에 실측으로 뒤집혔고, 그 정정의 근거 하나가 밤에 허구로 밝혀졌습니다. 헬스체크 60초·호스트 포트 5432 같은 앞선 CI 사고는 [CI/CD 트러블슈팅](/research/cicd-infra)에 있고, 여기서는 **큐**만 다룹니다.
+
+## 왜 줄이 서는가 — `ci` 라벨 슬롯이 3개
+
+러너 목록을 찍어 보니 넷이었습니다.
+
+```
+gromo-dev-app      online  busy=false  labels=[self-hosted, Linux, X64, gcp, dev]
+gromo-dev-build-1  online  busy=TRUE   labels=[self-hosted, Linux, X64, gcp, ci, spot]
+gromo-dev-build-2  online  busy=TRUE   labels=[self-hosted, Linux, X64, gcp, ci, spot]
+gromo-dev-build-3  online  busy=TRUE   labels=[self-hosted, Linux, X64, gcp, ci, spot]
+```
+
+워크플로가 전부 `runs-on: [self-hosted, ci, spot]` 이라 `ci` 라벨을 가진 슬롯 3개만 씁니다. 그 셋은 VM 한 대(`e2-custom-4-8192`, 4 vCPU / 8 GB) 위의 러너 프로세스 3개이고, 네 번째 러너 `gromo-dev-app` 은 놀고 있지만 dev 앱 서버라 `ci` 라벨이 없습니다. PR 하나를 푸시하면 3~5잡이 뜨고, 그날 실측은 실제 실행 27건 + skip 27건이었습니다.
+
+실행 시간 자체는 Gradle 테스트가 전부였습니다 — data-api `./gradlew test` 23.7분, Business·Notification 실제 테스트 각 5.5·5.3분, Postgres 멱등·rollback 검증 4.3분, `spotbugsMain` 2.2분. 도커 이미지 빌드는 40초 문턱에도 안 걸렸습니다. self-hosted 호스트에 레이어가 캐시돼 있어 "이미지를 한 번 말아 두고 실행만 하자"는 아이디어는 실측상 1분 미만의 이득이었습니다.
+
+## 첫 판단 — 효과 순서 넷과 권장
+
+원 문서의 첫 판은 선택지 넷을 이렇게 줄 세웠습니다.
+
+| # | 선택지 | 첫 판단 |
+| --- | --- | --- |
+| 1 | `gromo-dev-app` 에 `ci` 라벨 추가(슬롯 3→4) | 가장 싸지만 dev 환경을 흔든다 — 권하지 않음 |
+| 2 | 옮길 수 있는 잡을 GitHub-hosted 로 | 후보는 "checkstyle·spotbugs 정도", 이미지 빌드·배포는 GCE 메타데이터 토큰 때문에 못 옮김 |
+| 3 | 러너 슬롯 증설 | 확실하지만 돈이 들고, VM 을 안 늘리면 경합이 악화 |
+| 4 | `dev-ci` 3잡→1잡 병합 | 처리량엔 유리하지만 **직렬이라 단일 PR 벽시계는 늘어난다** |
+
+권장은 2+4 였고, data-api 테스트 23.7분에 대해서는 "`maxParallelForks` 를 안 쓰고 있다면 그게 가장 큰 단일 개선 — 확인 필요"라고 적었습니다. 이 세 문장이 그날 저녁 전부 뒤집혔습니다.
+
+## 저녁 — 실측이 판단 셋을 뒤집었다
+
+별도 조사 에이전트가 그날 슬롯 사용을 잡 단위로 다시 셌습니다. 결과를 받고 제가 정리한 표가 이것입니다.
+
+| 제가 말한 것 | 실측 |
+| --- | --- |
+| "이전 후보는 checkstyle·spotbugs 정도" | **832 슬롯분 중 759분(91%)이 옮겨진다** |
+| "3잡→1잡은 벽시계를 늘린다" | **44.6분 → 32분, 12분 줄어든다** |
+| "`maxParallelForks` 가 큰 개선일 수 있다" | **self-hosted 에선 못 켠다** |
+
+**ⓐ 91%.** self-hosted 가 문 832 슬롯분 중 GCP 메타데이터도 dev 네트워크도 쓰지 않는 순수 gradle/npm/python 검사가 759분이었습니다. 못 옮기는 건 GAR 인증이 `metadata.google.internal` 토큰을 쓰는 이미지 빌드와 dev 배포, 19건·73분(9%)뿐입니다. 가능성은 추정이 아니라 이미 증명돼 있었습니다 — `satellite-ci.yml` 의 `public-command-contracts` 잡이 `ubuntu-latest` 에서 Testcontainers 통합테스트 + checkstyle + spotbugs 를 data-api 에 대해 실제로 돌리고 있었고, 그날 37회 · 대기 중앙 0.0분 · 최대 0.6분이었습니다. 옮길 수 있는 잡들의 그날 대기(중앙/최대)는 `app-lint` 21.1/73.7분, `be-check-style` 0.7/57.1, `be-spot-bugs` 1.3/35.3, `be-test` 0.0/39.8, `realtime-ci build` 0.1/66.2 였습니다.
+
+**ⓑ 벽시계는 병렬성이 아니라 「큐 뽑기 3번 중 최악」이 정합니다.** 제가 병렬성만 보고 놓친 것입니다. 그날 `CI` 성공 run 7건에서 3잡 중 최소 대기 중앙은 8.8분, 최대 대기 중앙은 40.7분이었습니다.
+
+| | 현재(3잡) | 합쳤을 때(추정) |
+| --- | ---: | ---: |
+| 벽시계 중앙 | **44.6분** | **≈32분** (8.8 대기 + 23 실행) |
+| 슬롯 획득 횟수 | 35회 | 19회 |
+| 슬롯분 | 275분 | ≈190분 |
+
+고정비(잡 셋업 55초 + Gradle 데몬 fork·configuration 77초 + 컴파일 63초 ≈ 3.3분)를 3번이 아니라 1번만 냅니다. `realtime-ci` 의 `./gradlew build` 한 잡이 중앙 8.6분에 도는 것이 같은 형태의 선례였습니다. 잃는 것도 실측상 0이었습니다 — 09-08~09-12 `dev-ci` 실패 3건이 전부 `test` 였고 checkstyle·spotbugs 는 한 번도 깨지지 않아, 실패 지점 분리가 값을 한 사례가 없었습니다.
+
+**ⓒ `maxParallelForks`.** VM 한 대에 러너 3개라 잡당 실효 1.33 vCPU / 2.7 GB 입니다. 여기서 포크를 늘리면 같은 VM 의 다른 러너 둘을 굶겨 전체 처리량이 되레 줄어듭니다. `server/data-api/build.gradle` 의 test 블록은 `useJUnitPlatform(); finalizedBy jacocoTestReport` 한 줄이 전부라 2,152건이 단일 포크로 순차 실행되고 있었고, 병렬화를 막는 구조는 없었습니다(`TestPostgres.INSTANCE` 가 JVM 당 static 이라 포크마다 별개 컨테이너). 그래서 결론은 "`maxParallelForks` 와 GitHub-hosted 이전은 같은 레버다 — 옮긴 뒤에야 켤 수 있다"였습니다.
+
+<Callout label="원 문서에서 유효하게 남은 판단" tone="primary">
+`gromo-dev-app` 에 `ci` 라벨을 붙이지 않는다는 판단은 그대로입니다. 그 VM 은 dev 앱 서버이고, 이전만으로 91% 가 빠지므로 필요도 없습니다. 남은 self-hosted 3 슬롯은 이미지 빌드·배포 전용(그날 73 슬롯분)이 되어 그쪽 대기(이미지 잡 대기 중앙 16.8분)도 함께 사라집니다.
+</Callout>
+
+## 밤 — ⓒ의 근거 하나가 허구였다
+
+정정 ⓒ 에서 저는 `maxParallelForks` 를 못 켜는 이유로 "`JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60` 이 포크당 4.8 GB 를 요구한다"고 적었습니다. **그 설정은 이 저장소에 없습니다.** `.github/workflows/` 전수에 `MaxRAMPercentage` 도 `JAVA_TOOL_OPTIONS` 도 0건이었습니다. 백엔드 워크플로는 `GRADLE_OPTS: "-Dorg.gradle.daemon=false"` 로 데몬만 끕니다. `JAVA_TOOL_OPTIONS="-Xmx512m …"` 는 `server/business-api/Dockerfile` 의 런타임 설정이라 CI 와 무관하고, `-Xmx2g` 는 `app-android-build.yml` 에만 있습니다. `maxHeapSize` 도 1757 스택에서 `'1g'` 인데 `'2g'` 라고 쓴 것이 또 틀렸습니다.
+
+결론은 그대로였지만, 이번엔 실측 근거로 바꿨습니다. 티켓 1795 작업에서 로컬(macOS, Docker VM 8 vCPU / 8 GB)로 2,152 테스트 · 211 스위트를 포크 수만 바꿔 세 번 전수 실행했습니다.
+
+| 포크 | 벽시계 | JUnit `time` 합계 | 합계/벽시계 | 기본 대비 |
+| ---: | ---: | ---: | ---: | ---: |
+| **기본(1)** | **190.3초** | 161.9초 | 0.85 | 1.00배 |
+| 2 | **138.7초** | 235.9초 | 1.70 | **1.37배** |
+| 4 | 143.3초 | 422.7초 | 2.95 | 1.33배 |
+
+8코어에서도 최적이 2였고 4는 2보다 느렸습니다. 동시성은 1.70→2.95 로 올랐는데 경합 탓에 스위트 하나하나가 느려져(합계 235.9→422.7초) 벽시계가 뒤집혔습니다. 실효 1.33 vCPU 인 self-hosted 잡에서 포크를 늘려 얻을 게 없다는 판단은 유지되며, 근거가 「없는 설정」에서 「실측한 곡선」으로 바뀌었습니다. 기본값 1 은 그대로 둡니다.
+
+함께 드러난 것이 하나 있습니다. 4포크에서 Postgres 컨테이너가 동시 최대 39개(~1.5 GB) 떴는데, **기본 1포크에서도 50개까지 쌓였습니다.** 원인은 포크 수가 아니라 `*MigrationTest` 21개가 클래스마다 컨테이너를 띄우고 JVM 종료 때까지 닫지 않는 것이고, 병렬화는 그 수를 곱할 뿐입니다. 잠재 위험도 하나 적어 뒀습니다 — `be-test.yml` 의 `services: postgres` 는 잡당 DB 1개라 포크들이 공유하는데, 지금은 그걸 쓰는 테스트가 없어 무해하지만 `@DynamicPropertySource` 없이 ci 프로파일 DB 를 쓰는 테스트가 들어오면 `ddl-auto=create-drop` 탓에 포크들이 서로의 스키마를 지웁니다.
+
+## `:test` 13분 52초의 분해
+
+| 구간 | 시간 |
+| --- | ---: |
+| 잡 셋업 + checkout + setup-java + gradle 캐시(345 MB) | 55초 |
+| Gradle 데몬 fork + configuration | 77초 |
+| `:compileJava` → `:testClasses` | 63초 |
+| **`:test`** | **689초 (11.5분)** — JUnit `time` 합계 659.6초 = 96%, 순차 실행 산술 확인 |
+| `bootJar -x test` (JAR 크기 측정) | 41초 |
+
+`*MigrationTest` 21개가 289.8초(44%)입니다. 메서드마다 `DROP SCHEMA public CASCADE` 후 Flyway 49개 체인을 다시 돌립니다. 로컬 Mac 의 같은 합계는 107.7초 — CI 가 6.1배이고, 그게 러너 경합의 크기입니다. 마이그레이션 테스트 구조 개선은 1795 의 「범위 밖」에 별도 티켓감으로 남겼습니다.
+
+## 한도 — 넓히려면 다시 계산해야 한다
+
+조직 플랜은 free + private 이라 GitHub-hosted 는 월 2,000분입니다. 그날 표본에서 self-hosted 가 하루 120분을 썼으니 **91% 를 전부 옮기면 한도를 넘습니다.** 무엇을 옮기고 무엇을 남길지는 분 단위 예산으로 다시 정해야 하고, 그 계산 없이 범위를 넓히면 안 됩니다. 분 잔량과 과금 한도는 제 조회 권한 밖이라 확인하지 못했습니다.
+
+## 워크플로 18개 — 재사용 파일이 입력을 0개 받았다
+
+같은 날 워크플로 파일이 왜 늘었는지도 봤습니다. 7월 1일 9개 → 8월 1일 15개 → 9월 1일 16개 → 9월 12일 **18개**. 서버가 하나(data-api)에서 넷으로 늘어난 게 직접 원인이지만, 서버가 늘 때마다 CI 파일을 새로 써야 했던 이유가 따로 있었습니다.
+
+**원인 ① 재사용하라고 만든 파일이 재사용 불가능했습니다.** `be-check-style.yml` · `be-test.yml` · `be-spot-bugs.yml` 은 `workflow_call` 전용인데 셋 다 입력을 하나도 선언하지 않고 `server/data-api` 가 박혀 있었습니다. 하드코딩은 `defaults.run` 한 곳이 아니라 캐시 키의 `hashFiles`, 아티팩트 `path`, `jar-size.txt` 경로까지 네 곳이고, 아티팩트 이름도 `test-results` · `jar-size` 로 고정돼 두 서비스가 같이 부르면 부딪힙니다. 그래서 realtime 도 business-api 도 못 부르고 각자 새 파일을 썼습니다.
+
+| 서버 | CI 파일 | 줄 수 |
+| --- | --- | ---: |
+| data-api | `dev-ci` + `be-check-style` + `be-test` + `be-spot-bugs` (4파일) | 365 |
+| realtime | `realtime-ci` 단독 — `./gradlew build` 한 잡 | 135 |
+| business-api | `business-ci` 단독 | 95 |
+| notification | 스택의 `satellite-ci` 에서 business-api 와 합침 | — |
+
+**원인 ② 죽은 워크플로가 하나 섞여 있었습니다.** `api-docs-cleanup.yml` 은 36번 실행돼 36번 다 `skipped`, 성공 0건입니다. 조건이 `startsWith(github.event.ref, 'refs/heads/feat/')` 인데 `delete` 이벤트의 `github.event.ref` 는 `refs/heads/` 접두어 없이 브랜치 이름만 오므로 영원히 거짓입니다. 고쳐도 `feat/` 만 봐서 실제로 쓰는 `bfeat/` · `bfix/` · `brefactor/` 는 못 잡습니다 — 버그가 둘입니다. 결과는 `gh-pages` 에 그대로 쌓여 있었습니다: `bfeat/` 93 · `bfix/` 46 · `brefactor/` 24 · `feat/` 3 = **머지되고 지워진 브랜치의 API 문서 166벌**.
+
+그냥 하나로 합칠 수 없는 제약도 셋 있었습니다. ㉠ GitHub Actions 는 `services:` 블록에 `if:` 를 걸 수 없는데 postgres 서비스가 필요한 건 data-api 뿐이고, ㉡ 러너 3개가 VM 한 대를 공유해 호스트 포트를 고정할 수 없으며, ㉢ business-api 는 PDF 미리보기 테스트가 `poppler-utils` 에 의존해 Dockerfile 의 `test` 스테이지 안에서만 검사할 수 있습니다.
+
+| 안 | 내용 | 판단 |
+| --- | --- | --- |
+| **A** | 셋을 `be-gradle.yml` 하나로 합치고 입력(`service` · `tasks` · `needs-db` · `artifact-prefix`)을 받는다. `services:` 대신 `needs-db` 일 때만 스텝에서 `docker run` | **채택**. 파일 18→15, 서버 추가 비용 95~135줄→호출부 ~12줄. business-api 는 ㉢ 때문에 예외로 남겨 3/4 통일 |
+| B | data-api 도 Testcontainers 로 옮겨 완전 통일 | 방향은 맞지만 테스트 2,386개가 도는 경로를 건드리고, 열린 백엔드 PR 5건 중 4건이 스택이라 지금은 위험 |
+| C | 손대지 않는다 | 다섯 번째 서버가 생기면 또 새 파일을 쓰게 된다 |
+
+## 결정 — 세 갈래로 갈랐다
+
+| 갈래 | 무엇 | 상태 |
+| --- | --- | --- |
+| PR #755 (GROMO-1790) | `be-gradle.yml` 신설, `dev-ci` · `realtime-ci` · `business-ci` 를 호출부로, `api-docs-cleanup.yml` 수리 | 열림. checkstyle · spotbugs 잡이 실제로 `ubuntu-latest` 에서 돌고 `test` 만 self-hosted 대기인 것을 확인 |
+| PR #754 | 서버별 `norm.sh` + `server/norm.sh` — CI 와 같은 검사를 로컬에서 먼저 돌리는 게이트 | 당일 머지 |
+| GROMO-1791 | 스택 PR CI 분리 | #755 에서 빼고 트리거를 `branches: [main]` 으로 좁힘, 별도 PR #756 |
+
+#754 는 "lint · 빌드 · CI 같은 건 서버마다 `norm.sh` 로 로컬에서 돌리고 올려라"는 요구에서 나왔습니다. 큐가 병목이면 큐에 넣는 횟수 자체를 줄이는 게 먼저입니다. business-api 는 `docker build --target test` 로 이미지를 실제로 만들어 검증했고, 다음 날 #745 의 푸시 전 규칙("서버 4개 CI 스크립트 전부 통과 후 푸시")이 이 게이트 위에서 굳었습니다.
+
+#755 에서는 조사 결과 두 가지가 작업 중인 `be-gradle.yml` 에 직결됐습니다. 조사가 `be-test.yml` 의 `services: postgres` 를 실제로 쓰는 테스트를 찾지 못했고, 그래서 `needs-db` 입력과 `services:`/`if:` 제약을 전제로 쓴 PR 본문을 작업자가 다시 썼습니다. 이 PR 자체가 `.github/workflows/**` 를 건드려 경로 필터에 걸리므로 머지해 봐야 아는 구조가 아니라 PR 안에서 네 서버 CI 가 실제로 돕니다 — 그 과정에서 `pull_request` 경로 필터는 마지막 커밋이 아니라 PR 전체 diff 로 평가된다는 것도 확인했습니다. 머지 조건으로 GROMO-1797 을 붙였고, 병합 순서는 스택 PR 이 내려간 뒤입니다.
+
+## 곁가지 — 같은 러너에서 난 다른 사고 넷
+
+큐 대기와 별개로, VM 한 대에 러너 3개라는 구성은 이 여름 내내 다른 모양으로 터졌습니다.
+
+| 날짜 | 증상 | 원인 | 처치 |
+| --- | --- | --- | --- |
+| 08-26 | 앱 Lint 실패 — jest 1건(`UsageDetailScreen.test.tsx:74`) 5초 타임아웃, 나머지 2,358개 통과 | 실패 시각에 같은 VM 에서 backend checkstyle · spotbugs 가 동시에 돌던 러너 과부하 플레이크 | 실패 잡만 재실행 |
+| 09-01 | PR #711 의 checkstyle · spotbugs · test 세 잡이 8초 만에 종료 — `No space left on device`, `tar -xzf … Wrote only 9216 of 10240 bytes` | 러너 `gromo-dev-build` 디스크 풀 | 코드 문제 아님으로 판정 |
+| 09-11 | Chat CI 실패, 뒤이어 data-api checkstyle 이 34초 만에 실패 — `NoClassDefFoundError: com/esotericsoftware/kryo/KryoException`, 데몬이 못 뜸 | GROMO-1742(러너 Gradle 캐시 손상)의 새 발현. 종전 `fileHashes.bin` 손상은 빌드 캐시 층이었는데 이번엔 Gradle 배포판 jar 자체. 러너 3대가 `~/.gradle` 을 공유하는 같은 뿌리 | `chat-ci.yml` 의 Gradle 홈을 `GRADLE_USER_HOME` 으로 격리(`2a010b837`), actionlint 검증 |
+| 09-13 | #745 의 business-api · notification 이미지 빌드가 CI 에서만 실패("로컬은 통과인데 왜") | 러너 디스크 **100%** | 이미지 · 볼륨 · 빌더 캐시 정리로 79%(여유 8.5 GB), 고아 buildx 컨테이너 2개와 `_state` 볼륨 삭제, 실패 잡만 재실행해 통과 |
+
+09-11 건에서 판별법을 하나 얻었습니다. **실패가 30~40초 안에 끝나고 컴파일·검사 로그가 한 줄도 없으면 이 부류입니다.** 코드 문제라면 최소한 컴파일까지는 갑니다. 09-01 과 09-13 의 디스크 사고도 같은 모양이라 — 체크아웃 전이나 이미지 빌드 첫 스텝에서 죽습니다 — "로컬은 통과인데 CI 만 빨갛다"는 말이 나오면 코드보다 러너를 먼저 봅니다.
+
+## 남은 것과 규칙
+
+아직 안 한 것입니다. 순수 검사 잡을 GitHub-hosted 로 옮기는 일은 월 2,000분 예산 계산이 선행돼야 해서 착수하지 않았습니다. `maxParallelForks` 는 옮긴 뒤에만 의미가 있고, 로컬 곡선상 2 가 최적이었습니다. 5번째 스프링 컨텍스트를 만드는 클래스는 특정하지 못했고(4개까지만 코드로 대응), 마이그레이션 테스트 21개의 컨테이너 누적은 별도 티켓입니다. `dev-ci` 3잡→1잡 병합은 #755 가 내려간 뒤입니다.
+
+이 하루에서 남긴 규칙은 넷입니다.
+
+1. **느리다는 보고는 대기와 실행을 갈라서 받는다.** 실행 7분에 대기 36분이면 코드를 고칠 일이 아니다.
+2. **병렬 잡의 벽시계는 병렬성이 아니라 큐 뽑기 횟수의 최악값이 정한다.** 큐가 병목일 때 잡을 쪼개면 더 느려진다.
+3. **근거로 든 설정은 저장소에서 grep 한 뒤에 적는다.** `JAVA_TOOL_OPTIONS` 는 제 기억에만 있었다. 결론이 맞아도 근거가 틀리면 다음 사람이 그 근거로 다른 결정을 내린다.
+4. **"CI 만 빨갛다"는 러너부터 본다.** 30~40초 안에 컴파일 로그 없이 죽으면 디스크 · 캐시 · 슬롯 경합 중 하나다.
+
+### 관련 기록
+
+PR #711 · #734 · #745 · #747 · #754 · #755 · #756 · GROMO-1742 · GROMO-1790 · GROMO-1791 · GROMO-1793 · GROMO-1795 · GROMO-1797 · `doc/ci-speed-analysis-2026-09-12.md` · `doc/workflow-consolidation-plan.md` · `.github/workflows/be-gradle.yml` · `.github/workflows/api-docs-cleanup.yml` · `server/norm.sh` · `server/data-api/build.gradle`

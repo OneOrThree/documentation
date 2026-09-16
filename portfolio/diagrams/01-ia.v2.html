@@ -1,0 +1,194 @@
+<!doctype html>
+<!-- Hallmark · pre-emit critique: P5 H4 E4 S5 R5 V5 -->
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GROMO R61 · 정보 구조 v2</title>
+  <meta name="description" content="R61의 진입, 집중, 고정 성장, 선택 시설을 사용자 목표와 역할로 정리한 정보 구조" />
+  <style>
+
+  :root {
+    color-scheme: light;
+    --paper: #ffffff;
+    --canvas: #f5f7f9;
+    --ink: #22272b;
+    --muted: #5f6973;
+    --rule: #d8dee4;
+    --rule-strong: #aeb7c0;
+    --green: #3e7259;
+    --green-soft: #edf5f0;
+    --purple: #6d5a8d;
+    --purple-soft: #f2eff8;
+    --blue: #4e6f8f;
+    --blue-soft: #eef3f8;
+    --orange: #95633c;
+    --orange-soft: #faf2ea;
+    --font-body: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--canvas); color: var(--ink); font-family: var(--font-body); }
+  body { min-width: 320px; }
+  button { min-height: 44px; border: 1px solid var(--rule-strong); border-radius: 999px; background: var(--paper); color: var(--ink); padding: 0 16px; font: 700 13px/1 var(--font-body); cursor: pointer; }
+  button:hover { border-color: var(--green); color: var(--green); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible { outline: 3px solid color-mix(in srgb, var(--green) 35%, transparent); outline-offset: 2px; }
+  button[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding: 10px 20px; border-bottom: 1px solid var(--rule); background: color-mix(in srgb, var(--canvas) 94%, transparent); backdrop-filter: blur(10px); }
+  .topbar p { margin: 0; font: 700 12px/1.4 var(--font-mono); color: var(--muted); }
+  .controls { display: flex; align-items: center; gap: 8px; }
+  .viewport { overflow: auto; padding: 24px; }
+  .diagram { min-width: 1320px; max-width: 1640px; margin: 0 auto; }
+  .title { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 32px; margin-bottom: 24px; }
+  .title h1 { margin: 0; font-size: 28px; line-height: 1.12; letter-spacing: -0.025em; overflow-wrap: anywhere; min-width: 0; }
+  .title p { max-width: 62ch; margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .legend { display: flex; align-items: center; gap: 14px; font: 600 11px/1 var(--font-mono); color: var(--muted); white-space: nowrap; }
+  .legend span::before { content: ""; display: inline-block; width: 18px; height: 2px; margin-right: 6px; vertical-align: 3px; background: var(--green); }
+  .legend span:nth-child(2)::before { background: var(--purple); }
+  .legend span:nth-child(3)::before { background: var(--blue); }
+  .flow { position: relative; display: grid; grid-template-columns: 0.9fr 1fr 0.9fr 1.15fr; gap: 44px; align-items: start; padding: 46px 24px 24px; border: 1px solid var(--rule-strong); border-radius: 14px; background: var(--paper); }
+  .flow::before { content: "GROMO R61 · INFORMATION ARCHITECTURE"; position: absolute; top: 18px; left: 24px; font: 700 11px/1 var(--font-mono); color: var(--muted); letter-spacing: 0.04em; }
+  .group { position: relative; min-width: 0; border: 1.5px solid var(--tone); border-radius: 12px; background: var(--soft); padding: 18px; }
+  .group:not(:last-child)::after { content: "→"; position: absolute; right: -34px; top: 82px; color: var(--tone); font: 700 18px/1 var(--font-mono); }
+  .group.green { --tone: var(--green); --soft: var(--green-soft); }
+  .group.purple { --tone: var(--purple); --soft: var(--purple-soft); }
+  .group.blue { --tone: var(--blue); --soft: var(--blue-soft); }
+  .group header { min-height: 90px; border-bottom: 1px solid color-mix(in srgb, var(--tone) 30%, transparent); }
+  .eyebrow { margin: 0 0 8px; font: 800 10px/1 var(--font-mono); color: var(--tone); letter-spacing: 0.08em; }
+  .group h2 { margin: 0; font-size: 18px; line-height: 1.25; letter-spacing: -0.015em; }
+  .group-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+  .nodes { display: grid; gap: 10px; margin-top: 14px; }
+  .node { border: 1px solid color-mix(in srgb, var(--tone) 62%, var(--rule)); border-radius: 9px; background: var(--paper); padding: 12px; }
+  .node-head { display: flex; align-items: center; gap: 9px; }
+  .node-index { font: 700 10px/1 var(--font-mono); color: var(--tone); }
+  .node h3 { margin: 0; font-size: 14px; line-height: 1.25; }
+  .node p { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .role { display: inline-flex; align-items: center; min-height: 22px; margin-top: 10px; border-radius: 999px; background: color-mix(in srgb, var(--tone) 10%, var(--paper)); padding: 0 8px; color: var(--tone); font: 700 10px/1 var(--font-mono); white-space: nowrap; }
+  body:not(.show-details) [data-detail] p, body:not(.show-details) [data-detail] .role { display: none; }
+  body:not(.show-details) .node { padding-block: 14px; }
+  body:not(.show-details) .group header { min-height: 82px; }
+  .system-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+  .system { border: 1px dashed var(--blue); border-radius: 9px; background: var(--blue-soft); padding: 13px 15px; }
+  .system strong { font-size: 13px; }
+  .system span { margin-left: 8px; color: var(--muted); font-size: 12px; }
+  .footnote { margin: 18px 2px 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+  @media (max-width: 760px) {
+    .topbar { position: static; align-items: flex-start; padding: 10px 12px; }
+    .topbar p { max-width: 22ch; }
+    .viewport { padding: 16px 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { button:active { transform: none; } }
+
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <p>R61 IA · v2 · 사용자 목표 정본과 정합</p>
+    <div class="controls" role="group" aria-label="정보 표시 수준">
+      <button type="button" id="overview" aria-pressed="true">주요 구조</button>
+      <button type="button" id="details" aria-pressed="false">기능·권한</button>
+    </div>
+  </header>
+  <main class="viewport">
+    <div class="diagram">
+      <div class="title">
+        <div><h1>진입에서 집중, 해금 시설까지</h1><p>시설 이름은 화면 위치를, 카드 안 문장은 그곳에서 이루는 사용자 목표를 나타냅니다. 첫 집중은 어떤 건설도 요구하지 않습니다.</p></div>
+        <div class="legend" aria-label="단계 범례"><span>처음부터</span><span>고정 성장</span><span>선택 해금</span></div>
+      </div>
+      <div class="flow"><section class="group green" id="entry">
+    <header><p class="eyebrow">ENTRY</p><h2>시작과 첫 소속</h2><p class="group-note">건설 없이 첫 집중까지</p></header>
+    <div class="nodes"><article class="node" data-detail>
+    <div class="node-head"><span class="node-index">01</span><h3>시작·자동 로그인</h3></div>
+    <p>인증과 진행 세션을 확인한다</p>
+    <span class="role">모두</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">02</span><h3>첫 섬 선택</h3></div>
+    <p>혼자 만들기 또는 기존 섬 참여</p>
+    <span class="role">모두</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">03</span><h3>입항·섬 홈</h3></div>
+    <p>확정된 소속과 해금 상태로 진입</p>
+    <span class="role">주민</span>
+  </article></div>
+  </section>
+<section class="group green" id="home">
+    <header><p class="eyebrow">ALWAYS</p><h2>섬 홈 · 처음부터</h2><p class="group-note">R61의 필수 개인 루프</p></header>
+    <div class="nodes"><article class="node" data-detail>
+    <div class="node-head"><span class="node-index">01</span><h3>내 배</h3></div>
+    <p>내 정보 · 앱 설정 · 보유품 적용</p>
+    <span class="role">주민</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">02</span><h3>부두</h3></div>
+    <p>집중 설정 · 집중/휴식/복귀 · 결과</p>
+    <span class="role">주민</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">03</span><h3>모닥불</h3></div>
+    <p>집중 중 선택하는 휴식 상태</p>
+    <span class="role">주민</span>
+  </article></div>
+  </section>
+<section class="group purple" id="foundation">
+    <header><p class="eyebrow">FIXED ORDER</p><h2>첫 성장 · 고정 순서</h2><p class="group-note">섬 물고기로 여는 기반</p></header>
+    <div class="nodes"><article class="node" data-detail>
+    <div class="node-head"><span class="node-index">01</span><h3>마을회관</h3></div>
+    <p>통계 · 섬 운영 · 공동 장부 · 다음 시설</p>
+    <span class="role">주민 / 방장</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">02</span><h3>게시판</h3></div>
+    <p>공지 · 집중/폰 사용 퀘스트 · 지난 결과</p>
+    <span class="role">주민 / 방장</span>
+  </article></div>
+  </section>
+<section class="group blue" id="choice">
+    <header><p class="eyebrow">CHOOSE</p><h2>후속 시설 · 선택</h2><p class="group-note">마을 포인트로 기능 확장</p></header>
+    <div class="nodes"><article class="node" data-detail>
+    <div class="node-head"><span class="node-index">01</span><h3>전망대</h3></div>
+    <p>섬 안/간 랭킹 · 다른 섬 탐색과 이동</p>
+    <span class="role">주민 / 방문자</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">02</span><h3>우체국</h3></div>
+    <p>현재 섬 전체가 읽고 쓰는 편지방</p>
+    <span class="role">주민</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">03</span><h3>꽃나팔 방송기</h3></div>
+    <p>공동 음원 재생 · 집중 화면에서 변경</p>
+    <span class="role">주민 / 방문자</span>
+  </article>
+<article class="node" data-detail>
+    <div class="node-head"><span class="node-index">04</span><h3>상점</h3></div>
+    <p>개인·공동 꾸미기와 ASMR 구매</p>
+    <span class="role">주민 / 방장</span>
+  </article></div>
+  </section></div>
+      <section class="system-strip" aria-label="공통 시스템 진입">
+        <div class="system"><strong>권한·측정</strong><span>Screen Time · 알림 · 공개 범위</span></div>
+        <div class="system"><strong>복구·딥링크</strong><span>인증·소속·해금·권한 재검사</span></div>
+        <div class="system"><strong>역할</strong><span>주민 · 방장 · 방문자 읽기 전용</span></div>
+      </section>
+      <p class="footnote">설계 뷰 · 사용자 목표와 역할은 /spec/use-cases, 세부 상태 순서는 유저 저니가 정본 · 기준 명칭: 꽃나팔 방송기 · 우체국</p>
+    </div>
+  </main>
+<script>
+  const overview = document.getElementById("overview");
+  const details = document.getElementById("details");
+  function setDetails(show) {
+    document.body.classList.toggle("show-details", show);
+    overview.setAttribute("aria-pressed", String(!show));
+    details.setAttribute("aria-pressed", String(show));
+  }
+  overview.addEventListener("click", () => setDetails(false));
+  details.addEventListener("click", () => setDetails(true));
+  </script>
+</body>
+</html>

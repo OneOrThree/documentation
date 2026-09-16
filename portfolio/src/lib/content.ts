@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import GithubSlugger from "github-slugger";
 
+import type { SectionConfig } from "@root/site.config";
 import { docSections, findSection } from "@root/site.config";
 
 /**
@@ -35,7 +36,7 @@ export interface Doc {
   /** Who wrote it. Shown on the index row and the document header. */
   author?: string;
   keywords: string[];
-  /** Lower sorts first. Documents without one fall back to date, then title. */
+  /** Lower sorts first within a section. See `SectionConfig.sort`. */
   order?: number;
   related: DocLink[];
   body: string;
@@ -85,10 +86,23 @@ function readSectionDocs(section: string): Doc[] {
       } satisfies Doc;
     });
 
-  return docs.sort(compareDocs);
+  const mode = findSection(section)?.sort ?? "curated";
+  return docs.sort((a, b) => compareDocs(a, b, mode));
 }
 
-function compareDocs(a: Doc, b: Doc): number {
+type SortMode = NonNullable<SectionConfig["sort"]>;
+
+function compareDocs(a: Doc, b: Doc, mode: SortMode): number {
+  // Newest first, and a missing date sorts last rather than to the top.
+  if (mode === "date" && a.date !== b.date) {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return b.date.localeCompare(a.date);
+  }
+  return byCuratedOrder(a, b);
+}
+
+function byCuratedOrder(a: Doc, b: Doc): number {
   if (a.order !== undefined || b.order !== undefined) {
     const ao = a.order ?? Number.MAX_SAFE_INTEGER;
     const bo = b.order ?? Number.MAX_SAFE_INTEGER;

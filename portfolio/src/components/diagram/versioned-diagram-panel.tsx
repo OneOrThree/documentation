@@ -56,13 +56,13 @@ export function VersionedDiagramPanel({
               id="diagram-version-heading"
               className="font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
             >
-              Architecture history
+              Diagram history
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               도면을 덮어쓰지 않고 당시 판단과 함께 보존합니다.
             </p>
           </div>
-          <div role="group" aria-label="아키텍처 버전" className="flex flex-wrap gap-2">
+          <div role="group" aria-label="다이어그램 버전" className="flex flex-wrap gap-2">
             {versions.map((version) => {
               const active = version.id === selected.id;
               return (
@@ -126,14 +126,16 @@ export function VersionedDiagramPanel({
             <Link href={selected.detailHref} className="whitespace-nowrap text-primary no-underline hover:underline">
               근거 문서 읽기 →
             </Link>
-            <a
-              href={selected.sourceHref}
-              target="_blank"
-              rel="noreferrer noopener"
-              className="whitespace-nowrap text-primary no-underline hover:underline"
-            >
-              원본 커밋 보기 ↗
-            </a>
+            {selected.sourceHref && (
+              <a
+                href={selected.sourceHref}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="whitespace-nowrap text-primary no-underline hover:underline"
+              >
+                원본 커밋 보기 ↗
+              </a>
+            )}
           </div>
         </div>
       </section>

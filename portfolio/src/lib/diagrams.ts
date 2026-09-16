@@ -34,7 +34,7 @@ export interface DiagramVersion {
   evidenceTitle: string;
   evidenceSummary: string;
   detailHref: string;
-  sourceHref: string;
+  sourceHref?: string;
   nodeCount?: number;
   edgeCount?: number;
 }
@@ -70,6 +70,35 @@ export interface DiagramGraph {
   /** The export's own pixel size, used to open the viewer at 1:1. */
   width?: number;
   height?: number;
+  /**
+   * Side-panel copy, keyed by cell id, from diagrams/<id>.meta.json.
+   * Present only for diagrams that ship one; the viewer falls back to the
+   * plain focus summary when a picked cell has no entry.
+   */
+  meta?: Record<string, DiagramCellMeta>;
+  /** Ordered core-loop stages, shown as a rail above the panel. */
+  loop?: string[];
+  /** Roles the reader can switch on and off above the artwork. */
+  filters?: {
+    id: string;
+    label: string;
+    color?: string;
+    /** Cells this checkbox covers; defaults to [id] for a single actor. */
+    ids?: string[];
+  }[];
+}
+
+export interface DiagramCellMeta {
+  /** Stage number as printed on the artwork ("01"…"05"); absent for actors. */
+  stage?: string;
+  title: string;
+  lead?: string;
+  /** Where this cell sits in the core loop, in one or two sentences. */
+  loop?: string;
+  actors?: string[];
+  systems?: string[];
+  count?: number;
+  groups?: { place: string; sub: string; items: string[] }[];
 }
 
 /**

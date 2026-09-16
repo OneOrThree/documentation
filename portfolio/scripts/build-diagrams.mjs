@@ -41,6 +41,13 @@ const ROOT_CELL_IDS = new Set(["0", "1"]);
 
 class DiagramError extends Error {}
 
+/** Write via a temp file + rename so a reader never sees a partial file. */
+function writeAtomic(dest, data) {
+  const tmp = `${dest}.tmp`;
+  fs.writeFileSync(tmp, data);
+  fs.renameSync(tmp, dest);
+}
+
 function main() {
   const manifestPath = path.join(SRC_DIR, "manifest.json");
   if (!fs.existsSync(manifestPath)) {
@@ -53,12 +60,14 @@ function main() {
     throw new DiagramError("diagrams/manifest.json must be an array.");
   }
 
-  fs.rmSync(OUT_DIR, { recursive: true, force: true });
+  // Never empty OUT_DIR first. A dev server caches index.json at module scope, so
+  // a rebuild that deletes the directory hands the running app an empty list for
+  // the length of the build. Write in place and prune what the manifest dropped.
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   const index = manifest.map((entry, i) => build(entry, i));
 
-  fs.writeFileSync(
+  writeAtomic(
     path.join(OUT_DIR, "index.json"),
     JSON.stringify(index, null, 2) + "\n",
   );
@@ -72,22 +81,34 @@ function build(entry, i) {
       `diagrams/manifest.json[${i}]: every entry needs "id" and "title".`,
     );
   }
+  if (!Array.isArray(entry.versions) || entry.versions.length === 0) {
+    throw new DiagramError(
+      `diagrams/manifest.json[${i}] (${id}): every diagram needs at least one version.`,
+    );
+  }
+  validateVersions(entry, i);
 
   if (entry.format === "html") {
-    const htmlPath = path.join(SRC_DIR, `${id}.html`);
-    if (!fs.existsSync(htmlPath)) {
-      throw new DiagramError(
-        `Missing diagrams/${id}.html for diagram "${id}".`,
-      );
-    }
-    fs.copyFileSync(htmlPath, path.join(OUT_DIR, `${id}.html`));
-    console.log(`[diagrams] ${id}: HTML → public/diagrams/`);
-    return entry;
+    buildHtmlArtifact(id, title);
+    const versions = entry.versions.map((version, versionIndex) => {
+          if (!version.id || !version.artifactId) {
+            throw new DiagramError(
+              `diagrams/manifest.json[${i}].versions[${versionIndex}] needs "id" and "artifactId".`,
+            );
+          }
+          if (version.artifactId !== id) {
+            buildHtmlArtifact(
+              version.artifactId,
+              `${title} ${version.label ?? version.id}`,
+            );
+          }
+          return version;
+        });
+    return { ...entry, versions };
   }
 
   const built = buildArtifact(id, title);
-  const versions = Array.isArray(entry.versions)
-    ? entry.versions.map((version, versionIndex) => {
+  const versions = entry.versions.map((version, versionIndex) => {
         if (!version.id || !version.artifactId) {
           throw new DiagramError(
             `diagrams/manifest.json[${i}].versions[${versionIndex}] needs "id" and "artifactId".`,
@@ -98,14 +119,68 @@ function build(entry, i) {
             ? built
             : buildArtifact(version.artifactId, `${title} ${version.label ?? version.id}`);
         return { ...version, ...counts };
-      })
-    : undefined;
+      });
 
   return {
     ...entry,
     ...built,
-    ...(versions ? { versions } : {}),
+    versions,
   };
+}
+
+function validateVersions(entry, entryIndex) {
+  const versionIds = new Set();
+  const artifactIds = new Set();
+  let previousNumber = Number.POSITIVE_INFINITY;
+
+  entry.versions.forEach((version, versionIndex) => {
+    if (!version.id || !version.artifactId) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}].versions[${versionIndex}] needs "id" and "artifactId".`,
+      );
+    }
+    if (versionIds.has(version.id) || artifactIds.has(version.artifactId)) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): version ids and artifact ids must be unique.`,
+      );
+    }
+    const match = /^v(\d+)$/.exec(version.id);
+    if (!match) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): version "${version.id}" must use v<number>.`,
+      );
+    }
+    const number = Number(match[1]);
+    if (number >= previousNumber) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): versions must be newest first.`,
+      );
+    }
+    if (versionIndex === 0 && version.artifactId !== entry.id) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): the current version must use artifactId "${entry.id}".`,
+      );
+    }
+    if (versionIndex > 0 && version.artifactId === entry.id) {
+      throw new DiagramError(
+        `diagrams/manifest.json[${entryIndex}] (${entry.id}): historical versions need explicit artifact files.`,
+      );
+    }
+    versionIds.add(version.id);
+    artifactIds.add(version.artifactId);
+    previousNumber = number;
+  });
+}
+
+function buildHtmlArtifact(id, title) {
+  const htmlPath = path.join(SRC_DIR, `${id}.html`);
+  if (!fs.existsSync(htmlPath)) {
+    throw new DiagramError(
+      `Missing diagrams/${id}.html for diagram "${title}".`,
+    );
+  }
+  writeAtomic(path.join(OUT_DIR, `${id}.html`), fs.readFileSync(htmlPath));
+  console.log(`[diagrams] ${id}: HTML → public/diagrams/`);
 }
 
 function buildArtifact(id, title) {
@@ -132,13 +207,14 @@ function buildArtifact(id, title) {
   );
   const size = readIntrinsicSize(rawSvg);
   const { svg, annotated } = annotateSvg(rawSvg, graph, id, cellOwners);
+  const meta = readMeta(id, graph);
 
-  fs.writeFileSync(path.join(OUT_DIR, `${id}.svg`), svg);
-  fs.writeFileSync(
+  writeAtomic(path.join(OUT_DIR, `${id}.svg`), svg);
+  writeAtomic(
     path.join(OUT_DIR, `${id}.graph.json`),
-    JSON.stringify({ ...graph, ...size }, null, 2) + "\n",
+    JSON.stringify({ ...graph, ...size, ...meta }, null, 2) + "\n",
   );
-  fs.copyFileSync(xmlPath, path.join(OUT_DIR, `${id}.drawio.xml`));
+  writeAtomic(path.join(OUT_DIR, `${id}.drawio.xml`), fs.readFileSync(xmlPath));
 
   console.log(
     `[diagrams] ${id}: ${graph.nodes.length} nodes, ${graph.edges.length} edges, ` +
@@ -329,6 +405,40 @@ function cleanLabel(value) {
 }
 
 /** Undirected 1-hop neighbours, plus the edges that justify each link. */
+/**
+ * Optional side-panel copy for a diagram: diagrams/<id>.meta.json.
+ *
+ * The artwork carries the shape; this carries what a reader needs once they
+ * pick a cell — which stage of the core loop it is, and what sits inside it.
+ * Keeping it beside the .drawio rather than inside it means editing the copy
+ * never risks the XML join the SVG depends on.
+ *
+ * Every key must name a real vertex, or the panel would point at nothing.
+ */
+function readMeta(id, graph) {
+  const metaPath = path.join(SRC_DIR, `${id}.meta.json`);
+  if (!fs.existsSync(metaPath)) return {};
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+  } catch (error) {
+    throw new DiagramError(`${id}.meta.json: ${error.message}`);
+  }
+  const nodes = parsed?.nodes ?? {};
+  const known = new Set(graph.nodes.map((n) => n.id));
+  const unknown = [
+    ...Object.keys(nodes),
+    ...(parsed?.filters ?? []).flatMap((f) => f.ids ?? [f.id]),
+  ].filter((key) => !known.has(key));
+  if (unknown.length) {
+    throw new DiagramError(
+      `${id}.meta.json: no such cell — ${unknown.join(", ")}.\n` +
+        `  Cells in the diagram: ${[...known].join(", ")}`,
+    );
+  }
+  return { meta: nodes, loop: parsed?.loop, filters: parsed?.filters };
+}
+
 function buildAdjacency(nodes, edges) {
   const adj = Object.fromEntries(
     nodes.map((n) => [n.id, { nodes: [], edges: [] }]),

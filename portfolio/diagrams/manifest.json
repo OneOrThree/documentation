@@ -1,16 +1,184 @@
 [
   {
+    "id": "00-usecase",
+    "title": "핵심 유스케이스",
+    "titleEn": "Use Case",
+    "summary": "policy-2026-09-14 기준 유스케이스. 주민·방장·방문자 3개 액터가 온보딩과 섬의 건물 10곳에서 하는 일을 기능 묶음 28개·유즈케이스 77개로 정리했습니다.",
+    "detailHref": "/spec/use-cases",
+    "fitOnOpen": true,
+    "versions": [
+      {
+        "id": "v5",
+        "label": "v5 · 현재",
+        "date": "2026-09-14",
+        "artifactId": "00-usecase",
+        "status": "R61 현재 설계",
+        "summary": "v3 의 5개 사용자 목표 영역을 뼈대로 되돌리고 핵심 루프를 화살표로 드러냈습니다. 유즈케이스 77개는 도면에서 빼 옆 패널로 옮겼습니다 — 영역을 누르면 그것이 루프의 어느 단계이고 안에 무엇이 들어 있는지 뜹니다.",
+        "evidenceTitle": "사용자 목표 정본 — R61 v5 (2026-09-14 정책)",
+        "evidenceSummary": "영역 구분은 v3, 유즈케이스 전수는 v4 를 그대로 잇습니다. 77개를 5개 영역에 묶음 단위로 배분했고(5·17·10·39·6) 합계가 77로 맞는지 생성 시 검증합니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v4",
+        "label": "v4 · 이전",
+        "date": "2026-09-14",
+        "artifactId": "00-usecase.v4",
+        "status": "건물 축 상세",
+        "summary": "건물 11곳 아래 기능 묶음 28개·유즈케이스 77개를 모두 펼친 상세 도면입니다. 전수를 한 장에서 보려면 이 버전이지만, 도면 폭이 넓어 뷰어가 축소해 열립니다.",
+        "evidenceTitle": "사용자 목표 정본 — R61 v4 (2026-09-14 정책)",
+        "evidenceSummary": "planning-document/policy-2026-09-14.md 와 R61 트리 IA(127노드)를 근거로 다시 뽑았습니다. 마을 포인트·배 업그레이드·목표 시간·섬 내 주간 랭킹을 걷어내고 도서관·축음기·친구 관리·일일/건물 건설 퀘스트를 넣었습니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v3",
+        "label": "v3 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "00-usecase.v3",
+        "status": "대체됨",
+        "summary": "R61의 5개 사용자 목표 영역을 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트, 연결선 규칙으로 통일했습니다.",
+        "evidenceTitle": "사용자 목표 정본 — R61 v3",
+        "evidenceSummary": "사용자 목표 5개 영역 구조는 유효하지만 policy-2026-09-14 개정(도서관 신설·축음기·기본 뗏목 단일화·카운트업·친구 관리)을 담지 못해 v4로 대체했습니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "00-usecase.v2",
+        "status": "대체됨",
+        "summary": "이전 74개 동작 목록을 R61의 첫 소속, 집중, 성장, 섬 생활, 운영이라는 5개 사용자 목표 영역으로 다시 구성했습니다.",
+        "evidenceTitle": "R61 사용자 목표 재구성 스냅샷",
+        "evidenceSummary": "사용자 목표 구조는 유효하지만 독립적인 유스케이스 캔버스 스타일을 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-11",
+        "artifactId": "00-usecase.v1",
+        "status": "대체됨",
+        "summary": "기존 GROMO의 74개 동작을 개인 루프, 소셜 루프, 지원·운영의 9개 기능 영역으로 분류한 도면입니다.",
+        "evidenceTitle": "이전 기능 분류 스냅샷",
+        "evidenceSummary": "화면·API 단위 동작이 사용자 목표와 섞여 있고 R61의 섬·시설 모델을 반영하지 않아 v2로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/33560dbc88440cd5eaa3497029382449dbe7f344"
+      }
+    ]
+  },
+  {
     "id": "01-ia",
     "title": "IA · 정보 구조",
     "titleEn": "Information Architecture",
-    "summary": "R61 · 섬 홈과 시설별 주요 기능을 살펴보고, 세부 기능을 누르면 모든 하위 항목이 펼쳐집니다.",
-    "format": "html"
+    "summary": "R61 · 2026-09-14 정책 기준 정보 구조. 섬 홈·시설별 주요 기능을 트리로 보고, 세부 기능을 펼치면 모든 하위 항목이 열립니다.",
+    "detailHref": "/spec/use-cases",
+    "format": "html",
+    "versions": [
+      {
+        "id": "v4",
+        "label": "v4 · 현재",
+        "date": "2026-09-14",
+        "artifactId": "01-ia",
+        "status": "R61 현재 설계",
+        "summary": "gachisup R61 설계 원본(IA-R61.html)을 그대로 표시합니다. 주요 기능·세부 기능 펼침 버튼과 범례만 남기고 제목·검색·외부 문서 링크는 뺐습니다.",
+        "evidenceTitle": "정보 구조 설계 원본 — R61 2026-09-14",
+        "evidenceSummary": "설계 쪽 R61 원본을 사이트용으로 가공(scripts/sync-r61-html.py)한 버전입니다. 원본이 바뀌면 같은 스크립트로 다시 넣습니다. v3의 카드형 요약은 보존합니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v3",
+        "label": "v3 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "01-ia.v3",
+        "status": "대체됨",
+        "summary": "진입→섬 홈→고정 성장→선택 시설 구조를 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
+        "evidenceTitle": "정보 구조 설계 뷰 — R61 v3",
+        "evidenceSummary": "진입→섬 홈→고정 성장→선택 시설 요약은 유효하지만, 설계 쪽 R61 원본 트리를 그대로 보여 주기로 하여 v4로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/150beb8"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "01-ia.v2",
+        "status": "대체됨",
+        "summary": "진입→섬 홈→마을회관·게시판→선택 시설을 한 흐름에 두고, 기능·권한 상세를 필요할 때만 펼치도록 다시 구성했습니다.",
+        "evidenceTitle": "정보 구조 단계형 구조 스냅샷",
+        "evidenceSummary": "정보 구조는 유효하지만 독립 HTML 테마를 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-11",
+        "artifactId": "01-ia.v1",
+        "status": "대체됨",
+        "summary": "화면 목적, 해금, 역할, 상태, 연결 가능한 화면을 한 트리에 모두 펼친 최초 R61 IA입니다.",
+        "evidenceTitle": "R61 정보 구조 최초 스냅샷",
+        "evidenceSummary": "세부 정보는 풍부하지만 첫 집중 경로와 시설 해금 순서를 빠르게 읽기 어려워 v2의 단계형 구조로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/bb193ecea7ec0ba66ab0f5aea6edec5dc3be2b3e"
+      }
+    ]
   },
   {
     "id": "02-journey",
     "title": "유저 저니",
     "titleEn": "User Journey",
-    "format": "html"
+    "summary": "R61 · 주민의 일상과 공동 건설이 만나 섬에서 할 수 있는 일이 늘어나는 흐름. 개인·소셜을 누르면 해당 경험이 강조됩니다.",
+    "detailHref": "/spec/use-cases",
+    "format": "html",
+    "versions": [
+      {
+        "id": "v4",
+        "label": "v4 · 현재",
+        "date": "2026-09-14",
+        "artifactId": "02-journey",
+        "status": "R61 현재 설계",
+        "summary": "gachisup R61 설계 원본(User-Journey-R61.html)의 흐름도만 표시합니다. 제목·푸터를 빼고 프레임 높이에 맞춰 자동 축소합니다.",
+        "evidenceTitle": "사용자 여정 설계 원본 — R61 2026-09-14",
+        "evidenceSummary": "설계 쪽 R61 원본을 사이트용으로 가공(scripts/sync-r61-html.py)한 버전입니다. 원본이 바뀌면 같은 스크립트로 다시 넣습니다. v3의 6단계 표는 보존합니다.",
+        "detailHref": "/spec/use-cases"
+      },
+      {
+        "id": "v3",
+        "label": "v3 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "02-journey.v3",
+        "status": "대체됨",
+        "summary": "01–04 핵심 집중 루프와 05 성장·06 선택 활동을 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트로 통일했습니다.",
+        "evidenceTitle": "전체 유저 저니 — R61 v3",
+        "evidenceSummary": "여섯 단계 상태 표는 유효하지만, 설계 쪽 R61 원본 흐름도를 그대로 보여 주기로 하여 v4로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/150beb8"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "02-journey.v2",
+        "status": "대체됨",
+        "summary": "혼자서도 완결되는 01–04 핵심 집중 루프와, 그 뒤에 열리는 05 성장·06 선택 활동을 분리했습니다.",
+        "evidenceTitle": "핵심 루프·선택 활동 분리 스냅샷",
+        "evidenceSummary": "상태 순서와 확정 규칙은 유효하지만 독립 HTML 테마를 사용해 v3의 공통 시각 문법으로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/39f81a62cec7ac9c69180a1abd9641b52db5bd6c"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-11",
+        "artifactId": "02-journey.v1",
+        "status": "대체됨",
+        "summary": "시작, 집중, 성장과 섬 생활의 여섯 사용자 목표를 목표·행동·터치포인트·규칙·도달 상태로 정리한 최초 R61 전체 여정입니다.",
+        "evidenceTitle": "R61 전체 유저 저니 최초 스냅샷",
+        "evidenceSummary": "축음기·우체통이라는 이전 명칭과 집중 뒤 선택 활동의 강제가 모호해 v2의 핵심 루프·선택 활동 구조로 대체했습니다.",
+        "detailHref": "/spec/use-cases",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/a014dd6217b7c29ff67494def423a72a10d8307c"
+      }
+    ]
   },
   {
     "id": "03-service",
@@ -18,6 +186,43 @@
     "titleEn": "Service Architecture",
     "summary": "2026.09.13 · phone/docs 기반. Business·Data의 원자 명령, Kafka·outbox·알림, Realtime과 Redis의 소유권을 연결합니다. main·통합 PR·후속 설계를 구분합니다.",
     "detailHref": "/spec/service-architecture",
+    "versions": [
+      {
+        "id": "v3",
+        "label": "v3 · 현재",
+        "date": "2026-09-16",
+        "artifactId": "03-service",
+        "status": "현재 설계",
+        "summary": "코어 명령·outbox·Kafka·Realtime 소유권을 5열 3행 격자에 직선으로 놓고, 링크·MMP 흡수(A23)를 반영했습니다.",
+        "evidenceTitle": "설계 뷰 — archify 2026-09-16",
+        "evidenceSummary": "archify 스펙으로 다시 그려 구성·가독성·담김을 검증으로 강제한 버전입니다. 간선은 모두 같은 행 또는 같은 열을 공유해 꺾이지 않습니다.",
+        "detailHref": "/spec/service-architecture"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "03-service.v2",
+        "status": "대체됨",
+        "summary": "Business·Data의 원자 명령 경계 위에 Kafka outbox·Notification·Realtime과 용도별 Redis 소유권을 연결했습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-13 정본",
+        "evidenceSummary": "phone/docs/architecture의 목표 구조와 main·통합 PR의 구현을 대조한 버전입니다. 문서와 코드가 충돌하면 연결된 source commit의 코드와 phone 정본을 우선합니다.",
+        "detailHref": "/spec/service-architecture",
+        "sourceHref": "https://github.com/OneOrThree/phone/commit/875a9fd8952a96d0031eabe455c627cddb6a643d"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-08",
+        "artifactId": "03-service.v1",
+        "status": "대체됨",
+        "summary": "data-api 중심 모놀리스와 당시의 채팅·알림 경계를 한 장에 둔 최초 실도면입니다. 서비스 분리 이후의 Kafka·Redis 소유권은 포함하지 않습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-08 스냅샷",
+        "evidenceSummary": "문서 저장소의 최초 실도면 커밋을 그대로 보존했습니다. 이후 Kafka·Notification 분리와 Realtime·Redis 경계가 구체화되어 v2로 대체됐습니다.",
+        "detailHref": "/spec/architecture",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/345aa78250c0ed02f4ab5f65359c6effde69e9c0"
+      }
+    ],
     "format": "html"
   },
   {
@@ -26,6 +231,43 @@
     "titleEn": "System Architecture",
     "summary": "2026.09.13 · Target-1의 AWS·Vercel 배치 목표와 main에 추가된 dev Realtime·Redis·미리보기 구성을 표시합니다. 목표 포트와 현재 설정, 운영 전환 단계를 구분합니다.",
     "detailHref": "/spec/system-architecture",
+    "versions": [
+      {
+        "id": "v3",
+        "label": "v3 · 현재",
+        "date": "2026-09-16",
+        "artifactId": "04-system",
+        "status": "현재 설계",
+        "summary": "Target-1 배치와 Realtime·Redis 를 한 장에 두고, 링크 전용 배포 대상이 사라진 A23 이후 구성을 반영했습니다.",
+        "evidenceTitle": "설계 뷰 — archify 2026-09-16",
+        "evidenceSummary": "archify 스펙으로 다시 그려 구성·가독성·담김을 검증으로 강제한 버전입니다. 간선은 모두 같은 행 또는 같은 열을 공유해 꺾이지 않습니다.",
+        "detailHref": "/spec/system-architecture"
+      },
+      {
+        "id": "v2",
+        "label": "v2 · 이전",
+        "date": "2026-09-13",
+        "artifactId": "04-system.v2",
+        "status": "대체됨",
+        "summary": "Target-1의 AWS·Vercel 배치와 main의 GCP dev Realtime·Redis·미리보기 구성을 함께 표시하고, 목표와 현재를 분리했습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-13 정본",
+        "evidenceSummary": "운영 배치 목표와 확인된 개발 Compose를 같은 그림에서 구분한 버전입니다. 실제 운영 자원 상태를 새로 실측했다는 의미는 아닙니다.",
+        "detailHref": "/spec/system-architecture",
+        "sourceHref": "https://github.com/OneOrThree/phone/commit/875a9fd8952a96d0031eabe455c627cddb6a643d"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-08",
+        "artifactId": "04-system.v1",
+        "status": "대체됨",
+        "summary": "Cloudflare·단일 EC2·RDS 중심의 운영 배치를 기록한 첫 시스템 실도면입니다. 이후 추가된 서비스별 배포 경계와 dev 구성을 담지 않습니다.",
+        "evidenceTitle": "설계 뷰 — 2026-09-08 스냅샷",
+        "evidenceSummary": "문서 저장소의 최초 실도면 커밋을 그대로 보존했습니다. 서비스 분리 목표와 현재 dev 구성이 구체화되어 v2로 대체됐습니다.",
+        "detailHref": "/spec/architecture",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/345aa78250c0ed02f4ab5f65359c6effde69e9c0"
+      }
+    ],
     "format": "html"
   },
   {
@@ -33,6 +275,31 @@
     "title": "클라우드 아키텍처 · AWS",
     "titleEn": "Cloud Architecture",
     "summary": "2026.08 구성 기록. Cloudflare → Nginx·Spring Boot를 실행하는 단일 EC2 → 프라이빗 RDS PostgreSQL과 Datadog 수집 경로입니다. 9월 서비스 분리 목표는 시스템 아키텍처와 상세 문서를 확인해 주세요.",
-    "detailHref": "/spec/system-architecture"
+    "detailHref": "/spec/system-architecture",
+    "versions": [
+      {
+        "id": "v2",
+        "label": "v2 · 현재",
+        "date": "2026-09-13",
+        "artifactId": "05-cloud",
+        "status": "2026.08 구성 기록",
+        "summary": "2026.08 AWS 구성과 트래픽 경로를 유지하며 시스템 아키텍처와 같은 제목, 밴드, 카드, 팔레트, 연결선 규칙으로 다시 그렸습니다.",
+        "evidenceTitle": "AWS 구성 스냅샷 — 공통 시각 문법",
+        "evidenceSummary": "구성 사실은 v1과 같고 표현만 04-system 기준으로 통일했습니다. 9월 서비스 분리 목표와 현재 개발 구성은 시스템 아키텍처를 우선합니다.",
+        "detailHref": "/spec/system-architecture"
+      },
+      {
+        "id": "v1",
+        "label": "v1 · 이전",
+        "date": "2026-09-11",
+        "artifactId": "05-cloud.v1",
+        "status": "대체됨",
+        "summary": "Cloudflare, 단일 EC2의 Nginx·Spring Boot, 프라이빗 RDS PostgreSQL, Datadog 수집 경로를 기록한 최초 AWS 배치 도면입니다.",
+        "evidenceTitle": "AWS 구성 최초 스냅샷",
+        "evidenceSummary": "구성 내용은 유지했지만 다른 도면과 시각 문법이 달라 v2로 대체했습니다.",
+        "detailHref": "/spec/system-architecture",
+        "sourceHref": "https://github.com/OneOrThree/documentation/commit/33560dbc88440cd5eaa3497029382449dbe7f344"
+      }
+    ]
   }
 ]

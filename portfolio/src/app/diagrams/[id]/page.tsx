@@ -8,6 +8,7 @@ import { HtmlDiagramPanel } from "@/components/diagram/html-diagram-panel";
 import { DiagramPanel } from "@/components/diagram/diagram-panel";
 import { DiagramTextView } from "@/components/diagram/diagram-text-view";
 import { VersionedDiagramPanel } from "@/components/diagram/versioned-diagram-panel";
+import { VersionedHtmlDiagramPanel } from "@/components/diagram/versioned-html-diagram-panel";
 import { Kicker } from "@/components/kicker";
 
 const section = findSection("diagrams")!;
@@ -46,10 +47,12 @@ export default async function DiagramPage({
   const diagram = getDiagram(id);
   if (!diagram) notFound();
   const graph = diagram.format === "html" ? undefined : getDiagramGraph(id);
-  const versions = diagram.versions?.map((version) => ({
-    ...version,
-    graph: getDiagramGraph(version.artifactId),
-  }));
+  const versions = diagram.format === "html"
+    ? undefined
+    : diagram.versions?.map((version) => ({
+        ...version,
+        graph: getDiagramGraph(version.artifactId),
+      }));
   const versionGraphs = versions?.every((version) => version.graph)
     ? versions.map((version) => ({ ...version, graph: version.graph! }))
     : undefined;
@@ -57,9 +60,12 @@ export default async function DiagramPage({
 
   const all = getDiagrams();
   const index = all.findIndex((d) => d.id === id);
+  const isVersioned = Boolean(diagram.versions?.length);
 
   const selector = (
-    <nav aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-2">
+    // 이 엘리먼트는 클라이언트 컴포넌트에 prop 으로 건너간다. React dev 가
+    // 키 없는 배열 자식으로 보고 경고하므로 이름을 명시한다.
+    <nav key="diagram-selector" aria-label="다이어그램 선택" className="flex min-w-0 flex-wrap gap-2">
       {all.map((d, i) => {
         const active = d.id === id;
         return (
@@ -103,7 +109,13 @@ export default async function DiagramPage({
         </p>
       </header>
 
-      {diagram.format === "html" ? (
+      {diagram.format === "html" && diagram.versions?.length ? (
+        <VersionedHtmlDiagramPanel
+          diagram={diagram}
+          selector={selector}
+          versions={diagram.versions}
+        />
+      ) : diagram.format === "html" ? (
         <HtmlDiagramPanel diagram={diagram} index={index} selector={selector} />
       ) : versionGraphs ? (
         <VersionedDiagramPanel
@@ -134,12 +146,12 @@ export default async function DiagramPage({
         />
       ) : null}
 
-      {!versionGraphs && diagram.summary && (
+      {!isVersioned && diagram.summary && (
         <p className="mt-6 max-w-2xl leading-relaxed text-muted-foreground">
           {diagram.summary}
         </p>
       )}
-      {!versionGraphs && diagram.detailHref && (
+      {!isVersioned && diagram.detailHref && (
         <Link
           href={diagram.detailHref}
           className="mt-3 inline-block text-sm text-primary no-underline hover:underline"

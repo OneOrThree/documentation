@@ -1,0 +1,1881 @@
+<!doctype html>
+<html lang="ko">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  /><title>GROMO · 전체 유저 저니</title
+  ><style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font:
+        15px -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+      color: #36414e;
+      background: white;
+    }
+    header {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 26px;
+      border-bottom: 1px solid #e6e8eb;
+      background: white;
+    }
+    h1 {
+      font-size: 17px;
+      font-weight: 600;
+    }
+    a {
+      color: #526f89;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+    }
+    button {
+      background: white;
+      border: 1px solid #d6dbe0;
+      border-radius: 4px;
+      padding: 7px 11px;
+      font: inherit;
+      cursor: pointer;
+    }
+    #viewport {
+      height: calc(100vh - 62px);
+      overflow: auto;
+      background: white;
+    }
+    #canvas {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 100%;
+      min-height: 100%;
+    }
+    #canvas svg {
+      display: block;
+      flex-shrink: 0;
+    }
+    header {
+      height: auto;
+      min-height: 62px;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+    }
+    nav {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid #526f89;
+      outline-offset: 3px;
+    }
+    #viewport {
+      height: calc(100dvh - 70px);
+      min-height: 300px;
+    }
+    @media (max-width: 600px) {
+      header {
+        padding: 12px;
+      }
+      h1 {
+        font-size: 15px;
+        margin: 0;
+      }
+      nav {
+        font-size: 12px;
+        gap: 10px;
+      }
+    }
+    header {
+      justify-content: flex-end;
+    }
+  </style>
+  <header id="top">
+    <nav>
+      <button id="minus" aria-label="축소">−</button><span id="ratio"></span
+      ><button id="plus" aria-label="확대">+</button
+      ><button id="fit">전체 맞춤</button>
+    </nav>
+  </header>
+  <div id="viewport">
+    <div id="canvas">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 130 2480 920"
+        role="img"
+        aria-label="GROMO 전체 사용자 여정"
+      >
+        <rect width="2480" height="1140" fill="white" />
+        <rect
+          x="209"
+          y="142"
+          width="360"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="224"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="234"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          1. 시작하기
+        </text>
+        <rect
+          x="579"
+          y="142"
+          width="730"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="594"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="604"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          2. 집중하는 동안
+        </text>
+        <rect
+          x="1319"
+          y="142"
+          width="1100"
+          height="898"
+          rx="6"
+          fill="white"
+          stroke="#aeb5bd"
+          stroke-width="1.4"
+          stroke-dasharray="8 6"
+        />
+        <text
+          x="1334"
+          y="595.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        ></text>
+        <text
+          x="1344"
+          y="173.55"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          3. 성장과 섬 생활 · 목적별 선택
+        </text>
+        <rect
+          x="30"
+          y="283.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="306.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          목표
+        </text>
+        <rect
+          x="30"
+          y="431.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="454.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          행동
+        </text>
+        <rect
+          x="30"
+          y="602.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="625.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          터치포인트
+        </text>
+        <rect
+          x="30"
+          y="782.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="805.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          확정 규칙
+        </text>
+        <rect
+          x="30"
+          y="941.0"
+          width="146"
+          height="40"
+          rx="6"
+          fill="#4c5763"
+          stroke="#4c5763"
+          stroke-width="1.4"
+        />
+        <text
+          x="103.0"
+          y="964.825"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="17"
+          font-weight="600"
+          fill="white"
+          text-anchor="middle"
+        >
+          도달 상태
+        </text>
+        <rect
+          x="214"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          01 내 공간에서 시작
+        </text>
+        <rect
+          x="214"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          혼자 또는 기존 섬에서
+        </text>
+        <text
+          x="229"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 첫 집중을 시작한다.
+        </text>
+        <rect
+          x="214"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          혼자 시작할 섬 만들기
+        </text>
+        <text
+          x="229"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          또는 기존 섬에 참여하기
+        </text>
+        <text
+          x="229"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          현재 섬과 부두 확인
+        </text>
+        <text
+          x="229"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          할 일·집중 시간 설정
+        </text>
+        <rect
+          x="220"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#edf2fa"
+          stroke="#7ea2c4"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          첫 소속 선택
+        </text>
+        <rect
+          x="220"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf6ee"
+          stroke="#83b49b"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          섬 홈
+        </text>
+        <rect
+          x="220"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="389.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          부두 · 집중 설정
+        </text>
+        <rect
+          x="214"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="778.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          친구의 동시 접속은 필요 없음
+        </text>
+        <text
+          x="229"
+          y="806.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          처음에는 내 뗏목·부두·모닥불
+        </text>
+        <text
+          x="229"
+          y="833.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기존 섬은 현재 시설 상태 이용
+        </text>
+        <rect
+          x="214"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="229"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          첫 소속과 집중 목표를 정한다.
+        </text>
+        <text
+          x="229"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          첫 건설은 시작 조건이 아니다.
+        </text>
+
+        <rect
+          x="584"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          02 할 일에 집중
+        </text>
+        <rect
+          x="584"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          배 위 낚시 집중으로
+        </text>
+        <text
+          x="599"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 할 일에 시간을 쓴다.
+        </text>
+        <rect
+          x="584"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          낚시 집중 시작
+        </text>
+        <text
+          x="599"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          할 일에 집중하며 진행 확인
+        </text>
+        <text
+          x="599"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요할 때 짧은 소통
+        </text>
+        <text
+          x="599"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          건설된 축음기에서 음원 변경
+        </text>
+        <rect
+          x="590"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          부두 · 집중하기
+        </text>
+        <rect
+          x="590"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eef4e8"
+          stroke="#9eb87f"
+          stroke-width="1.4"
+        />
+        <text
+          x="759.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          집중 화면의 축음기
+        </text>
+        <rect
+          x="584"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이모티콘5종 → 캐릭터 말풍선
+        </text>
+        <text
+          x="599"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중 중인 모두에게 잠시 표시
+        </text>
+        <text
+          x="599"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          음원은 그룹원 누구나 변경
+        </text>
+        <text
+          x="599"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          같은 섬이 함께 듣는 공동 소리
+        </text>
+        <rect
+          x="584"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="599"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중을 이어간다.
+        </text>
+        <text
+          x="599"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          소통과 음원 변경은 선택이다.
+        </text>
+
+        <rect
+          x="954"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          03 쉬거나 결과 확인
+        </text>
+        <rect
+          x="954"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요할 때 쉬고
+        </text>
+        <text
+          x="969"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이번 집중 결과를 확인한다.
+        </text>
+        <rect
+          x="954"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쉬고 싶으면 잠시 휴식 선택
+        </text>
+        <text
+          x="969"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          같은 모닥불로 이동해 쉬기
+        </text>
+        <text
+          x="969"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중을 마치면 결과 확인
+        </text>
+        <text
+          x="969"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기록·물고기·퀘스트 결과 구분
+        </text>
+        <rect
+          x="960"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          모닥불 · 휴식
+        </text>
+        <rect
+          x="960"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fff5e2"
+          stroke="#d6b477"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          집중 결과
+        </text>
+        <rect
+          x="960"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#faf3df"
+          stroke="#c6ad65"
+          stroke-width="1.4"
+        />
+        <text
+          x="1129.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          게시판 · 퀘스트 결과
+        </text>
+        <rect
+          x="954"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          휴식은 집중 중 선택 행동
+        </text>
+        <text
+          x="969"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          모닥불을 별도 장소로 중복하지 않음
+        </text>
+        <text
+          x="969"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          게시판 전 물고기는 섬 귀속
+        </text>
+        <text
+          x="969"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          게시판 이후 개인 집중은 개인 재화
+        </text>
+        <rect
+          x="954"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="969"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쉬는 모습 또는 완료 결과를 본다.
+        </text>
+        <text
+          x="969"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          휴식과 종료는 다른 선택이다.
+        </text>
+
+        <rect
+          x="1324"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          04 함께 시설을 열기
+        </text>
+        <rect
+          x="1324"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중과 퀘스트의 기여로
+        </text>
+        <text
+          x="1339"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          섬의 새 기능을 연다.
+        </text>
+        <rect
+          x="1324"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          섬 물고기로 회관 → 게시판
+        </text>
+        <text
+          x="1339"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          퀘스트 달성으로 마을 포인트
+        </text>
+        <text
+          x="1339"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관에서 다음 건물 선택
+        </text>
+        <text
+          x="1339"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          완성된 시설의 기능 이용
+        </text>
+        <rect
+          x="1330"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf6ee"
+          stroke="#83b49b"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          섬 홈 · 첫 건설
+        </text>
+        <rect
+          x="1330"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#faf3df"
+          stroke="#c6ad65"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          게시판 · 퀘스트
+        </text>
+        <rect
+          x="1330"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f1edfa"
+          stroke="#a697c1"
+          stroke-width="1.4"
+        />
+        <text
+          x="1499.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          마을회관 · 다음 건물
+        </text>
+        <rect
+          x="1324"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관 다음 게시판은 고정 순서
+        </text>
+        <text
+          x="1339"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          이후 전망대·우체통·축음기 선택
+        </text>
+        <text
+          x="1339"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기100P · 게시판 이후 가능
+        </text>
+        <text
+          x="1339"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          전망대·우체통 뒤 마지막 NPC상점
+        </text>
+        <rect
+          x="1324"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1339"
+          y="951.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          새 시설을 사용할 수 있다.
+        </text>
+        <text
+          x="1339"
+          y="979.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기는 상점의 선행 조건이 아니다.
+        </text>
+
+        <rect
+          x="1694"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          05 내 취향과 우리 살림
+        </text>
+        <rect
+          x="1694"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          쌓은 재화로 산 물건을
+        </text>
+        <text
+          x="1709"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인과 섬에 맞게 사용한다.
+        </text>
+        <rect
+          x="1694"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 물고기로 옷·배 꾸밈 구매
+        </text>
+        <text
+          x="1709"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          내 배에서 옷·선체·소품 적용
+        </text>
+        <text
+          x="1709"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          마을 포인트로 공동 외양 구매
+        </text>
+        <text
+          x="1709"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          상점에서 섬·건물 테마 적용
+        </text>
+        <rect
+          x="1700"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f8ebee"
+          stroke="#c798a7"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          상점 · 개인 / 공동 상품
+        </text>
+        <rect
+          x="1700"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#eaf4fb"
+          stroke="#8bb4cd"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          내 배 · 꾸미기
+        </text>
+        <rect
+          x="1700"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f8ebee"
+          stroke="#c798a7"
+          stroke-width="1.4"
+        />
+        <text
+          x="1869.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          상점 · ASMR
+        </text>
+        <rect
+          x="1694"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          상점 진입 시 두 재화 잔액 표시
+        </text>
+        <text
+          x="1709"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          뗏목 → 돛단배 → 배 업그레이드
+        </text>
+        <text
+          x="1709"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          축음기 건설 후 상점에서ASMR 구매
+        </text>
+        <text
+          x="1709"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          모두 해금한 뒤에도 외양·소리 구매
+        </text>
+        <rect
+          x="1694"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="1709"
+          y="937.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 외양은 내 배에서 바꾼다.
+        </text>
+        <text
+          x="1709"
+          y="965.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          공동 외양과 소리는 섬에서 함께 쓴다
+        </text>
+        <text
+          x="1709"
+          y="992.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          .
+        </text>
+
+        <rect
+          x="2064"
+          y="200"
+          width="350"
+          height="36"
+          rx="6"
+          fill="#eff0f2"
+          stroke="#eff0f2"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="222.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="600"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          06 이야기·기록·탐색
+        </text>
+        <rect
+          x="2064"
+          y="254"
+          width="350"
+          height="98"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="293.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          필요한 순간에 그룹과 소통하고
+        </text>
+        <text
+          x="2079"
+          y="321.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          기록이나 다른 섬을 살펴본다.
+        </text>
+        <rect
+          x="2064"
+          y="374"
+          width="350"
+          height="154"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="413.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          우체통에서 그룹 대화 읽고 쓰기
+        </text>
+        <text
+          x="2079"
+          y="441.09999999999997"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          회관에서 집중·스크린타임 조회
+        </text>
+        <text
+          x="2079"
+          y="469.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          전망대에서 다른 섬 탐색·이동
+        </text>
+        <text
+          x="2079"
+          y="496.9"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          목적에 맞는 기능만 선택
+        </text>
+        <rect
+          x="2070"
+          y="550"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#fbeee6"
+          stroke="#d1a288"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="570.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          우체통 · 그룹 편지방
+        </text>
+        <rect
+          x="2070"
+          y="593"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#f1edfa"
+          stroke="#a697c1"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="613.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          마을회관 · 통계
+        </text>
+        <rect
+          x="2070"
+          y="636"
+          width="338"
+          height="34"
+          rx="6"
+          fill="#e8f5f6"
+          stroke="#8bbcc0"
+          stroke-width="1.4"
+        />
+        <text
+          x="2239.0"
+          y="656.6"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="16"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="middle"
+        >
+          전망대 · 다른 섬
+        </text>
+        <rect
+          x="2064"
+          y="718"
+          width="350"
+          height="168"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="764.2"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          편지 감성의 그룹 전체 채팅방
+        </text>
+        <text
+          x="2079"
+          y="792.1"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          개인 수신자 선택 없음
+        </text>
+        <text
+          x="2079"
+          y="820.0"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          통계에서 두 기록 유형 제공
+        </text>
+        <text
+          x="2079"
+          y="847.9000000000001"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          다른 섬 이동은 전망대 해금 필요
+        </text>
+        <rect
+          x="2064"
+          y="908"
+          width="350"
+          height="106"
+          rx="6"
+          fill="white"
+          stroke="#cdd2d8"
+          stroke-width="1.4"
+        />
+        <text
+          x="2079"
+          y="937.15"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          대화·기록·탐색은 각각 선택한다.
+        </text>
+        <text
+          x="2079"
+          y="965.05"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          집중 후 필수로 거치는 코스는 아니다
+        </text>
+        <text
+          x="2079"
+          y="992.9499999999999"
+          font-family="-apple-system,BlinkMacSystemFont,sans-serif"
+          font-size="18"
+          font-weight="400"
+          fill="#36414e"
+          text-anchor="start"
+        >
+          .
+        </text>
+      </svg>
+    </div>
+  </div>
+
+  <script>
+    const svg = document.querySelector("#canvas svg"),
+      view = document.querySelector("#viewport"),
+      can = document.querySelector("#canvas");
+    let zoom = 1;
+    function fit() {
+      zoom = Math.min(view.clientWidth / 2480, view.clientHeight / 920);
+      render();
+    }
+    function render() {
+      svg.style.width = 2480 * zoom + "px";
+      svg.style.height = 920 * zoom + "px";
+      can.style.width = Math.max(view.clientWidth, 2480 * zoom) + "px";
+      can.style.height = Math.max(view.clientHeight, 920 * zoom) + "px";
+      document.querySelector("#ratio").textContent =
+        Math.round(zoom * 100) + "%";
+    }
+    document.querySelector("#fit").onclick = fit;
+    document.querySelector("#plus").onclick = () => {
+      zoom = Math.min(2, zoom * 1.25);
+      render();
+    };
+    document.querySelector("#minus").onclick = () => {
+      zoom = Math.max(0.15, zoom / 1.25);
+      render();
+    };
+    window.addEventListener("resize", fit);
+    fit();
+  </script>
+</html>

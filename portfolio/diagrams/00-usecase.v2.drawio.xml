@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-09-13T00:00:00.000Z" agent="OneOrThree diagram generator" version="24.7.17" type="device">
+  <diagram id="gromo-r61-usecase" name="Use Case">
+    <mxGraphModel dx="1800" dy="1120" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1120" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="frame" value="" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#AEB7C0;strokeWidth=1.2;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1" connectable="0">
+          <mxGeometry x="235" y="135" width="1250" height="820" as="geometry" />
+        </mxCell>
+        <mxCell id="frame_label" value="GROMO R61 · 사용자 목표" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontStyle=1;fontColor=#5F6973;" parent="1" vertex="1" connectable="0">
+          <mxGeometry x="260" y="150" width="500" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" value="실선: 사람의 참여 · 파선: 외부 시스템 의존 · 화살표: 핵심 사용 흐름" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="1" vertex="1" connectable="0">
+          <mxGeometry x="245" y="1000" width="1050" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start" value="첫 소속과 진입 — 집중하기 위한 최소 준비" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#EDF5F0;strokeColor=#3E7259;strokeWidth=1.5;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="220" width="350" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_index" value="01" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#3E7259;strokeColor=none;fontSize=11;fontStyle=1;fontColor=#FFFFFF;absoluteArcSize=1;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="22" y="20" width="36" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_title" value="첫 소속과 진입" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=17;fontStyle=1;fontColor=#22272B;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="70" y="16" width="258" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_caption" value="집중하기 위한 최소 준비" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="22" y="50" width="306" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_case_1" value="섬 만들기·가입" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="22" y="82" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_case_2" value="입항 후 섬 홈 진입" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="22" y="132" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_start_case_3" value="계정·측정 권한 준비" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_start" vertex="1" connectable="0">
+          <mxGeometry x="22" y="182" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus" value="집중 루프 — R61의 첫 번째 사용자 가치" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#EDF5F0;strokeColor=#3E7259;strokeWidth=1.5;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="680" y="220" width="350" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_index" value="02" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#3E7259;strokeColor=none;fontSize=11;fontStyle=1;fontColor=#FFFFFF;absoluteArcSize=1;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="22" y="20" width="36" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_title" value="집중 루프" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=17;fontStyle=1;fontColor=#22272B;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="70" y="16" width="258" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_caption" value="R61의 첫 번째 사용자 가치" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="22" y="50" width="306" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_case_1" value="할 일·목표 시간 설정" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="22" y="82" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_case_2" value="집중·휴식·복귀" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="22" y="132" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_focus_case_3" value="기록·물고기·퀘스트 결과 확인" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3E7259;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_focus" vertex="1" connectable="0">
+          <mxGeometry x="22" y="182" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow" value="함께 성장 — 반복 집중을 섬의 변화로 연결" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F2EFF8;strokeColor=#6D5A8D;strokeWidth=1.5;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="1080" y="220" width="350" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_index" value="03" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#6D5A8D;strokeColor=none;fontSize=11;fontStyle=1;fontColor=#FFFFFF;absoluteArcSize=1;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="22" y="20" width="36" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_title" value="함께 성장" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=17;fontStyle=1;fontColor=#22272B;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="70" y="16" width="258" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_caption" value="반복 집중을 섬의 변화로 연결" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="22" y="50" width="306" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_case_1" value="집중·폰 사용 퀘스트 참여" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6D5A8D;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="22" y="82" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_case_2" value="시설 해금·건설" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6D5A8D;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="22" y="132" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_grow_case_3" value="집중·스크린타임·랭킹 확인" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6D5A8D;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_grow" vertex="1" connectable="0">
+          <mxGeometry x="22" y="182" width="306" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life" value="섬 생활과 표현 — 필요할 때 선택하는 소셜·개인화" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#EEF3F8;strokeColor=#4E6F8F;strokeWidth=1.5;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="480" y="600" width="470" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_index" value="04" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#4E6F8F;strokeColor=none;fontSize=11;fontStyle=1;fontColor=#FFFFFF;absoluteArcSize=1;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="22" y="20" width="36" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_title" value="섬 생활과 표현" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=17;fontStyle=1;fontColor=#22272B;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="70" y="16" width="378" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_caption" value="필요할 때 선택하는 소셜·개인화" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="22" y="50" width="426" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_case_1" value="공지·편지·이모티콘으로 소통" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="22" y="82" width="426" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_case_2" value="다른 섬 탐색·방문·이동" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="22" y="132" width="426" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_life_case_3" value="개인·공동 꾸미기와 공동 소리 사용" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_life" vertex="1" connectable="0">
+          <mxGeometry x="22" y="182" width="426" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate" value="섬 운영 — 방장에게만 열리는 책임" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FAF2EA;strokeColor=#95633C;strokeWidth=1.5;noLabel=1;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="1000" y="600" width="390" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_index" value="05" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#95633C;strokeColor=none;fontSize=11;fontStyle=1;fontColor=#FFFFFF;absoluteArcSize=1;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="22" y="20" width="36" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_title" value="섬 운영" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=17;fontStyle=1;fontColor=#22272B;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="70" y="16" width="298" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_caption" value="방장에게만 열리는 책임" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontSize=11;fontColor=#5F6973;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="22" y="50" width="346" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_case_1" value="섬·가입 방식·멤버 관리" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#95633C;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="22" y="82" width="346" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_case_2" value="공지·퀘스트 생성" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#95633C;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="22" y="132" width="346" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="area_operate_case_3" value="시설 선택·공동 구매·외양 적용" style="rounded=1;arcSize=24;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#95633C;strokeWidth=1;fontSize=12;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="area_operate" vertex="1" connectable="0">
+          <mxGeometry x="22" y="182" width="346" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_user" value="주민 주요 액터" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;strokeColor=#3E7259;strokeWidth=1.5;fontColor=#22272B;" parent="1" vertex="1">
+          <mxGeometry x="75" y="300" width="130" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_host" value="방장 주민 역할의 확장" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;strokeColor=#95633C;strokeWidth=1.5;fontColor=#22272B;" parent="1" vertex="1">
+          <mxGeometry x="75" y="690" width="130" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_visitor" value="방문자 다른 섬 읽기 전용" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=12;fontStyle=1;strokeColor=#4E6F8F;strokeWidth=1.5;fontColor=#22272B;" parent="1" vertex="1">
+          <mxGeometry x="75" y="865" width="130" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="system_auth" value="소셜 로그인 — 인증" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1.3;fontSize=12;fontStyle=1;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="1530" y="260" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="system_screentime" value="iOS Screen Time — 측정·실드" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1.3;fontSize=12;fontStyle=1;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="1530" y="465" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="system_scheduler" value="서버 스케줄러 — 판정·정산·알림" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4E6F8F;strokeWidth=1.3;fontSize=12;fontStyle=1;fontColor=#22272B;align=left;spacingLeft=14;absoluteArcSize=1;" parent="1" vertex="1">
+          <mxGeometry x="1530" y="670" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_user_start" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_user" target="area_start">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="345" as="sourcePoint" />
+            <mxPoint x="245" y="345" as="targetPoint" />
+            <Array as="points">
+
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_user_focus" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_user" target="area_focus">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="365" as="sourcePoint" />
+            <mxPoint x="855" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="245" y="365" />
+              <mxPoint x="245" y="520" />
+              <mxPoint x="855" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_user_grow" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_user" target="area_grow">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="385" as="sourcePoint" />
+            <mxPoint x="1255" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="230" y="385" />
+              <mxPoint x="230" y="545" />
+              <mxPoint x="1255" y="545" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_user_life" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_user" target="area_life">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="405" as="sourcePoint" />
+            <mxPoint x="480" y="735" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="220" y="405" />
+              <mxPoint x="220" y="735" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_host_user" value="역할 확장" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#95633C;endArrow=block;endFill=1;" parent="1" edge="1" source="actor_host" target="actor_user">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="135" y="690" as="sourcePoint" />
+            <mxPoint x="135" y="470" as="targetPoint" />
+            <Array as="points">
+
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_host_operate" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_host" target="area_operate">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="735" as="sourcePoint" />
+            <mxPoint x="1195" y="870" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="250" y="735" />
+              <mxPoint x="250" y="930" />
+              <mxPoint x="1195" y="930" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_visitor_life" value="읽기·듣기" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#5F6973;endArrow=none;" parent="1" edge="1" source="actor_visitor" target="area_life">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="205" y="910" as="sourcePoint" />
+            <mxPoint x="480" y="790" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="415" y="910" />
+              <mxPoint x="415" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_auth_start" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#4E6F8F;dashed=1;dashPattern=6 5;endArrow=none;" parent="1" edge="1" source="system_auth" target="area_start">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1530" y="305" as="sourcePoint" />
+            <mxPoint x="455" y="220" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1470" y="305" />
+              <mxPoint x="1470" y="170" />
+              <mxPoint x="455" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_screentime_focus" value="측정·차단" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#4E6F8F;dashed=1;dashPattern=6 5;endArrow=none;" parent="1" edge="1" source="system_screentime" target="area_focus">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1530" y="510" as="sourcePoint" />
+            <mxPoint x="855" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1490" y="510" />
+              <mxPoint x="1490" y="535" />
+              <mxPoint x="855" y="535" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_screentime_grow" value="폰 사용 기록" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#4E6F8F;dashed=1;dashPattern=6 5;endArrow=none;" parent="1" edge="1" source="system_screentime" target="area_grow">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1530" y="530" as="sourcePoint" />
+            <mxPoint x="1255" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1455" y="530" />
+              <mxPoint x="1455" y="500" />
+              <mxPoint x="1255" y="500" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge_scheduler_grow" value="판정·보상" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#4E6F8F;dashed=1;dashPattern=6 5;endArrow=none;" parent="1" edge="1" source="system_scheduler" target="area_grow">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1530" y="715" as="sourcePoint" />
+            <mxPoint x="1320" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1460" y="715" />
+              <mxPoint x="1460" y="560" />
+              <mxPoint x="1320" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_start_focus" value="집중 시작" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#3E7259;endArrow=block;endFill=1;" parent="1" edge="1" source="area_start" target="area_focus">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="345" as="sourcePoint" />
+            <mxPoint x="680" y="345" as="targetPoint" />
+            <Array as="points">
+
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_focus_grow" value="기록·기여" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#3E7259;endArrow=block;endFill=1;" parent="1" edge="1" source="area_focus" target="area_grow">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1030" y="345" as="sourcePoint" />
+            <mxPoint x="1080" y="345" as="targetPoint" />
+            <Array as="points">
+
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_grow_life" value="시설 해금" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#3E7259;endArrow=block;endFill=1;" parent="1" edge="1" source="area_grow" target="area_life">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1160" y="470" as="sourcePoint" />
+            <mxPoint x="715" y="600" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1160" y="560" />
+              <mxPoint x="715" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_life_focus" value="다시 집중" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=1.4;strokeColor=#3E7259;endArrow=block;endFill=1;" parent="1" edge="1" source="area_life" target="area_focus">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="715" y="600" as="sourcePoint" />
+            <mxPoint x="780" y="470" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="715" y="550" />
+              <mxPoint x="780" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
