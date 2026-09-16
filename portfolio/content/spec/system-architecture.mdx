@@ -18,9 +18,7 @@ related:
 
 ## 배치 구조
 
-[크게 보기·연결 강조·draw.io 다운로드](/diagrams/04-system)
-
-![Gromo 시스템 아키텍처 — Target-1 prod 목표와 main의 Realtime·Redis·미리보기 dev 구성](/diagrams/04-system.svg)
+[상호작용 다이어그램 열기 — 확대·연결 강조·내보내기](/diagrams/04-system)
 
 위쪽은 `phone/docs/architecture`의 Target-1 배치 목표이며, 아래쪽은 최신 main에 추가된 dev overlay다. 이번 문서 갱신은 코드를 대조한 결과로, AWS·GCP 호스트의 실행 상태를 새로 실측한 기록이 아니다.
 
@@ -43,10 +41,9 @@ related:
 
 | 저장소 | 소유·배치 | 배포 전제 |
 | --- | --- | --- |
-| `gromo` | 코어 Data API. prod RDS PostgreSQL, dev PostgreSQL 컨테이너 | 코어 전용 DB 자격·Flyway |
+| `gromo` | 코어 Data API. prod RDS PostgreSQL, dev PostgreSQL 컨테이너. 링크·클릭·캠페인·referrer·포스트백 원장도 여기에 있다(A23) | 코어 전용 DB 자격·Flyway |
 | `gromo_notification` | 같은 prod RDS 인스턴스 안의 별도 database가 Target-1 | DB·유저·권한을 먼저 생성한 뒤 Notification Flyway 실행 |
 | `gromo_chat` | 현재 main의 dev PostgreSQL에 별도 database | 멱등 DB init 잡 뒤 Realtime 실행. prod overlay는 아직 정의되지 않음 |
-| Neon PostgreSQL | Vercel Link·MMP 전용 | 링크·클릭·귀속 데이터 소유, 코어 DB와 분리 |
 | Kafka 볼륨 | 브로커의 로그·KRaft 메타데이터 영속화 | 단일 노드 RF 1. 볼륨 보존과 다중 노드 가용성은 별개 |
 | Redis | 채팅·집중과 미리보기는 다른 인스턴스 | 서비스별 ACL·메모리·eviction 정책을 용도별 적용 |
 

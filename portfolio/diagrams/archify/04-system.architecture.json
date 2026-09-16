@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Gromo · 시스템 아키텍처",
+    "output": "04-system.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      920,
+      400
+    ]
+  },
+  "components": [
+    {
+      "id": "ddagent",
+      "type": "backend",
+      "label": "Datadog",
+      "pos": [
+        600,
+        15
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "rds",
+      "type": "database",
+      "label": "RDS",
+      "pos": [
+        795,
+        15
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "모바일 앱",
+      "pos": [
+        15,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "type": "cloud",
+      "label": "Cloudflare",
+      "pos": [
+        210,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "nginx",
+      "type": "security",
+      "label": "Nginx",
+      "pos": [
+        405,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "business",
+      "type": "backend",
+      "label": "Business",
+      "pos": [
+        600,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "data",
+      "type": "backend",
+      "label": "Data API",
+      "pos": [
+        795,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "realtime",
+      "type": "backend",
+      "label": "Realtime",
+      "pos": [
+        15,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "redis",
+      "type": "database",
+      "label": "Redis",
+      "pos": [
+        210,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "notification",
+      "type": "backend",
+      "label": "Notification",
+      "pos": [
+        405,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka",
+      "pos": [
+        795,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    }
+  ],
+  "boundaries": [],
+  "connections": [
+    {
+      "id": "app-cf",
+      "from": "app",
+      "to": "cloudflare",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "cf-nginx",
+      "from": "cloudflare",
+      "to": "nginx",
+      "label": "Proxy",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "nginx-business",
+      "from": "nginx",
+      "to": "business",
+      "label": "REST",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "business-data",
+      "from": "business",
+      "to": "data",
+      "label": "내부 HTTP",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "business-ddagent",
+      "from": "business",
+      "to": "ddagent",
+      "label": "APM",
+      "variant": "dashed",
+      "labelDy": -20
+    },
+    {
+      "id": "data-rds",
+      "from": "data",
+      "to": "rds",
+      "label": "코어 DB",
+      "labelDy": -20
+    },
+    {
+      "id": "data-kafka",
+      "from": "data",
+      "to": "kafka",
+      "label": "relay",
+      "variant": "dashed",
+      "labelAt": [
+        818,
+        161
+      ]
+    },
+    {
+      "id": "kafka-noti",
+      "from": "kafka",
+      "to": "notification",
+      "label": "consume",
+      "variant": "dashed",
+      "labelDy": -12
+    },
+    {
+      "id": "app-realtime",
+      "from": "app",
+      "to": "realtime",
+      "label": "WSS",
+      "labelAt": [
+        65,
+        161
+      ]
+    },
+    {
+      "id": "realtime-redis",
+      "from": "realtime",
+      "to": "redis",
+      "label": "Pub/Sub",
+      "labelDy": -12
+    }
+  ],
+  "cards": []
+}

@@ -18,21 +18,22 @@ related:
 
 ## 서비스 구조
 
-[크게 보기·연결 강조·draw.io 다운로드](/diagrams/03-service)
-
-![Gromo 서비스 아키텍처 — 코어 명령, 실시간 전달, Kafka 알림, Redis 역할과 Target-2](/diagrams/03-service.svg)
+[상호작용 다이어그램 열기 — 확대·연결 강조·내보내기](/diagrams/03-service)
 
 아래 표와 그림은 목표 책임을 설명한다. 코드 대조 시점은 2026-09-13이며 main·통합 PR·후속 단계는 [개요의 구현 상태 표](/spec/architecture)에 고정했다.
 
 | 서비스 | 소유하는 일과 데이터 | 호출 경계 |
 | --- | --- | --- |
-| Business API | 공개 인증·응답 봉투·BFF·내부 호출 조합. 영속 DB 없음 | 검증한 주체·서비스 토큰·deadline으로 Data 명령/조회를 호출. 알림·링크에는 허용된 HTTP 계약만 호출 |
-| Data API | 코어 PostgreSQL, 권한·잠금·정산·원장·명령 receipt·outbox·relay | 쓰기 불변식은 단일 TX에서 확정. 위성 데이터베이스에 직접 쓰지 않음 |
+| Business API | 공개 인증·응답 봉투·BFF·내부 호출 조합, 링크 공개 표면(`/l/*`·SKAN 검증·Install Referrer 판별·콘솔). 영속 DB 없음 | 검증한 주체·서비스 토큰·deadline으로 Data 명령/조회를 호출. 알림에는 허용된 HTTP 계약만 호출 |
+| Data API | 코어 PostgreSQL, 권한·잠금·정산·원장·명령 receipt·outbox·relay, 링크·클릭·캠페인·referrer·포스트백 원장과 IP 해시·매치·claim·집계 | 쓰기 불변식은 단일 TX에서 확정. 위성 데이터베이스에 직접 쓰지 않음 |
 | Realtime | STOMP 세션·목적지·현재 수신자 인가, 편지 DB `gromo_chat` | 채팅 Redis fanout. presence는 읽기 전용. 개인 재화·소유권은 결정하지 않음 |
 | Notification | `gromo_notification`, 이벤트 소비·투영·템플릿·스케줄·발송 이력 | FCM 발송. Data 읽기는 리컨실·ack 수렴·발송 적격 조회 3종으로 제한 |
-| Link·MMP | 링크·클릭·귀속 원장, 랜딩과 캠페인 콘솔 | 코어가 발급·claim·revoke·withdraw·귀속을 HTTP로 전달. Kafka에 연결하지 않음 |
 
-Notification 콘솔은 허용된 admin API를 호출한다. 링크 도메인 로직이 코어를 역호출한다는 뜻은 아니다. Data relay는 실패한 위성 HTTP 전달도 이어받는다.
+Notification 콘솔은 허용된 admin API를 호출한다. Data relay는 실패한 위성 HTTP 전달도 이어받는다.
+
+<Callout label="링크·MMP는 별도 서버가 아니다" tone="warn">
+[결정 A23](https://github.com/OneOrThree/phone/blob/main/docs/architecture/decisions.md)으로 별도 링크 서버(Vercel·Neon·`mmp-custom`) 분리안은 폐기됐다. 공개 표면은 business-api가, 원장·매치·claim·집계는 data-api가 코어 RDS에서 맡는다. 링크 원장이 같은 DB에 있으므로 발급·폐기·비공개 가입 검증이 멤버십 트랜잭션 안에서 끝나고, 분리안이 요구하던 서명 자격·relay·이관 정지 창이 모두 사라진다.
+</Callout>
 
 ## 명령 성공과 이벤트 전달
 

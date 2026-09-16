@@ -62,7 +62,7 @@ relay는 전송이 확인된 목적지만 완료 처리한다. Kafka ACK 후 완
 ## 영향
 
 - 수신에 성공했다는 사실은 모든 기기의 화면 표시가 끝났다는 뜻이 아니다. Realtime 신규 이벤트를 기존 `notification-events`에 얹는 연결은 확정하지 않았다.
-- Link·MMP는 Kafka에 연결하지 않는다. 코어가 발급·claim·revoke·withdraw·귀속을 HTTP로 전달한다.
+- 링크·어트리뷰션은 별도 서버가 아니다(A23). 공개 표면은 business-api, 원장은 data-api의 코어 DB이므로 발급·claim·폐기가 같은 트랜잭션에서 끝나고 Kafka도 위성 HTTP 전달도 쓰지 않는다.
 - 이벤트 스키마 변경은 호환 소비자를 먼저 준비한다. 서비스별 Datadog에 HTTP requestId와 eventId를 연결하고 Kafka lag, outbox 재시도, DLT, 알림 지연을 별도 관측한다.
 - 관리형 Kafka 이관 조건은 브로커 장애로 30분 이상 발송 지연이 월 1회 이상, 또는 디스크·업그레이드 수작업이 월 1회 이상이다. 이관 시 기존 토픽과 DLT의 backlog를 drain·처리 또는 보존하고, 랭킹 스트림 도입 후에는 `score-events`와 그 DLT도 같은 절차에 넣는다.
 - 후속: DLT 재처리에서 같은 `eventId`가 다시 들어와도 소비자 DB가 중복을 접는지 장애 주입으로 확인한다. 2026-09-13 기준 실증 결과가 없다.

@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Gromo · 서비스 아키텍처",
+    "output": "03-service.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      920,
+      400
+    ]
+  },
+  "components": [
+    {
+      "id": "preview",
+      "type": "database",
+      "label": "캐시",
+      "pos": [
+        210,
+        15
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "pgnoti",
+      "type": "database",
+      "label": "알림 DB",
+      "pos": [
+        795,
+        15
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": "모바일 앱",
+      "pos": [
+        15,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "business",
+      "type": "backend",
+      "label": "Business",
+      "pos": [
+        210,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "data",
+      "type": "backend",
+      "label": "Data API",
+      "pos": [
+        405,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "pg",
+      "type": "database",
+      "label": "코어 DB",
+      "pos": [
+        600,
+        165
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "realtime",
+      "type": "backend",
+      "label": "Realtime",
+      "pos": [
+        15,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "redischat",
+      "type": "database",
+      "label": "Redis",
+      "pos": [
+        210,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "relay",
+      "type": "backend",
+      "label": "Relay",
+      "pos": [
+        405,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "kafka",
+      "type": "messagebus",
+      "label": "Kafka",
+      "pos": [
+        600,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    },
+    {
+      "id": "notification",
+      "type": "backend",
+      "label": "Notification",
+      "pos": [
+        795,
+        315
+      ],
+      "size": [
+        100,
+        64
+      ]
+    }
+  ],
+  "boundaries": [],
+  "connections": [
+    {
+      "id": "app-business",
+      "from": "app",
+      "to": "business",
+      "label": "REST",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "business-data",
+      "from": "business",
+      "to": "data",
+      "label": "내부 HTTP",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "data-pg",
+      "from": "data",
+      "to": "pg",
+      "label": "단일 TX",
+      "variant": "emphasis",
+      "labelDy": -12
+    },
+    {
+      "id": "business-preview",
+      "from": "business",
+      "to": "preview",
+      "label": "TTL",
+      "labelDy": -20
+    },
+    {
+      "id": "app-realtime",
+      "from": "app",
+      "to": "realtime",
+      "label": "STOMP",
+      "labelAt": [
+        65,
+        161
+      ]
+    },
+    {
+      "id": "realtime-redis",
+      "from": "realtime",
+      "to": "redischat",
+      "label": "Pub/Sub",
+      "labelDy": -12
+    },
+    {
+      "id": "data-relay",
+      "from": "data",
+      "to": "relay",
+      "label": "outbox",
+      "labelAt": [
+        455,
+        161
+      ]
+    },
+    {
+      "id": "relay-kafka",
+      "from": "relay",
+      "to": "kafka",
+      "label": "userId 키",
+      "variant": "dashed",
+      "labelDy": -12
+    },
+    {
+      "id": "kafka-noti",
+      "from": "kafka",
+      "to": "notification",
+      "label": "consume",
+      "variant": "dashed",
+      "labelDy": -12
+    },
+    {
+      "id": "noti-pgnoti",
+      "from": "notification",
+      "to": "pgnoti",
+      "label": "알림 DB",
+      "labelDy": -20
+    }
+  ],
+  "cards": []
+}
