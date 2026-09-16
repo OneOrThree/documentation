@@ -6,8 +6,8 @@
     "output": "03-service.html",
     "quality_profile": "showcase",
     "viewBox": [
-      920,
-      400
+      760,
+      320
     ]
   },
   "components": [
@@ -16,12 +16,12 @@
       "type": "database",
       "label": "캐시",
       "pos": [
-        210,
-        15
+        177,
+        10
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -29,12 +29,12 @@
       "type": "database",
       "label": "알림 DB",
       "pos": [
-        795,
-        15
+        663,
+        10
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -43,11 +43,11 @@
       "label": "모바일 앱",
       "pos": [
         15,
-        165
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -55,12 +55,12 @@
       "type": "backend",
       "label": "Business",
       "pos": [
-        210,
-        165
+        177,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -68,12 +68,12 @@
       "type": "backend",
       "label": "Data API",
       "pos": [
-        405,
-        165
+        339,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -81,12 +81,12 @@
       "type": "database",
       "label": "코어 DB",
       "pos": [
-        600,
-        165
+        501,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -95,11 +95,11 @@
       "label": "Realtime",
       "pos": [
         15,
-        315
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -107,12 +107,12 @@
       "type": "database",
       "label": "Redis",
       "pos": [
-        210,
-        315
+        177,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -120,12 +120,12 @@
       "type": "backend",
       "label": "Relay",
       "pos": [
-        405,
-        315
+        339,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -133,25 +133,25 @@
       "type": "messagebus",
       "label": "Kafka",
       "pos": [
-        600,
-        315
+        501,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
       "id": "notification",
       "type": "backend",
-      "label": "Notification",
+      "label": "알림",
       "pos": [
-        795,
-        315
+        663,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     }
   ],
@@ -183,14 +183,14 @@
       "from": "business",
       "to": "preview",
       "label": "TTL",
-      "labelDy": -20
+      "labelDy": -36
     },
     {
       "id": "app-realtime",
       "from": "app",
       "to": "realtime",
       "label": "STOMP",
-      "labelDy": 20
+      "labelDy": 36
     },
     {
       "id": "realtime-redis",
@@ -203,13 +203,13 @@
       "from": "data",
       "to": "relay",
       "label": "outbox",
-      "labelDy": 20
+      "labelDy": 36
     },
     {
       "id": "relay-kafka",
       "from": "relay",
       "to": "kafka",
-      "label": "userId 키",
+      "label": "userId",
       "variant": "dashed"
     },
     {
@@ -224,7 +224,7 @@
       "from": "notification",
       "to": "pgnoti",
       "label": "알림 DB",
-      "labelDy": -20
+      "labelDy": -36
     }
   ],
   "cards": []

@@ -6,8 +6,8 @@
     "output": "04-system.html",
     "quality_profile": "showcase",
     "viewBox": [
-      920,
-      400
+      760,
+      320
     ]
   },
   "components": [
@@ -16,12 +16,12 @@
       "type": "backend",
       "label": "Datadog",
       "pos": [
-        600,
-        15
+        501,
+        10
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -29,12 +29,12 @@
       "type": "database",
       "label": "RDS",
       "pos": [
-        795,
-        15
+        663,
+        10
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -43,11 +43,11 @@
       "label": "모바일 앱",
       "pos": [
         15,
-        165
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -55,12 +55,12 @@
       "type": "cloud",
       "label": "Cloudflare",
       "pos": [
-        210,
-        165
+        177,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -68,12 +68,12 @@
       "type": "security",
       "label": "Nginx",
       "pos": [
-        405,
-        165
+        339,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -81,12 +81,12 @@
       "type": "backend",
       "label": "Business",
       "pos": [
-        600,
-        165
+        501,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -94,12 +94,12 @@
       "type": "backend",
       "label": "Data API",
       "pos": [
-        795,
-        165
+        663,
+        140
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -108,11 +108,11 @@
       "label": "Realtime",
       "pos": [
         15,
-        315
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -120,25 +120,25 @@
       "type": "database",
       "label": "Redis",
       "pos": [
-        210,
-        315
+        177,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
       "id": "notification",
       "type": "backend",
-      "label": "Notification",
+      "label": "알림",
       "pos": [
-        405,
-        315
+        339,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     },
     {
@@ -146,12 +146,12 @@
       "type": "messagebus",
       "label": "Kafka",
       "pos": [
-        795,
-        315
+        663,
+        270
       ],
       "size": [
-        100,
-        64
+        82,
+        50
       ]
     }
   ],
@@ -191,14 +191,14 @@
       "to": "ddagent",
       "label": "APM",
       "variant": "dashed",
-      "labelDy": -20
+      "labelDy": -36
     },
     {
       "id": "data-rds",
       "from": "data",
       "to": "rds",
       "label": "코어 DB",
-      "labelDy": -20
+      "labelDy": -36
     },
     {
       "id": "data-kafka",
@@ -206,7 +206,7 @@
       "to": "kafka",
       "label": "relay",
       "variant": "dashed",
-      "labelDy": 20
+      "labelDy": 36
     },
     {
       "id": "kafka-noti",
@@ -220,7 +220,7 @@
       "from": "app",
       "to": "realtime",
       "label": "WSS",
-      "labelDy": 20
+      "labelDy": 36
     },
     {
       "id": "realtime-redis",
