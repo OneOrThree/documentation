@@ -239,25 +239,19 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="heading" value="주민·친구와 이야기하기&lt;br&gt;시작: 우리 섬 주민이나 친구와 이야기하고 싶다.&lt;br&gt;완료: 우리 섬 대화를 읽거나 글을 남겼고, 또는 친구와 편지를 주고받았다." style="text;html=1;whiteSpace=wrap;align=left;fontSize=18;" vertex="1" parent="1">
+        <mxCell id="heading" value="주민·친구와 이야기하기&lt;br&gt;시작: 우리 섬 주민이나 친구와 이야기하고 싶다.&lt;br&gt;완료: 우리 섬 대화를 읽거나 글을 남겼고, 또는 친구와 1:1로 대화했다." style="text;html=1;whiteSpace=wrap;align=left;fontSize=18;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="20" y="0" width="860" height="110" />
         </mxCell>
-        <mxCell id="edge0" value="채팅방" edge="1" parent="1" source="a" target="b" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
+        <mxCell id="edge0" value="편지방" edge="1" parent="1" source="a" target="b" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
           <mxGeometry as="geometry" relative="1" />
         </mxCell>
         <mxCell id="edge1" value="남길 말이 있을 때" edge="1" parent="1" source="b" target="c" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
           <mxGeometry as="geometry" relative="1" />
         </mxCell>
-        <mxCell id="edge2" value="친구 편지 선택" edge="1" parent="1" source="a" target="friend" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
+        <mxCell id="edge2" value="친구 대화 선택" edge="1" parent="1" source="a" target="friend" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
           <mxGeometry as="geometry" relative="1" />
         </mxCell>
-        <mxCell id="edge3" value="친구가 되면" edge="1" parent="1" source="add" target="friend" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="edge4" value="상대가 확인" edge="1" parent="1" source="friend" target="seen" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="a" value="나&lt;br&gt;우체통을 연다&lt;br&gt;우리 섬 채팅방이나 친구 편지를 선택한다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="a" value="나&lt;br&gt;우체통을 연다&lt;br&gt;우리 섬 편지방이나 친구와의 대화를 선택한다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="20" y="165" width="250" height="160" />
         </mxCell>
         <mxCell id="b" value="나&lt;br&gt;대화를 읽는다&lt;br&gt;주민들이 남긴 이야기를 살펴본다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
@@ -266,14 +260,8 @@
         <mxCell id="c" value="나&lt;br&gt;글을 남긴다&lt;br&gt;우리 섬 전체가 볼 수 있도록 글을 작성해 보낸다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="620" y="165" width="250" height="160" />
         </mxCell>
-        <mxCell id="add" value="나&lt;br&gt;친구를 추가한다&lt;br&gt;내 뗏목에서 닉네임이 정확히 일치하는 사용자를 찾아 요청한다. 상대가 수락하면 친구가 된다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="20" y="430" width="250" height="160" />
-        </mxCell>
-        <mxCell id="friend" value="나&lt;br&gt;친구에게 편지를 보낸다&lt;br&gt;친구를 골라 편지를 보낸다. 다른 섬이나 우체통이 없는 섬의 친구에게도 보낼 수 있다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="friend" value="나&lt;br&gt;친구와 대화한다&lt;br&gt;친구를 선택해 1:1 채팅한다. 다른 섬에 있는 친구와도 대화할 수 있다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="320" y="430" width="250" height="160" />
-        </mxCell>
-        <mxCell id="seen" value="받는 친구&lt;br&gt;친구가 편지를 확인한다&lt;br&gt;받은 편지를 열었다가 닫으면 지워지고, 보낸 편지 목록에서도 사라진다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="620" y="430" width="250" height="160" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -314,41 +302,6 @@
           <mxGeometry as="geometry" x="920" y="165" width="250" height="160" />
         </mxCell>
         <mxCell id="s" value="나 / 대상 섬 방장&lt;br&gt;승인을 기다린다&lt;br&gt;대상 섬 방장이 가입 신청을 확인한다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="620" y="430" width="250" height="160" />
-        </mxCell>
-      </root>
-    </mxGraphModel>
-  </diagram>
-  <diagram id="membership" name="여러 섬에 속해 지내기">
-    <mxGraphModel page="1" pageWidth="900" pageHeight="690">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="heading" value="여러 섬에 속해 지내기&lt;br&gt;시작: 여러 섬에 속해 있거나 한 섬에서 나가고 싶다.&lt;br&gt;완료: 메인 섬을 정했거나 원하는 섬에서 탈퇴했다." style="text;html=1;whiteSpace=wrap;align=left;fontSize=18;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="20" y="0" width="860" height="110" />
-        </mxCell>
-        <mxCell id="edge0" value="메인 섬 변경" edge="1" parent="1" source="a" target="b" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="edge1" value="섬을 나갈 때" edge="1" parent="1" source="a" target="c" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="edge2" value="마지막 섬이면" edge="1" parent="1" source="c" target="x" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="edge3" value="다른 섬 가입 후" edge="1" parent="1" source="x" target="c" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;html=1;rounded=1;">
-          <mxGeometry as="geometry" relative="1" />
-        </mxCell>
-        <mxCell id="a" value="나&lt;br&gt;앱을 켠다&lt;br&gt;마지막으로 접속한 섬에서 시작한다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="20" y="165" width="250" height="160" />
-        </mxCell>
-        <mxCell id="b" value="나&lt;br&gt;메인 섬을 정한다&lt;br&gt;내 뗏목의 내 정보에서 내가 속한 섬 중 하나를 고른다. 처음에는 첫 섬이 메인 섬이다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="320" y="165" width="250" height="160" />
-        </mxCell>
-        <mxCell id="c" value="나&lt;br&gt;섬에서 탈퇴한다&lt;br&gt;메인 섬에서 탈퇴하면 남은 섬 중 가장 최근에 가입한 섬이 메인 섬이 되고 알림을 받는다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="620" y="165" width="250" height="160" />
-        </mxCell>
-        <mxCell id="x" value="나&lt;br&gt;탈퇴가 막힌다&lt;br&gt;소속된 마지막 섬에서는 탈퇴할 수 없다. 다른 섬에 가입하거나 새 섬을 만든 뒤 탈퇴한다." style="rounded=1;html=1;whiteSpace=wrap;fillColor=#ffffff;strokeColor=#bdcdc3;align=left;spacing=12;fontSize=14;" vertex="1" parent="1">
           <mxGeometry as="geometry" x="620" y="430" width="250" height="160" />
         </mxCell>
       </root>
