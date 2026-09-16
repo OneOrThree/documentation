@@ -20,7 +20,8 @@ const ZOOM_STEPS = [0.6, 0.75, 0.9, 1, 1.25, 1.5, 2, 2.5, 3] as const;
 // 또 확대하면 흐려지기만 하므로 100% 로 연다 — 확대는 컨트롤로 한다.
 const FIT_ZOOM_INDEX = 3;
 
-const FRAME_HEIGHT = 820;
+/** 내용 높이를 못 읽었을 때만 쓰는 폴백. 실제 높이는 프레임에서 측정한다. */
+const FALLBACK_HEIGHT = 820;
 
 export function HtmlDiagramPanel({
   diagram,
@@ -34,9 +35,46 @@ export function HtmlDiagramPanel({
   const src = `/diagrams/${diagram.id}.html`;
 
   const frameRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [zoomIndex, setZoomIndex] = useState<number>(FIT_ZOOM_INDEX);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const zoom = ZOOM_STEPS[zoomIndex];
+
+  /**
+   * 프레임을 내용 높이에 맞춘다.
+   *
+   * 고정 높이를 쓰면 도면보다 프레임이 커서 빈 흰 판이 남는다. 도면 HTML 은
+   * 같은 출처라 contentDocument 로 실제 높이를 읽을 수 있고, 내부 레이아웃이
+   * 바뀌면 ResizeObserver 가 다시 잰다. 읽기에 실패하면 폴백 높이를 쓴다.
+   */
+  const measure = useCallback(() => {
+    const doc = iframeRef.current?.contentDocument;
+    const height = doc?.documentElement?.scrollHeight;
+    if (height && height > 0) setContentHeight(height);
+  }, []);
+
+  useEffect(() => {
+    const frame = iframeRef.current;
+    if (!frame) return;
+    let observer: ResizeObserver | undefined;
+
+    const attach = () => {
+      measure();
+      const body = frame.contentDocument?.body;
+      if (!body) return;
+      observer = new ResizeObserver(() => measure());
+      observer.observe(body);
+    };
+
+    frame.addEventListener("load", attach);
+    if (frame.contentDocument?.readyState === "complete") attach();
+
+    return () => {
+      frame.removeEventListener("load", attach);
+      observer?.disconnect();
+    };
+  }, [measure, src]);
 
   useEffect(() => {
     const onChange = () =>
@@ -116,12 +154,13 @@ export function HtmlDiagramPanel({
                 교차 출처가 아니어도 스타일을 주입하지 않는다 — 검토한
                 HTML 을 그대로 두는 것이 이 패널의 목적이다. */}
             <iframe
+              ref={iframeRef}
               src={src}
               title={diagram.title}
               className="block border-0"
               style={{
                 width: `${100 / zoom}%`,
-                height: FRAME_HEIGHT / zoom,
+                height: (contentHeight ?? FALLBACK_HEIGHT) / zoom,
                 transform: `scale(${zoom})`,
                 transformOrigin: "top left",
               }}
