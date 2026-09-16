@@ -74,14 +74,16 @@ related:
 
 ## Gromo 아키텍처 갱신
 
-서비스·시스템 도면은 `scripts/make-architecture-diagrams.py`의 같은 셀·좌표·연결 정의에서 SVG와 draw.io XML을 생성한다.
+현재 서비스·시스템 v5는 `scripts/make-reviewed-architecture-diagrams.py`의 같은 노드·상태·연결 정의에서 SVG·draw.io XML·HTML·`<id>.source.json`을 생성한다. v3의 archify 스펙과 HTML은 이전 버전 근거이며 현재 생성 원본이 아니다.
 
 ```bash
-python3 scripts/make-architecture-diagrams.py
+python3 scripts/make-reviewed-architecture-diagrams.py
 npm run build
 ```
 
-이 생성기는 `03-service`, `04-system` 두 쌍만 갱신한다. 원본 근거·고정 커밋·구현 단계는 `content/spec/architecture.mdx`와 서비스·시스템 상세 문서에 기록한다. 상자를 더할 때는 구현 상태와 소유자를 함께 확인하며, main의 dev 설정을 목표 prod 배치의 운영 실적으로 바꾸지 않는다.
+이 생성기는 `03-service`, `04-system`만 갱신한다. v3 HTML과 v2 SVG/XML은 첫 실행에서 보존하고 이후 보존본을 덮어쓰지 않는다. 이전 `make-architecture-diagrams.py`는 더 최신 manifest를 발견하면 덮어쓰기를 거절한다. 원본 근거·고정 커밋·구현 단계는 `content/spec/architecture.mdx`와 상세 문서에 기록한다. 상자를 더할 때는 구현 상태와 소유자를 함께 확인하며 main의 dev 설정을 prod 운영 실적으로 바꾸지 않는다.
+
+현재 도면의 실선은 main 구현, 긴 점선은 구현·활성화 기본 OFF, 짧은 점선은 설계·배포 미확정이다. 비동기 여부는 간선 라벨로 표시한다. 운영 활성화는 별도 근거가 있어야 한다. HTML의 SVG/XML 동반 산출물은 `build-diagrams.mjs`가 연결 그래프와 다운로드 파일로 함께 빌드한다. 따라서 HTML과 내려받는 원본이 서로 다른 버전으로 남지 않는다.
 
 manifest의 `detailHref`는 다이어그램 아래에 근거 문서 링크를 표시한다. 다이어그램의 연결 강조와 문서 보기, 원본 다운로드는 기존 빌드 파이프라인을 사용한다.
 
@@ -98,6 +100,12 @@ manifest는 최신 버전을 맨 앞에 두고, 최신 항목만 현재 별칭(`
 `04-system`을 모든 현재 다이어그램의 시각 기준으로 사용한다. 흰 캔버스, 32px 제목과 17px 부제, `#f8fafc` 영역 밴드, 12px 모서리의 의미별 카드, `#607583` 2px 연결선, `Apple SD Gothic Neo, Noto Sans KR, sans-serif` 글꼴을 공통으로 쓴다. 유스케이스처럼 구조가 다른 도면도 같은 토큰과 제목 계층을 유지한다. 예외는 IA·유저 저니 v4 이후로, 설계 쪽 R61 원본을 가공 없이 보여 주기 위해 원본의 시각 문법을 그대로 둔다(아래 "HTML 다이어그램의 표시").
 
 현재 도면을 고칠 때는 먼저 생성기의 `TARGET_VERSION` 또는 `TARGET_VERSIONS`를 올리고 manifest에 새 현재 버전과 이전 버전을 함께 등록한다. 생성기는 직전 현재 별칭을 해당 버전 파일로 한 번만 보존하며, 같은 버전으로 다시 실행해도 보존본을 덮어쓰지 않는다.
+
+현재 생성기는 `VERSION`을 사용한다. 다음 버전으로 올리면 HTML은 직전 버전으로, SVG/XML/source JSON은 source JSON에 기록된 실제 생성 버전으로 함께 보존한다. v3는 HTML, 그 이전 SVG/XML은 v2였으므로 이번 전환에서 서로 다른 산출물을 같은 v3로 이름 붙이지 않았다.
+
+## 운영·트러블슈팅 기록
+
+`content/operations/`는 prod 사고·dev 장애·CI 문제의 영향·진단 근거·복구·재발 방지를 연결한다. 기존 연구 노트의 본문은 보존하고 사례 지도에서 해당 기록과 티켓을 연결한다. 실제 사용자가 받은 영향과 코드 리뷰·감사에서 발견한 위험은 구분한다. 원문에 없는 MTTR·사용자 수·개선율은 추가하지 않으며 임시 복구·근본 대책·운영 적용·재검증을 같은 완료 상태로 합치지 않는다.
 
 현재 v1은 문서 저장소의 `345aa78`(2026-09-08)에서 복원했고, v2는 2026-09-13의 Kafka·Redis 경계 반영본이다.
 

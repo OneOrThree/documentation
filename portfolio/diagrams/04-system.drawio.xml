@@ -1,221 +1,177 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net" version="31.4.5">
   <diagram id="04-system" name="Gromo · 시스템 아키텍처">
-    <mxGraphModel dx="1760" dy="1420" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1760" pageHeight="1420">
+    <mxGraphModel dx="1760" dy="2210" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1760" pageHeight="2210">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="heading" value="Gromo · 시스템 아키텍처" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=32;fontStyle=1;align=left;">
           <mxGeometry as="geometry" x="60" y="24" width="1640" height="45" />
         </mxCell>
-        <mxCell id="subtitle" value="2026.09.13 · 배포 목표와 main 구성의 경계 · 위: Target-1 / 아래: 추가된 dev 서비스 · 운영 호스트 실측 도면 아님" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=17;align=left;fontColor=#4d5a66;">
+        <mxCell id="subtitle" value="2026.09.17 · 역할·정본·전달·운영 상태 · main 구현과 운영 활성화는 별도" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=17;align=left;fontColor=#4d5a66;">
           <mxGeometry as="geometry" x="60" y="72" width="1640" height="30" />
         </mxCell>
         <mxCell id="band0" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
-          <mxGeometry as="geometry" x="700" y="125" width="710" height="850" />
+          <mxGeometry as="geometry" x="40" y="120" width="1680" height="70" />
         </mxCell>
-        <mxCell id="bandTitle0" value="Target-1 · prod 배치 목표" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
-          <mxGeometry as="geometry" x="724" y="137" width="662" height="30" />
-        </mxCell>
-        <mxCell id="bandSub0" value="AWS EC2 · t4g.large(8 GB) 증설 전제 · Docker Compose" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
-          <mxGeometry as="geometry" x="724" y="168" width="662" height="26" />
+        <mxCell id="bandTitle0" value="상태" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="132" width="1632" height="30" />
         </mxCell>
         <mxCell id="band1" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
-          <mxGeometry as="geometry" x="40" y="1010" width="1680" height="365" />
+          <mxGeometry as="geometry" x="40" y="210" width="1680" height="344" />
         </mxCell>
-        <mxCell id="bandTitle1" value="GCP dev · main에 추가된 구성" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
-          <mxGeometry as="geometry" x="64" y="1022" width="1632" height="30" />
+        <mxCell id="bandTitle1" value="Target-1 · 공개 REST" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="222" width="1632" height="30" />
         </mxCell>
-        <mxCell id="bandSub1" value="Realtime·Redis·미리보기의 prod 편입은 후속. 위 Target-1 자원표에 자동 포함된 것으로 세지 않는다." vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
-          <mxGeometry as="geometry" x="64" y="1053" width="1632" height="26" />
+        <mxCell id="bandSub1" value="배치 목표 · 현재 운영 전환은 별도 확인" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="64" y="253" width="1632" height="26" />
         </mxCell>
-        <mxCell id="appEdge" value="HTTPS" source="app" target="cloudflare" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+        <mxCell id="band2" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="602" width="1680" height="552" />
+        </mxCell>
+        <mxCell id="bandTitle2" value="prod · RDS와 알림" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="614" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="bandSub2" value="알림은 같은 RDS 인스턴스의 별도 database · 생성·권한 적용 미확인" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="64" y="645" width="1632" height="26" />
+        </mxCell>
+        <mxCell id="band3" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="1202" width="1680" height="656" />
+        </mxCell>
+        <mxCell id="bandTitle3" value="dev · main Compose 구성" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="1214" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="bandSub3" value="서비스 포트와 저장소 배선 · Realtime overlay는 dev 전용" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="64" y="1245" width="1632" height="26" />
+        </mxCell>
+        <mxCell id="legendLine0" value="" vertex="1" connectable="0" parent="1" style="shape=line;strokeColor=#607583;strokeWidth=2;">
+          <mxGeometry as="geometry" x="180" y="155" width="65" height="1" />
+        </mxCell>
+        <mxCell id="legendLabel0" value="main 구현 · 운영 별도" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=14;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="258" y="145" width="350" height="24" />
+        </mxCell>
+        <mxCell id="legendLine1" value="" vertex="1" connectable="0" parent="1" style="shape=line;strokeColor=#607583;strokeWidth=2;dashed=1;dashPattern=8 5;">
+          <mxGeometry as="geometry" x="680" y="155" width="65" height="1" />
+        </mxCell>
+        <mxCell id="legendLabel1" value="구현 · 기본 OFF" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=14;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="758" y="145" width="350" height="24" />
+        </mxCell>
+        <mxCell id="legendLine2" value="" vertex="1" connectable="0" parent="1" style="shape=line;strokeColor=#607583;strokeWidth=2;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="1180" y="155" width="65" height="1" />
+        </mxCell>
+        <mxCell id="legendLabel2" value="설계 · 배포 미확정" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=14;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="1258" y="145" width="350" height="24" />
+        </mxCell>
+        <mxCell id="appCf" value="HTTPS" source="app" target="cloudflare" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47619047619047616;entryX=0.0;entryY=0.47619047619047616;dashed=1;dashPattern=2 5;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="edgeNginx" value="Proxy" source="cloudflare" target="nginx" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+        <mxCell id="cfNginx" value="Proxy" source="cloudflare" target="nginx" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47619047619047616;entryX=0.0;entryY=0.47619047619047616;dashed=1;dashPattern=2 5;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="routeBusiness" value="REST" source="nginx" target="business" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+        <mxCell id="nginxBusiness" value="REST" source="nginx" target="business" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47619047619047616;entryX=0.0;entryY=0.47619047619047616;dashed=1;dashPattern=2 5;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="routeAdmin" value="admin · 전용 토큰" source="nginx" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.5;entryY=0.0;">
+        <mxCell id="businessData" value="HTTP" source="business" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47619047619047616;entryX=0.0;entryY=0.47619047619047616;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dataRds" value="코어 DB" source="data" target="prodRds" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5689655172413793;entryY=0.0;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kafkaNotification" value="소비" source="kafka" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;dashed=1;dashPattern=8 5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notificationDb" value="알림 DB" source="notification" target="prodRds" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.5;entryY=1.0;dashed=1;dashPattern=8 5;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points">
-              <mxPoint x="1220" y="265" />
+              <mxPoint x="1555" y="1034" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="internalData" value="내부 HTTP" source="business" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+        <mxCell id="devDataDb" value="gromo" source="devData" target="devPg" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.20270270270270271;entryY=0.0;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="notiCommand" value="" source="business" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.46153846153846156;entryX=0.0;entryY=0.46153846153846156;">
+        <mxCell id="realtimeDb" value="gromo_chat" source="realtime" target="devPg" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.7972972972972973;entryY=0.0;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="dataKafka" value="relay" source="data" target="kafka" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4642857142857143;entryX=0.0;entryY=0.4642857142857143;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="notiConsume" value="consume" source="kafka" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="dataDb" value="gromo · Data 전용" source="data" target="rds" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.7857142857142857;entryX=0.5;entryY=1.0;">
+        <mxCell id="realtimeRedis" value="fanout" source="realtime" target="chatRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points">
-              <mxPoint x="1045" y="735" />
-              <mxPoint x="1045" y="805" />
-              <mxPoint x="1590" y="805" />
+              <mxPoint x="860" y="1434" />
+              <mxPoint x="860" y="1746" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="notiDb" value="gromo_notification" source="notification" target="rds" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.8076923076923077;entryX=0.5;entryY=0.0;">
+        <mxCell id="businessPreview" value="캐시" source="devBusiness" target="previewRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
           <mxGeometry as="geometry" relative="1">
             <Array as="points">
-              <mxPoint x="1430" y="510" />
-              <mxPoint x="1430" y="585" />
-              <mxPoint x="1590" y="585" />
+              <mxPoint x="1150" y="1586" />
+              <mxPoint x="1545" y="1586" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="fcmSend" value="HTTPS" source="notification" target="fcm" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.46153846153846156;entryX=0.0;entryY=0.46153846153846156;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="app" value="&lt;b&gt;모바일 앱&lt;/b&gt;&lt;br&gt;공개 REST · HTTPS&lt;br&gt;prod WSS 경로 미확정&lt;br&gt;&lt;b&gt;Target-1 · 전환 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="60" y="354" width="250" height="168" />
         </mxCell>
-        <mxCell id="dataObserve" value="APM" source="data" target="agent" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.8928571428571429;entryX=0.0;entryY=0.49473684210526314;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points">
-              <mxPoint x="1020" y="750" />
-              <mxPoint x="1020" y="902" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="cloudflare" value="&lt;b&gt;Cloudflare&lt;/b&gt;&lt;br&gt;프록시 · edge 정책&lt;br&gt;공개 진입점&lt;br&gt;&lt;b&gt;Target-1 · 전환 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="400" y="354" width="270" height="168" />
         </mxCell>
-        <mxCell id="businessObserve" value="Business APM" source="business" target="agent" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.5769230769230769;entryX=0.0;entryY=0.7368421052631579;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points">
-              <mxPoint x="715" y="480" />
-              <mxPoint x="715" y="925" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="nginx" value="&lt;b&gt;Nginx&lt;/b&gt;&lt;br&gt;Origin TLS 종료&lt;br&gt;REST 경로 → Business&lt;br&gt;admin → Notification: 목표&lt;br&gt;&lt;b&gt;Target-1 · 전환 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="760" y="354" width="270" height="168" />
         </mxCell>
-        <mxCell id="notiObserve" value="" source="notification" target="agent" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.7307692307692307;entryX=1.0;entryY=0.631578947368421;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points">
-              <mxPoint x="1380" y="500" />
-              <mxPoint x="1380" y="915" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="business" value="&lt;b&gt;Business API&lt;/b&gt;&lt;br&gt;공개 REST · BFF · :8080&lt;br&gt;Data 내부 HTTP 호출&lt;br&gt;영속 DB 소유 없음&lt;br&gt;&lt;b&gt;Target-1 · 전환 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="1120" y="354" width="250" height="168" />
         </mxCell>
-        <mxCell id="ddExport" value="export" source="agent" target="datadog" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.49473684210526314;entryX=0.0;entryY=0.49473684210526314;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="data" value="&lt;b&gt;Data API&lt;/b&gt;&lt;br&gt;내부망 · :8081&lt;br&gt;정산 · 코어 정본 접근&lt;br&gt;코어 DB 전용 자격&lt;br&gt;&lt;b&gt;Target-1 · 전환 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="1450" y="354" width="250" height="168" />
         </mxCell>
-        <mxCell id="linkEntry" value="초대 링크" source="app" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.46153846153846156;entryY=0.0;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="prodRds" value="&lt;b&gt;RDS PostgreSQL&lt;/b&gt;&lt;br&gt;gromo: Data 소유&lt;br&gt;gromo_notification:&lt;br&gt;Notification 소유&lt;br&gt;별도 database · 유저 · Flyway&lt;br&gt;&lt;b&gt;알림 DB 생성 · 권한 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="1410" y="658" width="290" height="232" />
         </mxCell>
-        <mxCell id="linkDb" value="SQL" source="link" target="neon" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="kafka" value="&lt;b&gt;Kafka overlay&lt;/b&gt;&lt;br&gt;내부 :9092 · 영속 볼륨&lt;br&gt;KRaft 1 node · RF 1&lt;br&gt;단일 노드 장애 내성 한계&lt;br&gt;&lt;b&gt;main 구현 · 활성화 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=8 5;">
+          <mxGeometry as="geometry" x="760" y="954" width="270" height="160" />
         </mxCell>
-        <mxCell id="linkCommand" value="발급·귀속 · HTTP" source="business" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7307692307692307;entryX=0.5;entryY=1.0;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points">
-              <mxPoint x="675" y="500" />
-              <mxPoint x="675" y="620" />
-              <mxPoint x="190" y="620" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="notification" value="&lt;b&gt;Notification&lt;/b&gt;&lt;br&gt;전용 DB · FCM 자격&lt;br&gt;소비 · 스케줄 기본 OFF&lt;br&gt;알림 이력 · 중복 처리&lt;br&gt;&lt;b&gt;main 구현 · 운영 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=8 5;">
+          <mxGeometry as="geometry" x="1120" y="954" width="250" height="160" />
         </mxCell>
-        <mxCell id="docsDeploy" value="배포" source="git" target="docs" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="devData" value="&lt;b&gt;Data API · :8080&lt;/b&gt;&lt;br&gt;코어 DB · 정산 · 원자 명령&lt;br&gt;presence:focus:* 작성&lt;br&gt;dev 공개 :8080&lt;br&gt;&lt;b&gt;main Compose&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1354" width="300" height="160" />
         </mxCell>
-        <mxCell id="chatRedis" value="Pub/Sub" source="realtime" target="redis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47058823529411764;entryX=0.0;entryY=0.47058823529411764;dashed=1;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points" />
-          </mxGeometry>
+        <mxCell id="realtime" value="&lt;b&gt;Realtime · :8081&lt;/b&gt;&lt;br&gt;/ws/chat · /ws/realtime&lt;br&gt;STOMP CONNECT Bearer 검증&lt;br&gt;편지 저장 · Redis fanout&lt;br&gt;&lt;b&gt;main dev overlay · prod 미확정&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="500" y="1354" width="300" height="160" />
         </mxCell>
-        <mxCell id="chatDbWrite" value="편지 저장 · 히스토리 재조회" source="realtime" target="chatDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5172413793103449;entryY=1.0;">
-          <mxGeometry as="geometry" relative="1">
-            <Array as="points">
-              <mxPoint x="230" y="1325" />
-              <mxPoint x="1060" y="1325" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="devBusiness" value="&lt;b&gt;Business · :8082&lt;/b&gt;&lt;br&gt;공개 DTO · 인증 · 화면 조합&lt;br&gt;Data 내부 HTTP 호출&lt;br&gt;미리보기 캐시 전용&lt;br&gt;&lt;b&gt;main Compose · :8082&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1000" y="1354" width="300" height="160" />
         </mxCell>
-        <mxCell id="app" value="&lt;b&gt;모바일 앱&lt;/b&gt;&lt;br&gt;React Native · Expo&lt;br&gt;HTTPS · WSS&lt;br&gt;&lt;b&gt;사용자 진입&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="60" y="205" width="240" height="120" />
+        <mxCell id="devPg" value="&lt;b&gt;PostgreSQL · 같은 인스턴스&lt;/b&gt;&lt;br&gt;gromo: Data / gromo_chat: Realtime&lt;br&gt;같은 인스턴스 · 별도 database · 소유권 분리&lt;br&gt;&lt;b&gt;main dev · 편지 prod 배치 미확정&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1666" width="740" height="160" />
         </mxCell>
-        <mxCell id="cloudflare" value="&lt;b&gt;Cloudflare&lt;/b&gt;&lt;br&gt;DNS · Proxy&lt;br&gt;원본 클라이언트 IP" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="390" y="205" width="240" height="120" />
+        <mxCell id="chatRedis" value="&lt;b&gt;채팅·집중 Redis&lt;/b&gt;&lt;br&gt;Data presence 쓰기&lt;br&gt;Realtime presence 읽기 · fanout&lt;br&gt;상태 사본 · Pub/Sub 재생 불가&lt;br&gt;&lt;b&gt;main dev · 서비스 ACL 미확인&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="930" y="1666" width="350" height="160" />
         </mxCell>
-        <mxCell id="nginx" value="&lt;b&gt;Nginx · TLS :443&lt;/b&gt;&lt;br&gt;REST → Business&lt;br&gt;admin → Notification&lt;br&gt;&lt;b&gt;목표 라우팅&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="740" y="205" width="260" height="120" />
+        <mxCell id="previewRedis" value="&lt;b&gt;미리보기 Redis&lt;/b&gt;&lt;br&gt;Business 전용 · 128 MiB&lt;br&gt;LRU · 비영속 · 재생성 가능&lt;br&gt;&lt;b&gt;main dev · 채팅 Redis와 별도&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1390" y="1666" width="310" height="160" />
         </mxCell>
-        <mxCell id="business" value="&lt;b&gt;Business API&lt;/b&gt;&lt;br&gt;목표 :8080 · 인증/BFF&lt;br&gt;Data 내부 HTTP&lt;br&gt;&lt;b&gt;전체 이관: 통합 단계&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="740" y="405" width="260" height="130" />
+        <mxCell id="rankRedis" value="&lt;b&gt;Target-2 · 랭킹 Redis&lt;/b&gt;&lt;br&gt;score-events · 알림과 별도 스트림 · 소비자&lt;br&gt;리그 p95 &amp;gt; 1.5초 / findRankOf p95 &amp;gt; 500ms&lt;br&gt;또는 Business 다중 인스턴스 필요&lt;br&gt;&lt;b&gt;Target-2 · 설계 · 조건 충족 후 도입&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="60" y="1938" width="660" height="192" />
         </mxCell>
-        <mxCell id="notification" value="&lt;b&gt;Notification&lt;/b&gt;&lt;br&gt;목표 :8082 · 알림 소유&lt;br&gt;admin만 제한 노출&lt;br&gt;&lt;b&gt;통합 PR #745&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1090" y="405" width="260" height="130" />
-        </mxCell>
-        <mxCell id="data" value="&lt;b&gt;Data API&lt;/b&gt;&lt;br&gt;목표 :8081 · 내부망&lt;br&gt;정산 · outbox relay&lt;br&gt;코어 DB 전용 자격&lt;br&gt;&lt;b&gt;공개 포트 제거: 목표&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="740" y="625" width="260" height="140" />
-        </mxCell>
-        <mxCell id="kafka" value="&lt;b&gt;Kafka :9092&lt;/b&gt;&lt;br&gt;KRaft · 1 node · RF 1&lt;br&gt;내부망 · 영속 볼륨&lt;br&gt;512 MiB heap · 7일 보존&lt;br&gt;&lt;b&gt;통합 PR · broker/relay 별도 ON&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1090" y="625" width="260" height="140" />
-        </mxCell>
-        <mxCell id="agent" value="&lt;b&gt;Datadog Agent&lt;/b&gt;&lt;br&gt;서비스별 APM · 로그 · 메트릭" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1090" y="855" width="260" height="95" />
-        </mxCell>
-        <mxCell id="rds" value="&lt;b&gt;RDS PostgreSQL&lt;/b&gt;&lt;br&gt;gromo / gromo_notification&lt;br&gt;별도 DB 유저 · Flyway&lt;br&gt;같은 인스턴스 · 교차 접근 차단&lt;br&gt;&lt;b&gt;알림 DB 사전 프로비저닝&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1460" y="625" width="260" height="140" />
-        </mxCell>
-        <mxCell id="fcm" value="&lt;b&gt;FCM&lt;/b&gt;&lt;br&gt;푸시 발송·기기 전달&lt;br&gt;FCM 자격은 알림만" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1460" y="405" width="260" height="130" />
-        </mxCell>
-        <mxCell id="datadog" value="&lt;b&gt;Datadog&lt;/b&gt;&lt;br&gt;서비스별 지연·실패·lag 관측" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1460" y="855" width="260" height="95" />
-        </mxCell>
-        <mxCell id="link" value="&lt;b&gt;Link · MMP&lt;/b&gt;&lt;br&gt;Vercel · 초대/매치/귀속&lt;br&gt;별도 배포 · Kafka 미접속&lt;br&gt;내부 호출은 HTTPS + 토큰" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="60" y="430" width="260" height="140" />
-        </mxCell>
-        <mxCell id="neon" value="&lt;b&gt;Neon&lt;/b&gt;&lt;br&gt;Link 전용&lt;br&gt;PostgreSQL" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="410" y="430" width="220" height="140" />
-        </mxCell>
-        <mxCell id="docs" value="&lt;b&gt;Documentation&lt;/b&gt;&lt;br&gt;Vercel · Next.js&lt;br&gt;docs.oneorthree.world&lt;br&gt;&lt;b&gt;이번 배포 대상&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="60" y="765" width="260" height="130" />
-        </mxCell>
-        <mxCell id="git" value="&lt;b&gt;GitHub&lt;/b&gt;&lt;br&gt;documentation/main&lt;br&gt;Vercel Git 연동" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="410" y="765" width="220" height="130" />
-        </mxCell>
-        <mxCell id="realtime" value="&lt;b&gt;Realtime :8081&lt;/b&gt;&lt;br&gt;/ws/chat + /ws/realtime&lt;br&gt;기존 편지 · 새 router&lt;br&gt;새 도메인 전달은 비활성&lt;br&gt;&lt;b&gt;main · dev overlay&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="90" y="1100" width="280" height="170" />
-        </mxCell>
-        <mxCell id="redis" value="&lt;b&gt;Redis · 채팅/집중&lt;/b&gt;&lt;br&gt;chat:fanout · presence:focus:*&lt;br&gt;Data :8080이 presence 작성&lt;br&gt;Realtime은 읽기 · fanout&lt;br&gt;&lt;b&gt;main · 서비스 ACL은 후속&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="480" y="1100" width="300" height="170" />
-        </mxCell>
-        <mxCell id="chatDb" value="&lt;b&gt;PostgreSQL · dev&lt;/b&gt;&lt;br&gt;gromo_chat · 편지 정본&lt;br&gt;DB init → Flyway → Realtime&lt;br&gt;prod 물리 배선은 미확정&lt;br&gt;&lt;b&gt;main · 별도 database&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="910" y="1100" width="290" height="170" />
-        </mxCell>
-        <mxCell id="preview" value="&lt;b&gt;Business :8082 · 미리보기&lt;/b&gt;&lt;br&gt;전용 business-redis · 128 MiB&lt;br&gt;allkeys-lru · TTL · 영속화 없음&lt;br&gt;채팅 Redis와 다른 인스턴스&lt;br&gt;&lt;b&gt;main · 수동 활성화 overlay&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
-          <mxGeometry as="geometry" x="1300" y="1100" width="390" height="170" />
+        <mxCell id="wssPolicy" value="&lt;b&gt;prod WSS · 배포 미확정&lt;/b&gt;&lt;br&gt;TLS 종료 · rate limit · 연결 수 상한을 배포 전에 확정&lt;br&gt;편지 DB prod 배치 · Redis ACL 적용 후속 확인&lt;br&gt;dev overlay 존재는 prod WSS 운영의 근거가 아니다&lt;br&gt;&lt;b&gt;prod 배포 미확정&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;dashed=1;dashPattern=2 5;">
+          <mxGeometry as="geometry" x="760" y="1938" width="940" height="192" />
         </mxCell>
       </root>
     </mxGraphModel>

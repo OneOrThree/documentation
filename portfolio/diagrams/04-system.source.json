@@ -1,0 +1,524 @@
+{
+  "version": 5,
+  "sourceCommit": "59790ce4916f3e91887caaa6945eefa86c0d6890",
+  "title": "Gromo · 시스템 아키텍처",
+  "nodes": [
+    {
+      "id": "app",
+      "x": 60,
+      "y": 354,
+      "w": 250,
+      "h": 168,
+      "title": "모바일 앱",
+      "lines": [
+        "공개 REST · HTTPS",
+        "prod WSS 경로 미확정"
+      ],
+      "kind": "core",
+      "stage": "Target-1 · 전환 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "cloudflare",
+      "x": 400,
+      "y": 354,
+      "w": 270,
+      "h": 168,
+      "title": "Cloudflare",
+      "lines": [
+        "프록시 · edge 정책",
+        "공개 진입점"
+      ],
+      "kind": "external",
+      "stage": "Target-1 · 전환 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "nginx",
+      "x": 760,
+      "y": 354,
+      "w": 270,
+      "h": 168,
+      "title": "Nginx",
+      "lines": [
+        "Origin TLS 종료",
+        "REST 경로 → Business",
+        "admin → Notification: 목표"
+      ],
+      "kind": "core",
+      "stage": "Target-1 · 전환 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "business",
+      "x": 1120,
+      "y": 354,
+      "w": 250,
+      "h": 168,
+      "title": "Business API",
+      "lines": [
+        "공개 REST · BFF · :8080",
+        "Data 내부 HTTP 호출",
+        "영속 DB 소유 없음"
+      ],
+      "kind": "core",
+      "stage": "Target-1 · 전환 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "data",
+      "x": 1450,
+      "y": 354,
+      "w": 250,
+      "h": 168,
+      "title": "Data API",
+      "lines": [
+        "내부망 · :8081",
+        "정산 · 코어 정본 접근",
+        "코어 DB 전용 자격"
+      ],
+      "kind": "core",
+      "stage": "Target-1 · 전환 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "prodRds",
+      "x": 1410,
+      "y": 658,
+      "w": 290,
+      "h": 232,
+      "title": "RDS PostgreSQL",
+      "lines": [
+        "gromo: Data 소유",
+        "gromo_notification:",
+        "Notification 소유",
+        "별도 database · 유저 · Flyway"
+      ],
+      "kind": "data",
+      "stage": "알림 DB 생성 · 권한 미확인",
+      "state": "plan"
+    },
+    {
+      "id": "kafka",
+      "x": 760,
+      "y": 954,
+      "w": 270,
+      "h": 160,
+      "title": "Kafka overlay",
+      "lines": [
+        "내부 :9092 · 영속 볼륨",
+        "KRaft 1 node · RF 1",
+        "단일 노드 장애 내성 한계"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · 활성화 미확인",
+      "state": "off"
+    },
+    {
+      "id": "notification",
+      "x": 1120,
+      "y": 954,
+      "w": 250,
+      "h": 160,
+      "title": "Notification",
+      "lines": [
+        "전용 DB · FCM 자격",
+        "소비 · 스케줄 기본 OFF",
+        "알림 이력 · 중복 처리"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · 운영 미확인",
+      "state": "off"
+    },
+    {
+      "id": "devData",
+      "x": 60,
+      "y": 1354,
+      "w": 300,
+      "h": 160,
+      "title": "Data API · :8080",
+      "lines": [
+        "코어 DB · 정산 · 원자 명령",
+        "presence:focus:* 작성",
+        "dev 공개 :8080"
+      ],
+      "kind": "core",
+      "stage": "main Compose",
+      "state": "code"
+    },
+    {
+      "id": "realtime",
+      "x": 500,
+      "y": 1354,
+      "w": 300,
+      "h": 160,
+      "title": "Realtime · :8081",
+      "lines": [
+        "/ws/chat · /ws/realtime",
+        "STOMP CONNECT Bearer 검증",
+        "편지 저장 · Redis fanout"
+      ],
+      "kind": "event",
+      "stage": "main dev overlay · prod 미확정",
+      "state": "code"
+    },
+    {
+      "id": "devBusiness",
+      "x": 1000,
+      "y": 1354,
+      "w": 300,
+      "h": 160,
+      "title": "Business · :8082",
+      "lines": [
+        "공개 DTO · 인증 · 화면 조합",
+        "Data 내부 HTTP 호출",
+        "미리보기 캐시 전용"
+      ],
+      "kind": "core",
+      "stage": "main Compose · :8082",
+      "state": "code"
+    },
+    {
+      "id": "devPg",
+      "x": 60,
+      "y": 1666,
+      "w": 740,
+      "h": 160,
+      "title": "PostgreSQL · 같은 인스턴스",
+      "lines": [
+        "gromo: Data / gromo_chat: Realtime",
+        "같은 인스턴스 · 별도 database · 소유권 분리"
+      ],
+      "kind": "data",
+      "stage": "main dev · 편지 prod 배치 미확정",
+      "state": "code"
+    },
+    {
+      "id": "chatRedis",
+      "x": 930,
+      "y": 1666,
+      "w": 350,
+      "h": 160,
+      "title": "채팅·집중 Redis",
+      "lines": [
+        "Data presence 쓰기",
+        "Realtime presence 읽기 · fanout",
+        "상태 사본 · Pub/Sub 재생 불가"
+      ],
+      "kind": "data",
+      "stage": "main dev · 서비스 ACL 미확인",
+      "state": "code"
+    },
+    {
+      "id": "previewRedis",
+      "x": 1390,
+      "y": 1666,
+      "w": 310,
+      "h": 160,
+      "title": "미리보기 Redis",
+      "lines": [
+        "Business 전용 · 128 MiB",
+        "LRU · 비영속 · 재생성 가능"
+      ],
+      "kind": "data",
+      "stage": "main dev · 채팅 Redis와 별도",
+      "state": "code"
+    },
+    {
+      "id": "rankRedis",
+      "x": 60,
+      "y": 1938,
+      "w": 660,
+      "h": 192,
+      "title": "Target-2 · 랭킹 Redis",
+      "lines": [
+        "score-events · 알림과 별도 스트림 · 소비자",
+        "리그 p95 > 1.5초 / findRankOf p95 > 500ms",
+        "또는 Business 다중 인스턴스 필요"
+      ],
+      "kind": "future",
+      "stage": "Target-2 · 설계 · 조건 충족 후 도입",
+      "state": "plan"
+    },
+    {
+      "id": "wssPolicy",
+      "x": 760,
+      "y": 1938,
+      "w": 940,
+      "h": 192,
+      "title": "prod WSS · 배포 미확정",
+      "lines": [
+        "TLS 종료 · rate limit · 연결 수 상한을 배포 전에 확정",
+        "편지 DB prod 배치 · Redis ACL 적용 후속 확인",
+        "dev overlay 존재는 prod WSS 운영의 근거가 아니다"
+      ],
+      "kind": "future",
+      "stage": "prod 배포 미확정",
+      "state": "unknown"
+    }
+  ],
+  "edges": [
+    {
+      "id": "appCf",
+      "source": "app",
+      "target": "cloudflare",
+      "points": [
+        [
+          310,
+          434
+        ],
+        [
+          400,
+          434
+        ]
+      ],
+      "label": "HTTPS",
+      "at": [
+        355,
+        418
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "cfNginx",
+      "source": "cloudflare",
+      "target": "nginx",
+      "points": [
+        [
+          670,
+          434
+        ],
+        [
+          760,
+          434
+        ]
+      ],
+      "label": "Proxy",
+      "at": [
+        715,
+        418
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "nginxBusiness",
+      "source": "nginx",
+      "target": "business",
+      "points": [
+        [
+          1030,
+          434
+        ],
+        [
+          1120,
+          434
+        ]
+      ],
+      "label": "REST",
+      "at": [
+        1075,
+        418
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "businessData",
+      "source": "business",
+      "target": "data",
+      "points": [
+        [
+          1370,
+          434
+        ],
+        [
+          1450,
+          434
+        ]
+      ],
+      "label": "HTTP",
+      "at": [
+        1410,
+        418
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "dataRds",
+      "source": "data",
+      "target": "prodRds",
+      "points": [
+        [
+          1575,
+          522
+        ],
+        [
+          1575,
+          658
+        ]
+      ],
+      "label": "코어 DB",
+      "at": [
+        1630,
+        588
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "kafkaNotification",
+      "source": "kafka",
+      "target": "notification",
+      "points": [
+        [
+          1030,
+          1034
+        ],
+        [
+          1120,
+          1034
+        ]
+      ],
+      "label": "소비",
+      "at": [
+        1075,
+        1018
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "notificationDb",
+      "source": "notification",
+      "target": "prodRds",
+      "points": [
+        [
+          1370,
+          1034
+        ],
+        [
+          1555,
+          1034
+        ],
+        [
+          1555,
+          890
+        ]
+      ],
+      "label": "알림 DB",
+      "at": [
+        1460,
+        1018
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "devDataDb",
+      "source": "devData",
+      "target": "devPg",
+      "points": [
+        [
+          210,
+          1514
+        ],
+        [
+          210,
+          1666
+        ]
+      ],
+      "label": "gromo",
+      "at": [
+        265,
+        1600
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "realtimeDb",
+      "source": "realtime",
+      "target": "devPg",
+      "points": [
+        [
+          650,
+          1514
+        ],
+        [
+          650,
+          1666
+        ]
+      ],
+      "label": "gromo_chat",
+      "at": [
+        720,
+        1600
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "realtimeRedis",
+      "source": "realtime",
+      "target": "chatRedis",
+      "points": [
+        [
+          800,
+          1434
+        ],
+        [
+          860,
+          1434
+        ],
+        [
+          860,
+          1746
+        ],
+        [
+          930,
+          1746
+        ]
+      ],
+      "label": "fanout",
+      "at": [
+        895,
+        1600
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "businessPreview",
+      "source": "devBusiness",
+      "target": "previewRedis",
+      "points": [
+        [
+          1150,
+          1514
+        ],
+        [
+          1150,
+          1586
+        ],
+        [
+          1545,
+          1586
+        ],
+        [
+          1545,
+          1666
+        ]
+      ],
+      "label": "캐시",
+      "at": [
+        1435,
+        1570
+      ],
+      "async_": false,
+      "state": "code"
+    }
+  ]
+}
