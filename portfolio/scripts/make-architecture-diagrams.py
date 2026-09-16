@@ -31,20 +31,20 @@ class Diagram:
     def band(self, x, y, w, h, title, subtitle=""):
         self.decorations.append((x, y, w, h, title, subtitle))
 
-    def box(self, ident, x, y, w, h, title, lines, kind="core", stage=""):
+    def box(self, ident, x, y, w, h, title, lines, kind="core", stage="", state=None):
         self.nodes.append(dict(id=ident, x=x, y=y, w=w, h=h, title=title,
-                               lines=lines, kind=kind, stage=stage))
+                               lines=lines, kind=kind, stage=stage, state=state))
 
-    def edge(self, ident, source, target, points, label="", at=None, async_=False):
+    def edge(self, ident, source, target, points, label="", at=None, async_=False, state=None):
         self.edges.append(dict(id=ident, source=source, target=target, points=points,
-                               label=label, at=at, async_=async_))
+                               label=label, at=at, async_=async_, state=state))
 
-    def write(self):
+    def write(self, archive=True):
         target_version = TARGET_VERSIONS[self.name]
         for suffix in ("svg", "drawio.xml"):
             current = ROOT / "diagrams" / f"{self.name}.{suffix}"
             previous = ROOT / "diagrams" / f"{self.name}.v{target_version - 1}.{suffix}"
-            if current.exists() and not previous.exists():
+            if archive and current.exists() and not previous.exists():
                 copy2(current, previous)
                 print(f"{self.name}: archived {previous.name}")
 
@@ -97,13 +97,24 @@ class Diagram:
                 decor(f"bandSub{i}", x + 24, y + 43, w - 48, 26, subtitle,
                       "text;html=0;fontSize=16;align=left;fontColor=#4d5a66;")
 
+        for i, (x, y, label, pattern) in enumerate(getattr(self, "legend_items", [])):
+            dash = f' stroke-dasharray="{pattern}"' if pattern else ""
+            parts.append(f'<path d="M {x} {y} L {x+65} {y}" fill="none" stroke="#607583" stroke-width="2"{dash}/>')
+            parts.append(text(x+78, y+5, label, 14))
+            decor(f"legendLine{i}", x, y, 65, 1, "",
+                  "shape=line;strokeColor=#607583;strokeWidth=2;" + (f"dashed=1;dashPattern={pattern};" if pattern else ""))
+            decor(f"legendLabel{i}", x+78, y-10, 350, 24, label,
+                  "text;html=0;fontSize=14;align=left;fontColor=#4d5a66;")
+
         lookup = {n["id"]: n for n in self.nodes}
         for edge in self.edges:
             source, target = lookup[edge["source"]], lookup[edge["target"]]
             points = edge["points"]
             assert all(a[0] == b[0] or a[1] == b[1] for a, b in zip(points, points[1:])), edge["id"]
             path = "M " + " L ".join(f"{x} {y}" for x, y in points)
-            dash = ' stroke-dasharray="7 5"' if edge["async_"] else ""
+            pattern = {"code": "", "off": "8 5", "plan": "2 5", "unknown": "2 5"}.get(
+                edge["state"], "7 5" if edge["async_"] else "")
+            dash = f' stroke-dasharray="{pattern}"' if pattern else ""
             parts.append(f'<g data-cell-id="{edge["id"]}"><path d="{path}" fill="none" '
                          f'stroke="#607583" stroke-width="2" marker-end="url(#arrow)"{dash}/>')
             if edge["label"] and edge["at"]:
@@ -121,7 +132,7 @@ class Diagram:
                      "labelBackgroundColor=#ffffff;"
                      f"exitX={(sx-source['x'])/source['w']};exitY={(sy-source['y'])/source['h']};"
                      f"entryX={(tx-target['x'])/target['w']};entryY={(ty-target['y'])/target['h']};"
-                     + ("dashed=1;" if edge["async_"] else ""))
+                     + (f"dashed=1;dashPattern={pattern};" if pattern else ""))
             cell = ET.SubElement(root, "mxCell", id=edge["id"], value=edge["label"],
                                  source=edge["source"], target=edge["target"], edge="1",
                                  parent="1", style=style)
@@ -133,10 +144,12 @@ class Diagram:
         for node in self.nodes:
             x, y, w, h = (node[k] for k in ["x", "y", "w", "h"])
             fill, accent = COLORS[node["kind"]]
+            pattern = {"off": "8 5", "plan": "2 5", "unknown": "2 5"}.get(node["state"], "")
+            dash = f' stroke-dasharray="{pattern}"' if pattern else ""
             assert 0 <= x and x+w <= self.width and 0 <= y and y+h <= self.height
             parts += [f'<g data-cell-id="{node["id"]}">',
                       f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" '
-                      f'fill="{fill}" stroke="{accent}" stroke-width="1.4"/>',
+                      f'fill="{fill}" stroke="{accent}" stroke-width="1.4"{dash}/>',
                       text(x+20, y+30, node["title"], 21, "#172b3a", "700")]
             for i, line in enumerate(node["lines"]):
                 parts.append(text(x+20, y+59+i*24, line, 16))
@@ -149,7 +162,8 @@ class Diagram:
                 value += "<br><b>" + escape(node["stage"]) + "</b>"
             style = (f"rounded=1;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={accent};"
                      "fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;"
-                     "spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;")
+                     "spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;"
+                     + (f"dashed=1;dashPattern={pattern};" if pattern else ""))
             cell = ET.SubElement(root, "mxCell", id=node["id"], value=value, vertex="1",
                                  parent="1", style=style)
             ET.SubElement(cell, "mxGeometry", x=str(x), y=str(y), width=str(w),
@@ -356,6 +370,11 @@ def cloud():
 
 
 if __name__ == "__main__":
+    import json
+    manifest = json.loads((ROOT / "diagrams" / "manifest.json").read_text())
+    if any(int(entry["versions"][0]["id"][1:]) > TARGET_VERSIONS.get(entry["id"], 999)
+           for entry in manifest):
+        raise SystemExit("이전 생성기로 현재 도면을 덮어쓰지 않습니다. python3 scripts/make-reviewed-architecture-diagrams.py를 사용하세요.")
     service()
     system()
     cloud()

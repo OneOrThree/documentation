@@ -1,0 +1,599 @@
+{
+  "version": 4,
+  "sourceCommit": "59790ce4916f3e91887caaa6945eefa86c0d6890",
+  "title": "Gromo · 서비스 아키텍처 — 명령·정본·전달",
+  "nodes": [
+    {
+      "id": "app",
+      "x": 60,
+      "y": 365,
+      "w": 260,
+      "h": 130,
+      "title": "모바일 앱",
+      "lines": [
+        "REST 명령·화면 조회",
+        "STOMP 구독·편지"
+      ],
+      "kind": "core",
+      "stage": "클라이언트",
+      "state": "code"
+    },
+    {
+      "id": "business",
+      "x": 460,
+      "y": 365,
+      "w": 330,
+      "h": 130,
+      "title": "Business API",
+      "lines": [
+        "공개 DTO · 인증 · 화면 조합",
+        "영속 DB 없음 · 내부 HTTP"
+      ],
+      "kind": "core",
+      "stage": "main 구현 · 전체 전환 미확인",
+      "state": "code"
+    },
+    {
+      "id": "data",
+      "x": 1030,
+      "y": 365,
+      "w": 300,
+      "h": 140,
+      "title": "Data API",
+      "lines": [
+        "권한·정산·원장·명령 receipt",
+        "상태+version+outbox: 같은 TX"
+      ],
+      "kind": "core",
+      "stage": "main 구현 · 운영 전환 미확인",
+      "state": "code"
+    },
+    {
+      "id": "coreDb",
+      "x": 1450,
+      "y": 365,
+      "w": 250,
+      "h": 130,
+      "title": "코어 PostgreSQL",
+      "lines": [
+        "gromo · 코어 정본",
+        "Data API 소유"
+      ],
+      "kind": "data",
+      "stage": "링크 원장도 코어 DB",
+      "state": "code"
+    },
+    {
+      "id": "realtime",
+      "x": 60,
+      "y": 655,
+      "w": 290,
+      "h": 150,
+      "title": "Realtime",
+      "lines": [
+        "STOMP CONNECT 인증",
+        "편지 저장·fanout",
+        "prod WSS 배선 미확정"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · dev overlay",
+      "state": "code"
+    },
+    {
+      "id": "chatRedis",
+      "x": 500,
+      "y": 655,
+      "w": 310,
+      "h": 150,
+      "title": "채팅·집중 Redis",
+      "lines": [
+        "presence:focus:* · 상태 사본",
+        "chat:fanout · 재생 불가",
+        "서비스 ACL 배포 미확인"
+      ],
+      "kind": "data",
+      "stage": "main dev · 별도 인스턴스",
+      "state": "code"
+    },
+    {
+      "id": "chatDb",
+      "x": 60,
+      "y": 920,
+      "w": 290,
+      "h": 130,
+      "title": "편지 PostgreSQL",
+      "lines": [
+        "gromo_chat · 편지 정본",
+        "Realtime 소유 · DB 히스토리"
+      ],
+      "kind": "data",
+      "stage": "main dev · prod 배치 미확정",
+      "state": "code"
+    },
+    {
+      "id": "previewRedis",
+      "x": 500,
+      "y": 920,
+      "w": 310,
+      "h": 130,
+      "title": "미리보기 Redis",
+      "lines": [
+        "Business 전용 · 재생성 가능",
+        "128 MiB · LRU · 비영속"
+      ],
+      "kind": "data",
+      "stage": "main dev · 채팅 Redis와 별도",
+      "state": "code"
+    },
+    {
+      "id": "relay",
+      "x": 1030,
+      "y": 655,
+      "w": 300,
+      "h": 150,
+      "title": "Data outbox relay",
+      "lines": [
+        "lease · 목적지별 재시도",
+        "Kafka ACK 후 완료 표시",
+        "eventId 보존 · 중복 가능"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · 기본 OFF",
+      "state": "off"
+    },
+    {
+      "id": "kafka",
+      "x": 1450,
+      "y": 655,
+      "w": 250,
+      "h": 150,
+      "title": "Kafka",
+      "lines": [
+        "notification-events + .DLT",
+        "userId 키 · 각 3 partitions",
+        "KRaft 단일 노드 · RF 1"
+      ],
+      "kind": "event",
+      "stage": "overlay · 활성화 미확인",
+      "state": "off"
+    },
+    {
+      "id": "notification",
+      "x": 1030,
+      "y": 920,
+      "w": 300,
+      "h": 130,
+      "title": "Notification",
+      "lines": [
+        "eventId 중복 제거 · version",
+        "템플릿·이력·FCM 발송"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · 소비/스케줄 OFF",
+      "state": "off"
+    },
+    {
+      "id": "notiDb",
+      "x": 1450,
+      "y": 920,
+      "w": 250,
+      "h": 130,
+      "title": "알림 PostgreSQL",
+      "lines": [
+        "gromo_notification",
+        "Notification 소유"
+      ],
+      "kind": "data",
+      "stage": "prod RDS 내 별도 DB: 목표",
+      "state": "off"
+    },
+    {
+      "id": "score",
+      "x": 60,
+      "y": 1355,
+      "w": 330,
+      "h": 90,
+      "title": "score-events + .DLT",
+      "lines": [
+        "Data outbox · 절대 점수+version"
+      ],
+      "kind": "future",
+      "stage": "",
+      "state": "plan"
+    },
+    {
+      "id": "rankConsumer",
+      "x": 540,
+      "y": 1355,
+      "w": 330,
+      "h": 90,
+      "title": "랭킹 컨슈머",
+      "lines": [
+        "중복·역순 적용 수렴"
+      ],
+      "kind": "future",
+      "stage": "",
+      "state": "plan"
+    },
+    {
+      "id": "rankRedis",
+      "x": 1030,
+      "y": 1355,
+      "w": 670,
+      "h": 90,
+      "title": "랭킹 Redis — 정본의 projection",
+      "lines": [
+        "완료 ZSET + 라이브 presence · Business 조회 · DB로 재구축"
+      ],
+      "kind": "future",
+      "stage": "",
+      "state": "plan"
+    }
+  ],
+  "edges": [
+    {
+      "id": "appRest",
+      "source": "app",
+      "target": "business",
+      "points": [
+        [
+          320,
+          425
+        ],
+        [
+          460,
+          425
+        ]
+      ],
+      "label": "REST",
+      "at": [
+        390,
+        416
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "internalHttp",
+      "source": "business",
+      "target": "data",
+      "points": [
+        [
+          790,
+          425
+        ],
+        [
+          1030,
+          425
+        ]
+      ],
+      "label": "내부 HTTP · 같은 deadline",
+      "at": [
+        910,
+        416
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "coreWrite",
+      "source": "data",
+      "target": "coreDb",
+      "points": [
+        [
+          1330,
+          425
+        ],
+        [
+          1450,
+          425
+        ]
+      ],
+      "label": "단일 TX",
+      "at": [
+        1390,
+        416
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "appSocket",
+      "source": "app",
+      "target": "realtime",
+      "points": [
+        [
+          60,
+          445
+        ],
+        [
+          20,
+          445
+        ],
+        [
+          20,
+          730
+        ],
+        [
+          60,
+          730
+        ]
+      ],
+      "label": "STOMP",
+      "at": [
+        55,
+        545
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "focusPresence",
+      "source": "data",
+      "target": "chatRedis",
+      "points": [
+        [
+          1050,
+          505
+        ],
+        [
+          1050,
+          535
+        ],
+        [
+          850,
+          535
+        ],
+        [
+          850,
+          730
+        ],
+        [
+          810,
+          730
+        ]
+      ],
+      "label": "presence 쓰기 · 커밋 후 best effort",
+      "at": [
+        920,
+        535
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "chatFanout",
+      "source": "realtime",
+      "target": "chatRedis",
+      "points": [
+        [
+          350,
+          730
+        ],
+        [
+          500,
+          730
+        ]
+      ],
+      "label": "읽기 · Pub/Sub",
+      "at": [
+        425,
+        721
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "chatPersistence",
+      "source": "realtime",
+      "target": "chatDb",
+      "points": [
+        [
+          205,
+          805
+        ],
+        [
+          205,
+          920
+        ]
+      ],
+      "label": "편지 저장·히스토리 조회",
+      "at": [
+        205,
+        870
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "previewCache",
+      "source": "business",
+      "target": "previewRedis",
+      "points": [
+        [
+          625,
+          495
+        ],
+        [
+          625,
+          535
+        ],
+        [
+          840,
+          535
+        ],
+        [
+          840,
+          980
+        ],
+        [
+          810,
+          980
+        ]
+      ],
+      "label": "캐시 읽기·쓰기",
+      "at": [
+        795,
+        890
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "relayOwnership",
+      "source": "data",
+      "target": "relay",
+      "points": [
+        [
+          1180,
+          505
+        ],
+        [
+          1180,
+          545
+        ],
+        [
+          860,
+          545
+        ],
+        [
+          860,
+          640
+        ],
+        [
+          1180,
+          640
+        ],
+        [
+          1180,
+          655
+        ]
+      ],
+      "label": "커밋된 outbox",
+      "at": [
+        1110,
+        640
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "relayKafka",
+      "source": "relay",
+      "target": "kafka",
+      "points": [
+        [
+          1330,
+          730
+        ],
+        [
+          1450,
+          730
+        ]
+      ],
+      "label": "Kafka 발행",
+      "at": [
+        1390,
+        721
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "kafkaConsume",
+      "source": "kafka",
+      "target": "notification",
+      "points": [
+        [
+          1575,
+          805
+        ],
+        [
+          1575,
+          850
+        ],
+        [
+          1180,
+          850
+        ],
+        [
+          1180,
+          920
+        ]
+      ],
+      "label": "비동기 소비 · DB 커밋 뒤 ACK",
+      "at": [
+        1380,
+        850
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "notificationWrite",
+      "source": "notification",
+      "target": "notiDb",
+      "points": [
+        [
+          1330,
+          980
+        ],
+        [
+          1450,
+          980
+        ]
+      ],
+      "label": "저장",
+      "at": [
+        1390,
+        971
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "scoreConsume",
+      "source": "score",
+      "target": "rankConsumer",
+      "points": [
+        [
+          390,
+          1400
+        ],
+        [
+          540,
+          1400
+        ]
+      ],
+      "label": "비동기",
+      "at": [
+        465,
+        1391
+      ],
+      "async_": false,
+      "state": "plan"
+    },
+    {
+      "id": "rankProject",
+      "source": "rankConsumer",
+      "target": "rankRedis",
+      "points": [
+        [
+          870,
+          1400
+        ],
+        [
+          1030,
+          1400
+        ]
+      ],
+      "label": "projection 쓰기",
+      "at": [
+        950,
+        1391
+      ],
+      "async_": false,
+      "state": "plan"
+    }
+  ]
+}

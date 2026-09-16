@@ -90,6 +90,11 @@ function build(entry, i) {
 
   if (entry.format === "html") {
     buildHtmlArtifact(id, title);
+    // HTML v4 also exports SVG/XML from the same definition. Compile those
+    // companions so downloads cannot accidentally serve the previous diagram.
+    const counts = fs.existsSync(path.join(SRC_DIR, `${id}.source.json`))
+      ? buildArtifact(id, title)
+      : {};
     const versions = entry.versions.map((version, versionIndex) => {
           if (!version.id || !version.artifactId) {
             throw new DiagramError(
@@ -101,10 +106,13 @@ function build(entry, i) {
               version.artifactId,
               `${title} ${version.label ?? version.id}`,
             );
+            if (fs.existsSync(path.join(SRC_DIR, `${version.artifactId}.source.json`))) {
+              buildArtifact(version.artifactId, `${title} ${version.label ?? version.id}`);
+            }
           }
           return version;
         });
-    return { ...entry, versions };
+    return { ...entry, ...counts, versions };
   }
 
   const built = buildArtifact(id, title);

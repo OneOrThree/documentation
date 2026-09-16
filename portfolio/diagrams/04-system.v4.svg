@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1530" viewBox="0 0 1760 1530" role="img" aria-labelledby="diagramTitle diagramDesc">
+<title id="diagramTitle">Gromo · 시스템 아키텍처 — 환경·배치·노출</title>
+<desc id="diagramDesc">2026.09.17 · main 59790ce49 대조 · 코드·활성화·설계를 구분 · 호스트 실행 상태는 미실측</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#607583"/></marker></defs>
+<g font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif"><rect width="1760" height="1530" fill="#ffffff"/>
+<text x="60" y="58" font-size="32" fill="#172b3a" font-weight="700">Gromo · 시스템 아키텍처 — 환경·배치·노출</text>
+<text x="60" y="92" font-size="17" fill="#4d5a66" font-weight="400">2026.09.17 · main 59790ce49 대조 · 코드·활성화·설계를 구분 · 호스트 실행 상태는 미실측</text>
+<rect x="40" y="120" width="1680" height="115" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="64" y="154" font-size="19" fill="#334d61" font-weight="700">상태 범례 — 선 모양은 상태, 연결 라벨은 HTTP·Pub/Sub 등 전달 방식</text>
+<text x="64" y="181" font-size="16" fill="#4d5a66" font-weight="400">실선: main 구현(운영 여부 별도)  /  긴 점선: 구현·기본 OFF  /  짧은 점선: 설계·배포 미확정</text>
+<rect x="40" y="260" width="1680" height="300" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="64" y="294" font-size="19" fill="#334d61" font-weight="700">01  Target-1 공개 REST 경로 — 배치 목표</text>
+<text x="64" y="321" font-size="16" fill="#4d5a66" font-weight="400">목표 Business :8080 / Data :8081. 현재 dev 포트와 섞지 않는다. 호스트 전환 완료는 미확인.</text>
+<rect x="40" y="580" width="800" height="470" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="64" y="614" font-size="19" fill="#334d61" font-weight="700">02  main의 dev 구성 — 코드·설정 확인</text>
+<text x="64" y="641" font-size="16" fill="#4d5a66" font-weight="400">같은 PostgreSQL 컨테이너의 별도 DB. dev 공개 매핑은 prod WSS 정책의 근거가 아니다.</text>
+<rect x="870" y="580" width="850" height="470" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="894" y="614" font-size="19" fill="#334d61" font-weight="700">03  prod RDS·알림 구성 — 목표와 기본 OFF</text>
+<text x="894" y="641" font-size="16" fill="#4d5a66" font-weight="400">논리 DB 소유권과 물리 인스턴스를 구분한다. gromo_chat의 prod 배치는 미확정.</text>
+<rect x="40" y="1070" width="1680" height="140" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="64" y="1104" font-size="19" fill="#334d61" font-weight="700">WSS 공개 노출면 — prod 라우팅은 미확정</text>
+<text x="64" y="1131" font-size="16" fill="#4d5a66" font-weight="400">앱→Realtime 직행 간선을 운영 경로로 그리지 않는다. dev :8081 매핑만 코드에서 확인했다.</text>
+<rect x="40" y="1230" width="1680" height="115" rx="18" fill="#f8fafc" stroke="#dce4eb"/>
+<text x="64" y="1264" font-size="19" fill="#334d61" font-weight="700">활성화·확장 조건</text>
+<text x="64" y="1291" font-size="16" fill="#4d5a66" font-weight="400">Kafka: lag · DLT 유입률 · oldest-pending · relay 실패율 기준선 / 랭킹 Redis: p95 임계값 또는 다중 Business 필요</text>
+<path d="M 65 210 L 130 210" fill="none" stroke="#607583" stroke-width="2"/>
+<text x="143" y="215" font-size="14" fill="#4d5a66" font-weight="400">main 구현 · 운영 여부 별도</text>
+<path d="M 610 210 L 675 210" fill="none" stroke="#607583" stroke-width="2" stroke-dasharray="8 5"/>
+<text x="688" y="215" font-size="14" fill="#4d5a66" font-weight="400">구현 · 활성화 기본 OFF</text>
+<path d="M 1160 210 L 1225 210" fill="none" stroke="#607583" stroke-width="2" stroke-dasharray="2 5"/>
+<text x="1238" y="215" font-size="14" fill="#4d5a66" font-weight="400">설계 · 배포 미확정</text>
+<g data-cell-id="appCf"><path d="M 310 425 L 400 425" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="2 5"/>
+<rect x="327.0" y="400" width="56.0" height="23" rx="4" fill="#ffffff"/>
+<text x="355" y="416" font-size="14" text-anchor="middle" fill="#405768">HTTPS</text>
+</g>
+<g data-cell-id="cfNginx"><path d="M 670 425 L 760 425" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="2 5"/>
+<rect x="687.0" y="400" width="56.0" height="23" rx="4" fill="#ffffff"/>
+<text x="715" y="416" font-size="14" text-anchor="middle" fill="#405768">Proxy</text>
+</g>
+<g data-cell-id="nginxBusiness"><path d="M 1030 425 L 1120 425" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="2 5"/>
+<rect x="1051.0" y="400" width="48.0" height="23" rx="4" fill="#ffffff"/>
+<text x="1075" y="416" font-size="14" text-anchor="middle" fill="#405768">REST</text>
+</g>
+<g data-cell-id="businessData"><path d="M 1370 425 L 1450 425" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="2 5"/>
+<rect x="1386.0" y="400" width="48.0" height="23" rx="4" fill="#ffffff"/>
+<text x="1410" y="416" font-size="14" text-anchor="middle" fill="#405768">HTTP</text>
+</g>
+<g data-cell-id="realtimeRedis"><path d="M 350 760 L 500 760" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="371.25" y="735" width="107.5" height="23" rx="4" fill="#ffffff"/>
+<text x="425" y="751" font-size="14" text-anchor="middle" fill="#405768">읽기·fanout</text>
+</g>
+<g data-cell-id="realtimeDb"><path d="M 205 830 L 205 895" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)"/>
+<rect x="157.0" y="852" width="96.0" height="23" rx="4" fill="#ffffff"/>
+<text x="205" y="868" font-size="14" text-anchor="middle" fill="#405768">gromo_chat</text>
+</g>
+<g data-cell-id="dataRds"><path d="M 1575 495 L 1575 570 L 1730 570 L 1730 760 L 1700 760" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="2 5"/>
+<rect x="1622.0" y="549" width="56.0" height="23" rx="4" fill="#ffffff"/>
+<text x="1650" y="565" font-size="14" text-anchor="middle" fill="#405768">gromo</text>
+</g>
+<g data-cell-id="notificationDb"><path d="M 1180 895 L 1180 830" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="8 5"/>
+<rect x="1100.0" y="851" width="160.0" height="23" rx="4" fill="#ffffff"/>
+<text x="1180" y="867" font-size="14" text-anchor="middle" fill="#405768">gromo_notification</text>
+</g>
+<g data-cell-id="kafkaNotification"><path d="M 1450 955 L 1330 955" fill="none" stroke="#607583" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="8 5"/>
+<rect x="1341.75" y="930" width="96.5" height="23" rx="4" fill="#ffffff"/>
+<text x="1390" y="946" font-size="14" text-anchor="middle" fill="#405768">비동기 소비</text>
+</g>
+<g data-cell-id="app">
+<rect x="60" y="365" width="250" height="130" rx="12" fill="#edf4fc" stroke="#3866a0" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="80" y="395" font-size="21" fill="#172b3a" font-weight="700">모바일 앱</text>
+<text x="80" y="424" font-size="16" fill="#4d5a66" font-weight="400">HTTPS · WSS</text>
+<text x="80" y="480" font-size="14" fill="#3866a0" font-weight="700">Target-1 · 전환 미확인</text>
+</g>
+<g data-cell-id="cloudflare">
+<rect x="400" y="365" width="270" height="130" rx="12" fill="#f2f5f7" stroke="#607583" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="420" y="395" font-size="21" fill="#172b3a" font-weight="700">Cloudflare</text>
+<text x="420" y="424" font-size="16" fill="#4d5a66" font-weight="400">프록시 · edge 정책</text>
+<text x="420" y="480" font-size="14" fill="#607583" font-weight="700">Target-1 · 전환 미확인</text>
+</g>
+<g data-cell-id="nginx">
+<rect x="760" y="365" width="270" height="130" rx="12" fill="#edf4fc" stroke="#3866a0" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="780" y="395" font-size="21" fill="#172b3a" font-weight="700">Nginx</text>
+<text x="780" y="424" font-size="16" fill="#4d5a66" font-weight="400">Origin TLS 종료 · 경로 라우팅</text>
+<text x="780" y="480" font-size="14" fill="#3866a0" font-weight="700">Target-1 · 전환 미확인</text>
+</g>
+<g data-cell-id="business">
+<rect x="1120" y="365" width="250" height="130" rx="12" fill="#edf4fc" stroke="#3866a0" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="1140" y="395" font-size="21" fill="#172b3a" font-weight="700">Business API</text>
+<text x="1140" y="424" font-size="16" fill="#4d5a66" font-weight="400">공개 REST · BFF · DB 없음</text>
+<text x="1140" y="480" font-size="14" fill="#3866a0" font-weight="700">Target-1 · 전환 미확인</text>
+</g>
+<g data-cell-id="data">
+<rect x="1450" y="365" width="250" height="130" rx="12" fill="#edf4fc" stroke="#3866a0" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="1470" y="395" font-size="21" fill="#172b3a" font-weight="700">Data API</text>
+<text x="1470" y="424" font-size="16" fill="#4d5a66" font-weight="400">내부망 · 코어 정본 접근</text>
+<text x="1470" y="480" font-size="14" fill="#3866a0" font-weight="700">Target-1 · 전환 미확인</text>
+</g>
+<g data-cell-id="realtime">
+<rect x="60" y="690" width="290" height="140" rx="12" fill="#f0edfb" stroke="#7860aa" stroke-width="1.4"/>
+<text x="80" y="720" font-size="21" fill="#172b3a" font-weight="700">Realtime · dev :8081</text>
+<text x="80" y="749" font-size="16" fill="#4d5a66" font-weight="400">/ws/chat · /ws/realtime</text>
+<text x="80" y="773" font-size="16" fill="#4d5a66" font-weight="400">STOMP CONNECT Bearer 검증</text>
+<text x="80" y="815" font-size="14" fill="#7860aa" font-weight="700">main dev overlay · prod 미확정</text>
+</g>
+<g data-cell-id="chatRedis">
+<rect x="500" y="690" width="310" height="140" rx="12" fill="#fff3e8" stroke="#a9682b" stroke-width="1.4"/>
+<text x="520" y="720" font-size="21" fill="#172b3a" font-weight="700">채팅·집중 Redis</text>
+<text x="520" y="749" font-size="16" fill="#4d5a66" font-weight="400">Data presence 쓰기</text>
+<text x="520" y="773" font-size="16" fill="#4d5a66" font-weight="400">Realtime presence 읽기·fanout</text>
+<text x="520" y="815" font-size="14" fill="#a9682b" font-weight="700">main dev · 서비스 ACL 미확인</text>
+</g>
+<g data-cell-id="devPg">
+<rect x="60" y="895" width="290" height="120" rx="12" fill="#fff3e8" stroke="#a9682b" stroke-width="1.4"/>
+<text x="80" y="925" font-size="21" fill="#172b3a" font-weight="700">dev PostgreSQL</text>
+<text x="80" y="954" font-size="16" fill="#4d5a66" font-weight="400">gromo: Data</text>
+<text x="80" y="978" font-size="16" fill="#4d5a66" font-weight="400">gromo_chat: Realtime</text>
+<text x="80" y="1000" font-size="14" fill="#a9682b" font-weight="700">같은 인스턴스 · 별도 DB</text>
+</g>
+<g data-cell-id="previewRedis">
+<rect x="500" y="895" width="310" height="120" rx="12" fill="#fff3e8" stroke="#a9682b" stroke-width="1.4"/>
+<text x="520" y="925" font-size="21" fill="#172b3a" font-weight="700">미리보기 Redis</text>
+<text x="520" y="954" font-size="16" fill="#4d5a66" font-weight="400">Business 전용 · 128 MiB</text>
+<text x="520" y="978" font-size="16" fill="#4d5a66" font-weight="400">LRU · 비영속 · 재생성 가능</text>
+<text x="520" y="1000" font-size="14" fill="#a9682b" font-weight="700">main dev · 채팅 Redis와 별도</text>
+</g>
+<g data-cell-id="prodRds">
+<rect x="1030" y="690" width="670" height="140" rx="12" fill="#fff3e8" stroke="#a9682b" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="1050" y="720" font-size="21" fill="#172b3a" font-weight="700">prod RDS PostgreSQL — 인스턴스 경계</text>
+<text x="1050" y="749" font-size="16" fill="#4d5a66" font-weight="400">gromo: Data 소유 / gromo_notification: Notification 소유</text>
+<text x="1050" y="773" font-size="16" fill="#4d5a66" font-weight="400">알림은 같은 RDS 안의 별도 database·유저·Flyway가 Target-1</text>
+<text x="1050" y="815" font-size="14" fill="#a9682b" font-weight="700">코어 RDS 문서 근거 · 알림 DB 생성/권한 적용 미확인</text>
+</g>
+<g data-cell-id="notification">
+<rect x="1030" y="895" width="300" height="120" rx="12" fill="#f0edfb" stroke="#7860aa" stroke-width="1.4" stroke-dasharray="8 5"/>
+<text x="1050" y="925" font-size="21" fill="#172b3a" font-weight="700">Notification</text>
+<text x="1050" y="954" font-size="16" fill="#4d5a66" font-weight="400">전용 DB · FCM 자격</text>
+<text x="1050" y="978" font-size="16" fill="#4d5a66" font-weight="400">소비·스케줄 활성화 기본 OFF</text>
+<text x="1050" y="1000" font-size="14" fill="#7860aa" font-weight="700">main 구현 · 운영 활성화 미확인</text>
+</g>
+<g data-cell-id="kafka">
+<rect x="1450" y="895" width="250" height="120" rx="12" fill="#f0edfb" stroke="#7860aa" stroke-width="1.4" stroke-dasharray="8 5"/>
+<text x="1470" y="925" font-size="21" fill="#172b3a" font-weight="700">Kafka overlay</text>
+<text x="1470" y="954" font-size="16" fill="#4d5a66" font-weight="400">내부 :9092 · 영속 볼륨</text>
+<text x="1470" y="978" font-size="16" fill="#4d5a66" font-weight="400">KRaft 1 node · RF 1</text>
+<text x="1470" y="1000" font-size="14" fill="#7860aa" font-weight="700">main 구현 · 활성화 미확인</text>
+</g>
+<g data-cell-id="wssPolicy">
+<rect x="60" y="1145" width="1640" height="45" rx="12" fill="#fff8e7" stroke="#a67b26" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="80" y="1175" font-size="21" fill="#172b3a" font-weight="700">TLS 종료 · edge/오리진 방어 · handshake/메시지 rate limit · 연결 수 상한: prod 배포 전 확정</text>
+</g>
+<g data-cell-id="rankRedis">
+<rect x="60" y="1370" width="680" height="110" rx="12" fill="#fff8e7" stroke="#a67b26" stroke-width="1.4" stroke-dasharray="2 5"/>
+<text x="80" y="1400" font-size="21" fill="#172b3a" font-weight="700">랭킹 Redis · score-events — Target-2</text>
+<text x="80" y="1429" font-size="16" fill="#4d5a66" font-weight="400">설계만 · 알림과 별도 스트림·소비자</text>
+<text x="80" y="1453" font-size="16" fill="#4d5a66" font-weight="400">리그 p95 &gt; 1.5초 / findRankOf p95 &gt; 500ms / 다중 Business</text>
+</g>
+<g data-cell-id="scope">
+<rect x="870" y="1370" width="830" height="110" rx="12" fill="#f2f5f7" stroke="#607583" stroke-width="1.4"/>
+<text x="890" y="1400" font-size="21" fill="#172b3a" font-weight="700">운영 경계와 A23</text>
+<text x="890" y="1429" font-size="16" fill="#4d5a66" font-weight="400">링크·MMP는 Business/Data에 흡수 · 별도 Link/Vercel/Neon 없음</text>
+<text x="890" y="1453" font-size="16" fill="#4d5a66" font-weight="400">문서 사이트 Vercel은 Gromo 런타임과 독립 · Kafka 단일 노드 장애 내성 한계</text>
+</g>
+</g></svg>

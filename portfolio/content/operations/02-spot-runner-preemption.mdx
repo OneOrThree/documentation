@@ -1,0 +1,50 @@
+---
+title: "리뷰가 안 돈 원인은 키가 아니었다 — Spot 러너 선점"
+summary: "PR #347의 리뷰 요청은 정상 트리거를 통과했지만 Set up job에서 취소됐습니다. skipped와 cancelled를 나누고 실행 단계·러너 생존을 확인해 인증 문제가 아닌 러너 선점으로 진단한 기록입니다."
+status: "원문 진단 · 후속 적용 미확인"
+date: "2026-07-24"
+order: 2
+keywords: [운영, CI, self-hosted, Spot, preemption, cancelled, GROMO-862]
+related:
+  - label: "운영·트러블슈팅 사례 지도"
+    href: "/operations/01-incident-map"
+  - label: "CI/CD 트러블슈팅"
+    href: "/research/cicd-infra"
+---
+
+## 영향과 증상
+
+2026-07-24 PR #347에서 팀원이 코드리뷰를 요청했지만 결과가 오지 않았다. Actions에는 skipped가 다수, cancelled가 간헐적으로 나타났고 OAuth 키를 바꿔도 해결되지 않았다. 영향 범위는 **개발 CI의 대화형 리뷰 잡**이며 prod API 장애 사례가 아니다. 작성자·복구 시각·영향 인원은 원문에 확정된 값이 없어 추가하지 않았다.
+
+## skipped와 실제 실패를 나눴다
+
+워크플로는 PR 댓글마다 실행되지만 본문에 `@claude`가 없으면 if 조건에서 건너뛴다. `@codex`와 봇 댓글에 생긴 skipped는 정상 동작이었다. 조사 대상은 요청 댓글이 실제로 들어간 [run 30078292506](https://github.com/OneOrThree/phone/actions/runs/30078292506)의 cancelled였다.
+
+| 원문에 기록된 시각 | 상태 |
+| --- | --- |
+| 08:15:32 | Spot 러너 `ci-spot-ci-runner-lklt`에 잡 배정 |
+| 08:15:34 | Set up job 시작과 종료 — cancelled |
+| 08:15:38 | 전체 잡 cancelled |
+
+checkout과 인증 스텝 전에 끝났으므로 OAuth 키를 사용하지도 않았다. 원문은 배정 러너가 조회 시점에 사라졌고 MIG가 새 인스턴스로 교체하는 구성임을 근거로 Spot 선점을 원인으로 판정했다. 이 페이지에서 별도 클라우드 감사 로그로 재검증한 것은 아니다.
+
+## 선점 위험을 감수했던 배경
+
+GROMO-862는 GitHub 무료 러너 쿼터 소진으로 CI가 막히자 워크플로 8개를 self-hosted Spot으로 옮겼다. 비용 대응은 합리적이었지만, 사람이 결과를 기다리는 가벼운 리뷰 잡까지 선점에 노출했다. 원래 티켓에도 선점 시 잡 실패 가능성과 재실행 복구가 위험으로 적혀 있었다.
+
+별개 결함도 발견했다. 인라인 댓글 이벤트에는 `github.event.issue.pull_request`가 없는데 일반 댓글과 같은 if를 적용해, 인라인 리뷰 요청이 항상 skipped였다. 선점 문제와 이벤트 조건 문제는 다른 수정이다.
+
+## 복구 방안과 남은 검증
+
+원문은 리뷰 잡만 GitHub-hosted로 돌리고, 일반 댓글·인라인 댓글을 이벤트별로 나누는 방안을 제안했다. 리뷰는 내부 DB나 무거운 툴체인이 필요 없으므로 dev 배포 서버에 함께 올리는 안은 배포 간섭·자원 경합 때문에 배제했다.
+
+**원문 상태는 다음 달 무료 쿼터 리셋 후 적용 예정이다.** 후속 PR·실행 성공 근거는 이번 수집에서 확인하지 못했으므로 완료 처리하지 않는다. 검증할 것은 일반/인라인 요청의 정상 실행, 비요청 댓글의 정상 skip, 새 러너에서 인증 스텝까지 도달한 실행 결과다.
+
+## 재발 방지로 남긴 기준
+
+CI를 일괄적으로 비용만 보고 옮기지 않고 잡의 무게·상태·대기성을 나눈다. 무거운 재실행 가능 빌드와 짧은 대화형 잡은 선점의 손실 의미가 다르다. 장애 판단도 skipped의 개수가 아니라 실제 요청 run의 conclusion, 마지막 성공 단계, 배정 러너 생존 여부로 시작한다.
+
+## 출처
+
+- [스팟 서버 회수로 인한 workflow 미처리 — 2026-07-24 갱신 원문](https://romance.atlassian.net/wiki/spaces/S/pages/39256067/workflow)
+- [GROMO-862 — Spot 전환 배경](https://romance.atlassian.net/browse/GROMO-862) · [PR #347](https://github.com/OneOrThree/phone/pull/347) · [취소 run](https://github.com/OneOrThree/phone/actions/runs/30078292506)

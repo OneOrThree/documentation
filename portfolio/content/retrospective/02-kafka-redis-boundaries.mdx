@@ -51,9 +51,14 @@ Data가 확정한 사건을 Notification과 Realtime으로 전달하면서, 장�
 - [x] Git first-parent 기록에서 Evolution 자동 생성
 - [ ] Kafka 장애·DLT 재생 실증 결과 추가
 - [ ] Redis ACL과 재구축 절차의 운영 검증 결과 추가
+- [x] v4에 상태 범례·정본·Redis 소유권·prod WSS 미확정 상태 반영, PR #745 병합 상태 정정
+- [x] Business/Data 분리 근거와 추가 홉·원자성·Data 병목을 ADR-022로 보완
+- [x] prod·dev·CI를 구분한 운영·트러블슈팅 진입점과 원문 근거 연결
 
 ## 근거
 
+- [Business/Data 분리의 실제 근거와 비용](/adr/adr-022-business-data-boundary)
+- [운영·트러블슈팅 사례 — 영향·진단·복구·재발 방지](/operations/01-incident-map)
 - [Kafka·Redis·outbox 상세 계약](/spec/service-architecture)
 - [배치·포트·데이터 저장소 경계](/spec/system-architecture)
 - [알림 파이프라인이 사건 선점 모델로 바뀐 기록](/research/notification-pipeline)

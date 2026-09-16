@@ -1,0 +1,226 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="31.4.5">
+  <diagram id="03-service" name="Gromo · 서비스 아키텍처">
+    <mxGraphModel dx="1760" dy="1490" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1760" pageHeight="1490">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="heading" value="Gromo · 서비스 아키텍처" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=32;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="60" y="24" width="1640" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="2026.09.13 · phone/docs 기반 목표 구조 · 실선: HTTP·저장소 / 점선: 비동기 · main·통합 PR·후속 단계 구분" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=17;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="60" y="72" width="1640" height="30" />
+        </mxCell>
+        <mxCell id="band0" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="120" width="1680" height="220" />
+        </mxCell>
+        <mxCell id="bandTitle0" value="01  명령과 데이터 소유권" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="132" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="band1" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="370" width="1680" height="850" />
+        </mxCell>
+        <mxCell id="bandTitle1" value="02  실시간 전달 · 내구 이벤트 · 위성 서비스" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="382" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="band2" value="" vertex="1" connectable="0" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#dce4eb;">
+          <mxGeometry as="geometry" x="40" y="1230" width="1680" height="220" />
+        </mxCell>
+        <mxCell id="bandTitle2" value="03  조건 충족 후 확장 · Target-2" vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=19;fontStyle=1;align=left;">
+          <mxGeometry as="geometry" x="64" y="1242" width="1632" height="30" />
+        </mxCell>
+        <mxCell id="bandSub2" value="랭킹 지연·인스턴스 증가를 측정한 뒤 도입한다. 기존 채팅 Redis와 도입 시점이 다르다." vertex="1" connectable="0" parent="1" style="text;html=0;fontSize=16;align=left;fontColor=#4d5a66;">
+          <mxGeometry as="geometry" x="64" y="1273" width="1632" height="26" />
+        </mxCell>
+        <mxCell id="appRest" value="REST" source="app" target="business" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.4642857142857143;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="internalHttp" value="검증 주체 · 내부 HTTP" source="business" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4642857142857143;entryX=0.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="coreWrite" value="단일 TX" source="data" target="coreDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4482758620689655;entryX=0.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="appSocket" value="STOMP" source="app" target="realtime" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="realtimeContract" value="커밋된 봉투 · 후속 연결" source="data" target="adapter" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0625;exitY=1.0;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1040" y="350" />
+              <mxPoint x="650" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="routerInput" value="권한·router" source="adapter" target="realtime" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.48148148148148145;entryX=1.0;entryY=0.5;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayOwnership" value="커밋된 outbox" source="data" target="relay" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.53125;exitY=1.0;entryX=0.53125;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="focusPresence" value="presence:focus:* · Data 쓰기" source="data" target="chatRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.8275862068965517;entryX=0.7857142857142857;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="940" y="295" />
+              <mxPoint x="940" y="670" />
+              <mxPoint x="280" y="670" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="chatFanout" value="Pub/Sub · presence 읽기" source="realtime" target="chatRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.39285714285714285;exitY=1.0;entryX=0.39285714285714285;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="chatStore" value="" source="realtime" target="chatDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7058823529411765;entryX=0.0;entryY=0.4782608695652174;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="20" y="555" />
+              <mxPoint x="20" y="1055" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="previewCache" value="TTL 캐시" source="business" target="previewRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.8571428571428571;entryX=1.0;entryY=0.4482758620689655;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="860" y="295" />
+              <mxPoint x="860" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayKafka" value="userId 키 · 재전달" source="relay" target="kafka" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kafkaConsume" value="consume" source="kafka" target="notification" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.4482758620689655;entryX=0.0;entryY=0.38235294117647056;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notiReads" value="조회 3종만 · 리컨실/ack/적격" source="notification" target="data" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.6;exitY=0.0;entryX=0.84375;entryY=1.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1600" y="390" />
+              <mxPoint x="1290" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="notiStore" value="알림 전용 DB" source="notification" target="notiDb" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.44;exitY=1.0;entryX=0.44;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="push" value="" source="notification" target="fcm" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.7352941176470589;entryX=1.0;entryY=0.6842105263157895;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1735" y="850" />
+              <mxPoint x="1735" y="1185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="businessLink" value="발급·귀속" source="business" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7142857142857143;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="405" y="275" />
+              <mxPoint x="405" y="1080" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="relayLink" value="실패한 HTTP 전달 재시도" source="relay" target="link" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.7;entryX=0.5;entryY=0.0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="970" y="545" />
+              <mxPoint x="970" y="940" />
+              <mxPoint x="650" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="linkStore" value="자기 데이터" source="link" target="neon" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5217391304347826;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="scoreConsume" value="userId" source="score" target="rankConsumer" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="rankProjection" value="version 검사 + Lua" source="rankConsumer" target="rankRedis" edge="1" parent="1" style="edgeStyle=none;rounded=0;html=1;endArrow=block;endFill=1;strokeColor=#607583;strokeWidth=2;fontSize=14;fontColor=#405768;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="app" value="&lt;b&gt;모바일 앱&lt;/b&gt;&lt;br&gt;REST 명령·스냅샷&lt;br&gt;STOMP 구독·응원·편지&lt;br&gt;&lt;b&gt;React Native · Expo&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="175" width="280" height="130" />
+        </mxCell>
+        <mxCell id="business" value="&lt;b&gt;Business API&lt;/b&gt;&lt;br&gt;인증 · 공개 DTO · BFF&lt;br&gt;Data 명령 호출 · DB 소유 없음&lt;br&gt;&lt;b&gt;전체 진입점 이관: 목표&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="460" y="175" width="360" height="140" />
+        </mxCell>
+        <mxCell id="data" value="&lt;b&gt;Data API&lt;/b&gt;&lt;br&gt;상태·정산·버전의 소유자&lt;br&gt;명령 receipt + outbox = 같은 TX&lt;br&gt;&lt;b&gt;원자 명령·outbox: 통합 PR&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#edf4fc;strokeColor=#3866a0;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="175" width="320" height="145" />
+        </mxCell>
+        <mxCell id="coreDb" value="&lt;b&gt;PostgreSQL&lt;/b&gt;&lt;br&gt;gromo · 도메인 정본&lt;br&gt;원장 · 멱등 결과 · outbox&lt;br&gt;&lt;b&gt;코어 DB 접근: Data만&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="175" width="250" height="145" />
+        </mxCell>
+        <mxCell id="realtime" value="&lt;b&gt;Realtime&lt;/b&gt;&lt;br&gt;채널 분리 · 현재 수신자 인가&lt;br&gt;기존 편지 저장·전파&lt;br&gt;신규 14종 EventRouter&lt;br&gt;&lt;b&gt;채팅·router: main / 전달: 후속&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="435" width="280" height="170" />
+        </mxCell>
+        <mxCell id="adapter" value="&lt;b&gt;실시간 전달 어댑터&lt;/b&gt;&lt;br&gt;커밋된 eventId 그대로 전달&lt;br&gt;전송 경로·인가 통합 필요&lt;br&gt;&lt;b&gt;후속 · 공개 POST·토픽 미추가&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="500" y="455" width="300" height="135" />
+        </mxCell>
+        <mxCell id="relay" value="&lt;b&gt;Data outbox relay&lt;/b&gt;&lt;br&gt;미전달 행 lease · 재시도&lt;br&gt;목적지별 전달 완료 기록&lt;br&gt;Broker ACK 뒤 발행 완료&lt;br&gt;&lt;b&gt;통합 PR #745&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="440" width="320" height="150" />
+        </mxCell>
+        <mxCell id="chatRedis" value="&lt;b&gt;Redis · 채팅/집중&lt;/b&gt;&lt;br&gt;chat:fanout · 휘발 Pub/Sub&lt;br&gt;presence:focus:* · 상태 사본&lt;br&gt;Realtime은 presence 읽기만&lt;br&gt;&lt;b&gt;main · ACL 배포는 후속&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="725" width="280" height="145" />
+        </mxCell>
+        <mxCell id="previewRedis" value="&lt;b&gt;Redis · 미리보기 전용&lt;/b&gt;&lt;br&gt;cache:business:preview:*&lt;br&gt;메타데이터 · 축소 PNG · TTL&lt;br&gt;128 MiB · allkeys-lru · 비영속&lt;br&gt;&lt;b&gt;main · 채팅 Redis와 별도&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="480" y="725" width="340" height="145" />
+        </mxCell>
+        <mxCell id="kafka" value="&lt;b&gt;Kafka · 알림 스트림&lt;/b&gt;&lt;br&gt;notification-events · userId 키&lt;br&gt;3 partitions · .DLT도 3&lt;br&gt;KRaft 1 node · RF 1 · 7일&lt;br&gt;&lt;b&gt;통합 PR · 활성화 기본 OFF&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="725" width="320" height="145" />
+        </mxCell>
+        <mxCell id="notification" value="&lt;b&gt;Notification&lt;/b&gt;&lt;br&gt;eventId 멱등 · version&lt;br&gt;재시도 · .DLT · 재조정&lt;br&gt;템플릿 · 발송 · 이력&lt;br&gt;&lt;b&gt;통합 PR #745&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0edfb;strokeColor=#7860aa;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="725" width="250" height="170" />
+        </mxCell>
+        <mxCell id="chatDb" value="&lt;b&gt;PostgreSQL · 편지&lt;/b&gt;&lt;br&gt;gromo_chat · 메시지 정본&lt;br&gt;&lt;b&gt;main · 히스토리로 복구&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1000" width="280" height="115" />
+        </mxCell>
+        <mxCell id="link" value="&lt;b&gt;Link · MMP&lt;/b&gt;&lt;br&gt;Vercel · 랜딩 · 초대 · 귀속&lt;br&gt;코어가 HTTP로 전달&lt;br&gt;링크 서버는 Kafka 미접속&lt;br&gt;&lt;b&gt;위성 분리: 목표&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="480" y="1000" width="340" height="160" />
+        </mxCell>
+        <mxCell id="neon" value="&lt;b&gt;Neon PostgreSQL&lt;/b&gt;&lt;br&gt;링크 · 클릭 · 어트리뷰션 원장&lt;br&gt;&lt;b&gt;Link 소유&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="1020" width="320" height="115" />
+        </mxCell>
+        <mxCell id="notiDb" value="&lt;b&gt;PostgreSQL · 알림&lt;/b&gt;&lt;br&gt;gromo_notification&lt;br&gt;&lt;b&gt;별도 DB·유저·Flyway&lt;/b&gt;" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e8;strokeColor=#a9682b;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="985" width="250" height="115" />
+        </mxCell>
+        <mxCell id="fcm" value="&lt;b&gt;FCM&lt;/b&gt;&lt;br&gt;기기 전달 · 외부 부작용" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f2f5f7;strokeColor=#607583;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1450" y="1120" width="250" height="95" />
+        </mxCell>
+        <mxCell id="score" value="&lt;b&gt;score-events + .DLT&lt;/b&gt;&lt;br&gt;Data outbox · 절대 점수+version" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="60" y="1320" width="330" height="100" />
+        </mxCell>
+        <mxCell id="rankConsumer" value="&lt;b&gt;랭킹 컨슈머&lt;/b&gt;&lt;br&gt;낮은 version 거부 · 중복 수렴" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="500" y="1320" width="330" height="100" />
+        </mxCell>
+        <mxCell id="rankRedis" value="&lt;b&gt;Redis · 랭킹 projection&lt;/b&gt;&lt;br&gt;ZADD 완료분 + presence 라이브분 · ACL로 쓰기 소유 강제" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff8e7;strokeColor=#a67b26;fontColor=#172b3a;fontSize=16;align=left;verticalAlign=top;spacingTop=14;spacingLeft=20;spacingRight=14;spacingBottom=12;">
+          <mxGeometry as="geometry" x="1020" y="1320" width="630" height="100" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

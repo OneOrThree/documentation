@@ -1,8 +1,8 @@
 ---
 title: "시스템 아키텍처 — 배치·노출면·배포 경계"
-summary: "AWS·GCP·Vercel에 걸친 배치 목표와 현재 main의 Compose 구성을 구분합니다. Kafka·Redis·DB의 경계와 서비스별 배포 순서를 정리합니다."
+summary: "Target-1 배치 목표와 main dev 구성을 구분합니다. RDS 내 별도 database, Redis 역할, Kafka 기본 OFF와 prod WSS 미확정 상태를 정리합니다. 문서 Vercel 배포는 런타임과 독립입니다."
 status: "설계 확정 · 구현 진행"
-date: "2026-09-13"
+date: "2026-09-17"
 order: 3
 keywords: [Docker Compose, Kafka, Redis, AWS, GCP, Vercel, CI/CD, Datadog]
 related:
@@ -20,7 +20,7 @@ related:
 
 [상호작용 다이어그램 열기 — 확대·연결 강조·내보내기](/diagrams/04-system)
 
-위쪽은 `phone/docs/architecture`의 Target-1 배치 목표이며, 아래쪽은 최신 main에 추가된 dev overlay다. 이번 문서 갱신은 코드를 대조한 결과로, AWS·GCP 호스트의 실행 상태를 새로 실측한 기록이 아니다.
+위쪽은 `phone/docs/architecture`의 Target-1 배치 목표이며, 아래쪽은 main의 dev overlay와 알림 기본 OFF 구성이다. 2026-09-17에 main `59790ce49`를 대조했으며 AWS·GCP 호스트 실행 상태를 새로 실측한 기록은 아니다. [개요의 구성별 상태](/spec/architecture)를 따른다.
 
 ## 현재 설정과 목표 포트
 
@@ -29,8 +29,8 @@ related:
 | Data API | dev의 `app` :8080. 기존 prod Compose도 `app` 중심 | :8081, Compose 내부망만. 공개 REST는 Business 경유 |
 | Business API | 미리보기 서버 :8082, dev 전용 overlay·수동 활성화 | :8080, 인증·공개 REST·BFF 진입점 |
 | Realtime | :8081, `docker-compose.realtime.yml`은 dev 전용 | 기존 Target-1 자원표에 없음. prod 라우팅·DB·Redis 배선은 후속 |
-| Notification | main에 없음. 통합 PR에 서비스·설정 있음 | :8082, 전용 DB와 admin 제한 노출 |
-| Kafka | 통합 PR의 별도 overlay, :9092 내부망 | 동일 Compose의 KRaft 단일 노드 |
+| Notification | PR #745 병합으로 main에 서비스·설정 있음. 소비·스케줄 기본 OFF | :8082, 전용 DB와 admin 제한 노출 |
+| Kafka | main의 별도 overlay, :9092 내부망. 호스트 활성화 미확인 | 동일 Compose의 KRaft 단일 노드 |
 | Redis | dev의 채팅·presence Redis + Business 전용 Redis | Realtime 편입에 맞춰 자원·ACL·prod 구성을 갱신. 랭킹 projection은 Target-2 |
 
 **이 두 포트 표를 섞어 한 Compose에 그대로 붙이지 않는다.** 현재 dev Realtime의 :8081은 목표 Data의 :8081과 겹친다. 실제 전환에는 내부 포트와 공개 라우팅을 함께 조정한 환경별 배포 정의가 필요하다.
@@ -57,10 +57,24 @@ related:
 | 내부 Data | Compose 내부 DNS·서비스 토큰. 외부가 보낸 사용자 헤더를 Business가 그대로 신뢰하지 않음 |
 | 알림 admin | Nginx가 허용된 `/internal/admin/**`만 Notification으로 연결. 콘솔 전용 자격 |
 | 실시간 소켓 | 현재 `/ws/chat`·`/ws/realtime` 계약 유지. prod WSS 라우팅·현재 인가 활성화는 후속 배포 조건 |
-| 링크·매치 | Link의 Vercel 호스트. 기존 앱의 `/l/match`·`/l/referrer` 호환 프록시는 원본 IP를 검증해 전달 |
+| 링크·매치 | A23으로 별도 Link/Vercel/Neon 분리안 폐기. 공개 표면은 Business, 원장은 Data의 `gromo` |
 | Kafka·Redis·DB·관리 포트 | 공개 API 경로에 포함하지 않음. 서비스별 내부 자격과 최소 권한 |
 
 Data는 코어 DB 자격, Notification은 알림 DB·FCM 자격, Business는 목표 인증 서명 책임을 갖는다. **현재 Realtime은 JWT 검증 계약을 유지한다.** 기존 “JWT 키는 Business만 보유” 목표 문구를 모든 현행 서비스에 적용 완료했다고 쓰지 않는다.
+
+## WSS 배포 전 확정할 노출면
+
+현재 확인한 `docker-compose.realtime.yml`은 **dev 전용**이며 호스트 `8081:8081`을 매핑한다. 이것만으로 공개 인터넷 직행, HTTPS 프록시 경유, prod TLS 종료를 판정할 수 없다. 현재 도면은 앱에서 Realtime으로 직행하는 WSS 간선을 운영 경로로 표시하지 않는다.
+
+| 항목 | 확인한 내용 / 후속 확정 사항 |
+| --- | --- |
+| 인증 시점 | `/ws/chat`·`/ws/realtime` handshake 뒤 첫 STOMP CONNECT에서 Bearer 검증. 토큰은 URL에 싣지 않음 |
+| prod 라우팅·TLS | 확인한 저장소에 prod Realtime 라우팅이 없음. Cloudflare/Nginx 경유 여부와 TLS 종료 지점을 환경별 배포 정의로 확정할 것 |
+| handshake·메시지 제한 | edge/오리진의 접속 시도 제한과 Realtime의 SEND 빈도 제한을 나눠 수치·거절 동작·검증 결과를 남길 것. 현재 운영 적용은 미확인 |
+| 연결 수 상한 | 호스트·프로세스·유저별 상한과 초과 연결 거절·복구 동작을 부하 검증 후 기록할 것 |
+| 오리진 방어 | 프록시 경유 시 우회 직접 접속 차단 정책을, 직접 노출 시 방어 책임과 이유를 명시할 것 |
+
+배포 정의에 설정이 생긴 상태와 실제 적용·장애 검증을 마친 상태는 별도로 기록한다. prod `gromo_chat`의 물리 배치와 Redis ACL도 같은 활성화 확인 범위에 포함한다.
 
 ## 배포와 관측
 
@@ -91,6 +105,7 @@ Kafka 이관은 새 주소만 바꾸는 작업이 아니다. 기존 토픽과 DL
 
 ## 근거
 
+- [2026-09-17 코드 대조 — dev Realtime overlay](https://github.com/OneOrThree/phone/blob/59790ce4916f3e91887caaa6945eefa86c0d6890/server/scripts/docker-compose.realtime.yml) · [Notification 활성화 기본값](https://github.com/OneOrThree/phone/blob/59790ce4916f3e91887caaa6945eefa86c0d6890/server/notification/src/main/resources/application.yml)
 - [시스템 정본 — 환경 실측·Target-1·Target-2](https://github.com/OneOrThree/phone/blob/875a9fd8952a96d0031eabe455c627cddb6a643d/docs/architecture/system-architecture.md)
 - [main의 환경별 Compose](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/server/scripts) · [현재 CI/CD 정의](https://github.com/OneOrThree/phone/tree/875a9fd8952a96d0031eabe455c627cddb6a643d/.github/workflows)
 - [Kafka overlay의 포트·볼륨·기동 조건](https://github.com/OneOrThree/phone/blob/c015b2aa68115ca8c454cacdb3d9d2bfcf886b48/server/scripts/docker-compose.kafka.yml)

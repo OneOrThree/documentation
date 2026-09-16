@@ -70,6 +70,17 @@ export const sections: SectionConfig[] = [
     sort: "date",
   },
   {
+    slug: "operations",
+    label: "운영·트러블슈팅",
+    kicker: "OPERATIONS & TROUBLESHOOTING",
+    title: "운영과 트러블슈팅",
+    description:
+      "prod 사고와 dev·CI 장애를 구분해 영향·진단 근거·복구·재발 방지를 연결합니다. 임시 복구와 후속 검증 상태도 함께 남깁니다.",
+    kind: "docs",
+    search: true,
+    sort: "curated",
+  },
+  {
     slug: "research",
     label: "연구 노트",
     kicker: "RESEARCH NOTES",
@@ -142,7 +153,7 @@ export const site = {
     kicker: "TEAM PORTFOLIO",
     headline: ["설계는 문서로 남고,", "문서는 결정으로 남는다."],
     subline: "우리가 만든 것과, 그렇게 만든 이유.",
-    lede: "화면 한 장이 아니라 그 뒤의 판단을 보여주는 포트폴리오입니다. 아키텍처 다이어그램, 확정 명세, 기각한 대안까지 그대로 공개합니다.",
+    lede: "설계의 근거와 서비스가 어긋났을 때의 대응을 남깁니다. 아키텍처, 기각한 대안, 장애의 진단·복구·재발 방지 기록을 함께 읽을 수 있습니다.",
     actions: [
       {
         label: "다이어그램 보기",
@@ -150,6 +161,7 @@ export const site = {
         variant: "solid" as const,
       },
       { label: "설계 결정 읽기", href: "/adr", variant: "outline" as const },
+      { label: "운영 사례 읽기", href: "/operations/01-incident-map", variant: "outline" as const },
     ],
   },
 
@@ -160,7 +172,7 @@ export const site = {
     { name: "Spring Boot", role: "코어 API" },
     { name: "PostgreSQL", role: "주 저장소" },
     { name: "Redis", role: "채팅 · 상태 · 캐시" },
-    { name: "Kafka", role: "이벤트 · 통합 진행" },
+    { name: "Kafka", role: "이벤트 · 활성화 기본 OFF" },
     { name: "AWS", role: "인프라" },
   ],
 

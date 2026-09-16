@@ -29,6 +29,25 @@ function fixture(t, svg) {
 }
 const svg = '<svg width="400" height="200"><g data-cell-id="background"/><g data-cell-id="actor"/><g data-cell-id="group"/><g data-cell-id="label"/><g data-cell-id="edge"/></svg>';
 
+test('HTML companion exports replace stale downloads and still validate the XML join', t => {
+  const f = fixture(t, svg);
+  writeFileSync(path.join(f.dir, 'diagrams/manifest.json'), JSON.stringify([{
+    id: 'test', title: '테스트', format: 'html', versions: [{id: 'v4', artifactId: 'test'}],
+  }]));
+  writeFileSync(path.join(f.dir, 'diagrams/test.html'), '<!doctype html><html lang="ko"><body>v4</body></html>');
+  writeFileSync(path.join(f.dir, 'diagrams/test.source.json'), '{}');
+  mkdirSync(path.join(f.dir, 'public/diagrams'), {recursive: true});
+  writeFileSync(path.join(f.dir, 'public/diagrams/test.svg'), 'stale v2 export');
+  f.run();
+  assert.match(readFileSync(path.join(f.dir, 'public/diagrams/test.svg'), 'utf8'), /data-cell-id="actor"/);
+  const graph = JSON.parse(readFileSync(path.join(f.dir, 'public/diagrams/test.graph.json')));
+  assert.equal(graph.edges[0].source, 'actor');
+  const index = JSON.parse(readFileSync(path.join(f.dir, 'public/diagrams/index.json')));
+  assert.equal(index[0].nodeCount, 2);
+  writeFileSync(path.join(f.dir, 'diagrams/test.svg'), svg.replace('<g data-cell-id="edge"/>', ''));
+  assert.throws(f.run, error => error.status === 1 && error.stderr.includes('incomplete XML join'));
+});
+
 test('group artwork selects its owner; decoration is excluded and member edges resolve to the group', t => {
   const f = fixture(t, svg); f.run();
   const graph = JSON.parse(readFileSync(path.join(f.dir, 'public/diagrams/test.graph.json')));
@@ -147,9 +166,27 @@ for (const [name, versions, message] of [
   });
 }
 
+test('reviewed diagrams preserve ownership, stores, activation boundaries and unconfirmed WSS', () => {
+  const dir = path.join(import.meta.dirname, '..', 'diagrams');
+  const service = JSON.parse(readFileSync(path.join(dir, '03-service.source.json')));
+  const system = JSON.parse(readFileSync(path.join(dir, '04-system.source.json')));
+  const node = (graph, id) => graph.nodes.find(n => n.id === id);
+  assert.ok(service.edges.some(e => e.source === 'data' && e.target === 'chatRedis' && e.label.includes('쓰기')));
+  assert.ok(service.edges.some(e => e.source === 'realtime' && e.target === 'chatRedis' && e.label.includes('읽기')));
+  for (const database of ['gromo', 'gromo_chat', 'gromo_notification']) {
+    for (const graph of [service, system]) {
+      assert.ok(graph.nodes.some(n => n.lines.some(line => line.includes(database))), `${database} is missing`);
+    }
+  }
+  for (const id of ['relay', 'kafka', 'notification']) assert.equal(node(service, id).state, 'off');
+  for (const graph of [service, system]) assert.equal(node(graph, 'rankRedis').state, 'plan');
+  assert.ok(!system.edges.some(e => e.source === 'app' && e.target === 'realtime'));
+  assert.equal(node(system, 'wssPolicy').state, 'unknown');
+});
+
 test('current diagrams share the system architecture visual contract', () => {
   const diagramDir = path.join(import.meta.dirname, '..', 'diagrams');
-  for (const id of ['00-usecase', '03-service', '04-system', '05-cloud']) {
+  for (const id of ['03-service', '04-system', '05-cloud']) {
     const svgSource = readFileSync(path.join(diagramDir, `${id}.svg`), 'utf8').toLowerCase();
     for (const token of ['#ffffff', '#172b3a', '#4d5a66', '#f8fafc', '#dce4eb']) {
       assert.ok(svgSource.includes(token), `${id}.svg is missing ${token}`);

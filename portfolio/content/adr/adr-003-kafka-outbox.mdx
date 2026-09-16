@@ -1,7 +1,7 @@
 ---
 title: "ADR-003 — 커밋된 사건의 재전달은 같은 트랜잭션의 outbox와 Kafka relay로 하고, 활성화 기본값은 OFF로 둔다"
 summary: "Data의 상태 변경과 outbox를 같은 TX에 저장하고 relay가 Kafka로 재전달한다. 중복은 eventId, 역순 적용은 aggregate version, 소비 실패는 `.DLT`로 다루며, Kafka overlay·relay·Notification 소비는 코드 배포와 별개의 활성화 단계로 둔다."
-status: "유효 · 활성화 전"
+status: "유효 · 활성화 기본 OFF"
 date: "2026-09-13"
 order: 3
 author: "조재영"
@@ -21,7 +21,7 @@ related:
 
 Data가 확정한 사건을 Notification과 Realtime으로 전달해야 한다. 요구는 장애나 재시도에도 원장과 화면이 서로 다른 사실을 만들지 않는 것이다. 발행 성공 여부와 무관하게 사건의 원본이 남아야 하고, 같은 사건이 두 번 도착하거나 오래된 사건이 늦게 도착해도 소비자 DB가 틀리지 않아야 한다.
 
-2026-09-13 기준 Kafka overlay·outbox relay·Notification 소비는 통합 PR #745에 코드로 있고 main에는 없다. 개발용 브로커는 `apache/kafka:3.8.1` KRaft 단일 노드, replication factor 1이다.
+이전 대조는 main `875a9fd8`와 통합 PR의 `c015b2aa`를 각각 고정했다. **2026-09-17 정정:** PR #745는 2026-09-13 12:45 KST에 병합됐으며 main `59790ce49`에 Kafka overlay·outbox relay·Notification 소비가 포함돼 있다. “main에는 없다”는 설명은 현재 상태가 아니다. relay·소비·스케줄의 활성화 기본값은 OFF이고 호스트 운영 활성화 여부는 이번에 실측하지 않았다. 개발용 브로커는 `apache/kafka:3.8.1` KRaft 단일 노드, replication factor 1이다.
 
 ## 선택지
 
