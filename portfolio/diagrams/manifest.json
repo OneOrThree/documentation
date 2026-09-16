@@ -138,7 +138,7 @@
     "id": "02-journey",
     "title": "유저 저니",
     "titleEn": "User Journey",
-    "summary": "R61 사용자 여정 v5. 집중·건설·기록·꾸미기·대화·섬 탐색까지 9개 여정을 시작과 완료, 행동, 분기로 나누어 봅니다.",
+    "summary": "R61 사용자 여정 v5. 주민의 일상과 공동 건설, 시설 이용으로 이어지는 흐름을 v4와 같은 형식으로 봅니다.",
     "detailHref": "/spec/use-cases",
     "format": "html",
     "versions": [
@@ -148,9 +148,9 @@
         "date": "2026-09-16",
         "artifactId": "02-journey",
         "status": "R61 현재 설계",
-        "summary": "User-Journey-R61.md의 9개 여정을 빠짐없이 표시합니다. 게스트와 소셜 로그인 사용자는 모든 여정을 동일하게 이용합니다.",
+        "summary": "v4의 흐름도 구성·스타일·개인/소셜 강조 방식을 유지하고, 우리 섬 채팅방 명칭과 게스트 전체 기능 이용 정책만 반영했습니다.",
         "evidenceTitle": "사용자 여정 원본 — R61 v5",
-        "evidenceSummary": "요약 흐름도가 아니라 Markdown 원본의 9개 여정 전체를 렌더링한 버전입니다. 시작·완료 경계, 세부 행동, 분기와 정책 메모를 함께 보존합니다.",
+        "evidenceSummary": "User-Journey-R61.html의 기존 흐름도를 그대로 가공한 버전입니다. v4 화면 형식은 유지하고 최신 문구와 정책만 반영했습니다.",
         "detailHref": "/spec/use-cases"
       },
       {
