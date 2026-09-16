@@ -30,30 +30,6 @@ const SUB = "#6b6b74";
 
 const DIAGRAMS = [
   {
-    id: "00-usecase",
-    name: "유스케이스",
-    axis: "h",
-    size: [880, 520],
-    nodes: [
-      { id: "actor-user", label: "사용자", x: 40, y: 210, w: 150, h: 56 },
-      { id: "uc-auth", label: "회원가입 · 로그인", x: 310, y: 60, w: 230, h: 56 },
-      { id: "uc-upload", label: "영상 업로드", x: 310, y: 150, w: 230, h: 56 },
-      { id: "uc-map", label: "지도 조회", x: 310, y: 240, w: 230, h: 56 },
-      { id: "uc-notify", label: "알림 수신", x: 310, y: 330, w: 230, h: 56 },
-      { id: "uc-review", label: "콘텐츠 검수", x: 310, y: 420, w: 230, h: 56 },
-      { id: "actor-admin", label: "관리자", x: 670, y: 420, w: 150, h: 56 },
-      { id: "ext-oauth", label: "Google OAuth", x: 670, y: 60, w: 150, h: 56 },
-    ],
-    edges: [
-      { id: "e-u-auth", from: "actor-user", to: "uc-auth" },
-      { id: "e-u-upload", from: "actor-user", to: "uc-upload" },
-      { id: "e-u-map", from: "actor-user", to: "uc-map" },
-      { id: "e-u-notify", from: "actor-user", to: "uc-notify" },
-      { id: "e-admin-review", from: "actor-admin", to: "uc-review" },
-      { id: "e-auth-oauth", from: "uc-auth", to: "ext-oauth", label: "위임" },
-    ],
-  },
-  {
     id: "01-ia",
     name: "IA · 정보 구조",
     axis: "v",

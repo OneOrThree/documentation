@@ -6,3 +6,6 @@
 # node_modules and clone run artifacts. Cloned on demand, not vendored:
 #   gh repo clone ion-design/ditto.site
 ditto.site/
+
+# archify visual-check 증거물 — 검증 산출물이지 소스가 아니다
+portfolio/diagrams/archify/*.visual-check.*
