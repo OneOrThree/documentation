@@ -114,7 +114,7 @@ npm run build
 
 `00-usecase.svg`만 직접 고치면 XML 연결 그래프와 화면이 어긋나므로 두 산출물을 항상 같이 생성한다. 화면 구조는 IA, 상태 순서는 유저 저니가 정본이며 유스케이스에 중복해서 넣지 않는다.
 
-두 번째 생성기(`make-product-html-diagrams.mjs`)는 IA·유저 저니 v3까지만 만든다. v4부터 IA·유저 저니는 설계 쪽 R61 원본에서 `scripts/sync-r61-html.py`로 가져오며, 생성기는 manifest의 현재 버전이 자기 버전보다 높으면 덮어쓰지 않고 멈춘다 (아래 "HTML 다이어그램의 표시").
+두 번째 생성기(`make-product-html-diagrams.mjs`)는 IA·유저 저니 v3까지만 만든다. v4부터 IA는 설계 쪽 R61 HTML 원본을 가져오고, 유저 저니 v5부터는 Markdown 원본의 9개 여정을 `scripts/sync-r61-html.py`로 렌더링한다. 생성기는 manifest의 현재 버전이 자기 버전보다 높으면 덮어쓰지 않고 멈춘다 (아래 "HTML 다이어그램의 표시").
 
 ## 발전 기록 자동 생성
 
@@ -131,7 +131,7 @@ npm run check:evolution
 
 `content/retrospective/`에 회고를 추가한다. 회고는 목표, Keep, Problem, Try, Action item, 근거 순서로 작성하고, 회의 기록이 없으## HTML 다이어그램의 표시
 
-IA와 유저 저니는 설계 쪽 R61 원본 HTML(`gachisup-R61-assets/문서/IA-R61.html`, `User-Journey-R61.html`)을 사이트용으로 가공해 표시합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 가공 결과이고 manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 이를 `public/diagrams/`에 복사하고 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 프레임 상단에 제목줄은 두지 않으며(위 선택기와 버전 버튼이 제목 역할) "새 창에서 보기" 링크는 프레임 아래에 있습니다.
+IA는 설계 쪽 R61 HTML 원본(`gachisup-R61-assets/문서/IA-R61.html`)을 사이트용으로 가공하고, 유저 저니는 `User-Journey-R61.md`의 9개 여정을 전부 HTML로 렌더링합니다. `diagrams/01-ia.html`, `diagrams/02-journey.html`이 가공 결과이고 manifest 항목에 `"format": "html"`을 지정합니다. 빌드가 이를 `public/diagrams/`에 복사하고 `/diagrams/01-ia`, `/diagrams/02-journey` 페이지는 독립 프레임으로 표시합니다. 프레임 상단의 별도 제목줄은 두지 않으며(위 선택기와 버전 버튼이 제목 역할) "새 창에서 보기" 링크는 프레임 아래에 있습니다.
 
 원본이 바뀌면 다음을 실행합니다. 원본 위치가 다르면 `GROMO_R61_DOCS`로 지정합니다.
 
@@ -140,7 +140,7 @@ python3 scripts/sync-r61-html.py
 npm run build
 ```
 
-가공 내용: 원본의 제목·부제·푸터와 외부 문서 링크(상세 명세 MD, 정책 문서, 근거 파일), 데이터에 남은 로컬 절대경로를 제거합니다. IA는 `주요 기능`·`세부 기능 펼침` 버튼과 범례(개인·소셜·혼합·공통, 실선/점선)만 한 줄에 남기고 구역 선택·검색·화면 맞춤·SVG 저장은 숨깁니다(스크립트가 참조하므로 삭제 대신 CSS). 유저 저니는 흐름도만 남기고 프레임 높이에 맞춰 자동 축소해 스크롤 없이 보이게 합니다. 원본 draw.io(`User-Journey-R61.drawio`)와 SVG(`IA-R61-tree.svg`, `User-Journey-R61-overview.svg`)는 참고용으로 `02-journey.drawio.xml`, `02-journey.svg`, `01-ia.svg`에 같이 두고, IA draw.io는 원본에 없어서 `scripts/make_ia_drawio.py`가 트리 데이터와 SVG 좌표로 `01-ia.drawio.xml`을 생성합니다. HTML 형식이라 빌드가 읽지 않고 배포하지도 않습니다. 별도 명세 문서는 함께 배포하지 않습니다.
+가공 내용: IA 원본의 제목·부제·푸터와 외부 문서 링크(상세 명세 MD, 정책 문서, 근거 파일), 데이터에 남은 로컬 절대경로를 제거합니다. IA는 `주요 기능`·`세부 기능 펼침` 버튼과 범례(개인·소셜·혼합·공통, 실선/점선)만 한 줄에 남기고 구역 선택·검색·화면 맞춤·SVG 저장은 숨깁니다(스크립트가 참조하므로 삭제 대신 CSS). 유저 저니는 Markdown의 시작·완료·행동·분기·메모를 읽어 9개 여정과 목차를 생성하며, 긴 문서는 프레임 안에서 스크롤합니다. 원본 draw.io(`User-Journey-R61.drawio`)와 SVG(`IA-R61-tree.svg`, `User-Journey-R61-overview.svg`)는 참고용으로 `02-journey.drawio.xml`, `02-journey.svg`, `01-ia.svg`에 같이 두고, IA draw.io는 원본에 없어서 `scripts/make_ia_drawio.py`가 트리 데이터와 SVG 좌표로 `01-ia.drawio.xml`을 생성합니다. HTML 형식이라 draw.io·SVG는 빌드가 읽지 않고 배포하지도 않습니다. 별도 명세 문서는 함께 배포하지 않습니다.
 
 새 버전을 낼 때는 버전 보존 규칙대로 현재 파일을 `<id>.vN.html`로 먼저 보존하고 manifest `versions` 맨 앞에 새 항목을 넣은 뒤 스크립트를 실행합니다. `public/diagrams/`는 빌드 때 다시 생성되므로 직접 편집하지 않습니다.
 
