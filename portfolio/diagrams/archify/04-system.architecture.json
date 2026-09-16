@@ -6,8 +6,8 @@
     "output": "04-system.html",
     "quality_profile": "showcase",
     "viewBox": [
-      760,
-      320
+      920,
+      400
     ]
   },
   "components": [
@@ -16,12 +16,12 @@
       "type": "backend",
       "label": "Datadog",
       "pos": [
-        501,
-        10
+        600,
+        15
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -29,12 +29,12 @@
       "type": "database",
       "label": "RDS",
       "pos": [
-        663,
-        10
+        795,
+        15
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -43,11 +43,11 @@
       "label": "모바일 앱",
       "pos": [
         15,
-        140
+        165
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -55,12 +55,12 @@
       "type": "cloud",
       "label": "Cloudflare",
       "pos": [
-        177,
-        140
+        210,
+        165
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -68,12 +68,12 @@
       "type": "security",
       "label": "Nginx",
       "pos": [
-        339,
-        140
+        405,
+        165
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -81,12 +81,12 @@
       "type": "backend",
       "label": "Business",
       "pos": [
-        501,
-        140
+        600,
+        165
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -94,12 +94,12 @@
       "type": "backend",
       "label": "Data API",
       "pos": [
-        663,
-        140
+        795,
+        165
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -108,11 +108,11 @@
       "label": "Realtime",
       "pos": [
         15,
-        270
+        315
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -120,25 +120,25 @@
       "type": "database",
       "label": "Redis",
       "pos": [
-        177,
-        270
+        210,
+        315
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
       "id": "notification",
       "type": "backend",
-      "label": "알림",
+      "label": "Notification",
       "pos": [
-        339,
-        270
+        405,
+        315
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     },
     {
@@ -146,12 +146,12 @@
       "type": "messagebus",
       "label": "Kafka",
       "pos": [
-        663,
-        270
+        795,
+        315
       ],
       "size": [
-        82,
-        50
+        100,
+        64
       ]
     }
   ],
@@ -162,28 +162,32 @@
       "from": "app",
       "to": "cloudflare",
       "label": "HTTPS",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "labelDy": -12
     },
     {
       "id": "cf-nginx",
       "from": "cloudflare",
       "to": "nginx",
       "label": "Proxy",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "labelDy": -12
     },
     {
       "id": "nginx-business",
       "from": "nginx",
       "to": "business",
       "label": "REST",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "labelDy": -12
     },
     {
       "id": "business-data",
       "from": "business",
       "to": "data",
       "label": "내부 HTTP",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "labelDy": -12
     },
     {
       "id": "business-ddagent",
@@ -191,14 +195,14 @@
       "to": "ddagent",
       "label": "APM",
       "variant": "dashed",
-      "labelDy": -36
+      "labelDy": -20
     },
     {
       "id": "data-rds",
       "from": "data",
       "to": "rds",
       "label": "코어 DB",
-      "labelDy": -36
+      "labelDy": -20
     },
     {
       "id": "data-kafka",
@@ -206,27 +210,35 @@
       "to": "kafka",
       "label": "relay",
       "variant": "dashed",
-      "labelDy": 36
+      "labelAt": [
+        818,
+        161
+      ]
     },
     {
       "id": "kafka-noti",
       "from": "kafka",
       "to": "notification",
       "label": "consume",
-      "variant": "dashed"
+      "variant": "dashed",
+      "labelDy": -12
     },
     {
       "id": "app-realtime",
       "from": "app",
       "to": "realtime",
       "label": "WSS",
-      "labelDy": 36
+      "labelAt": [
+        65,
+        161
+      ]
     },
     {
       "id": "realtime-redis",
       "from": "realtime",
       "to": "redis",
-      "label": "Pub/Sub"
+      "label": "Pub/Sub",
+      "labelDy": -12
     }
   ],
   "cards": []
