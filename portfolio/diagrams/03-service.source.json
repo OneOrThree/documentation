@@ -1,14 +1,14 @@
 {
-  "version": 5,
-  "sourceCommit": "59790ce4916f3e91887caaa6945eefa86c0d6890",
+  "version": 6,
+  "sourceCommit": "c247e7108b1296a3f76c280553fa8779d221d753",
   "title": "Gromo · 서비스 아키텍처",
   "nodes": [
     {
       "id": "app",
       "x": 60,
-      "y": 354,
+      "y": 300,
       "w": 260,
-      "h": 176,
+      "h": 120,
       "title": "모바일 앱",
       "lines": [
         "REST 명령 · 화면 조회",
@@ -20,107 +20,99 @@
     },
     {
       "id": "business",
-      "x": 500,
-      "y": 354,
-      "w": 300,
-      "h": 176,
+      "x": 440,
+      "y": 300,
+      "w": 360,
+      "h": 270,
       "title": "Business API",
       "lines": [
-        "공개 DTO · 인증 · 화면 조합",
-        "Data 명령 호출 · 내부 HTTP",
-        "영속 DB 소유 없음"
+        "공개 인증 · 응답 봉투 · 서비스 토큰",
+        "/screens 14종 · 조각 병렬 조합",
+        "launch · raft · account · explore",
+        "visit · home · focus · town-hall",
+        "board · library · shop · playback",
+        "mailbox · friends",
+        "빈 조각은 missingFragments"
       ],
       "kind": "core",
-      "stage": "main 구현 · 전체 전환 미확인",
-      "state": "code"
-    },
-    {
-      "id": "dataHttp",
-      "x": 1000,
-      "y": 354,
-      "w": 300,
-      "h": 176,
-      "title": "Data API",
-      "lines": [
-        "권한 · 정산 · 원장 · receipt",
-        "상태 + version + outbox",
-        "같은 TX에서 원자적 반영"
-      ],
-      "kind": "core",
-      "stage": "main 구현 · 운영 전환 미확인",
-      "state": "code"
-    },
-    {
-      "id": "coreDb",
-      "x": 1450,
-      "y": 354,
-      "w": 250,
-      "h": 176,
-      "title": "코어 DB",
-      "lines": [
-        "gromo · 코어 정본",
-        "Data API 소유",
-        "링크 원장도 코어 DB"
-      ],
-      "kind": "data",
-      "stage": "PostgreSQL",
-      "state": "code"
-    },
-    {
-      "id": "previewRedis",
-      "x": 500,
-      "y": 602,
-      "w": 300,
-      "h": 144,
-      "title": "미리보기 Redis",
-      "lines": [
-        "Business 전용 · 재생성 가능",
-        "128 MiB · LRU · 비영속"
-      ],
-      "kind": "data",
-      "stage": "main dev · 채팅 Redis와 별도",
-      "state": "code"
-    },
-    {
-      "id": "chatDb",
-      "x": 500,
-      "y": 954,
-      "w": 300,
-      "h": 144,
-      "title": "편지 DB",
-      "lines": [
-        "gromo_chat · 편지 정본",
-        "Realtime 소유 · DB 히스토리"
-      ],
-      "kind": "data",
-      "stage": "main dev · prod 배치 미확정",
+      "stage": "main 구현 · 영속 DB 없음",
       "state": "code"
     },
     {
       "id": "data",
-      "x": 1000,
-      "y": 954,
-      "w": 300,
-      "h": 144,
-      "title": "Data API · presence",
+      "x": 920,
+      "y": 300,
+      "w": 360,
+      "h": 270,
+      "title": "Data API",
       "lines": [
-        "코어 상태 커밋 후 사본 작성",
-        "presence:focus:* 쓰기"
+        "/internal/* · 레거시 /api/v1",
+        "권한 · 정산 · 원장 · receipt",
+        "9/19 추가: 가입·초대 · 외양",
+        "공지 · 퀘스트 · 방송기 · 섬 관리",
+        "계정 조회·수정 · 탈퇴 파기",
+        "상점은 테이블 선구축만"
       ],
       "kind": "core",
-      "stage": "main 구현 · 서비스 ACL 미확인",
+      "stage": "main 구현 · 코어 정본 소유",
+      "state": "code"
+    },
+    {
+      "id": "coreDb",
+      "x": 1400,
+      "y": 300,
+      "w": 300,
+      "h": 150,
+      "title": "코어 DB",
+      "lines": [
+        "gromo · PostgreSQL",
+        "상태 · 원장 · receipt · outbox",
+        "링크 원장도 코어 DB(A23)"
+      ],
+      "kind": "data",
+      "stage": "Data 전용",
+      "state": "code"
+    },
+    {
+      "id": "previewRedis",
+      "x": 60,
+      "y": 600,
+      "w": 260,
+      "h": 120,
+      "title": "미리보기 Redis",
+      "lines": [
+        "Business 전용 · 128mb",
+        "allkeys-lru · 비영속"
+      ],
+      "kind": "data",
+      "stage": "main · 재생성 가능",
+      "state": "code"
+    },
+    {
+      "id": "notiApi",
+      "x": 920,
+      "y": 600,
+      "w": 360,
+      "h": 120,
+      "title": "Notification · 설정",
+      "lines": [
+        "기기 토큰 · 알림 설정 · 결과 ack",
+        "Business만 HTTP로 호출"
+      ],
+      "kind": "event",
+      "stage": "main 구현 · 위성 수동 기동",
       "state": "code"
     },
     {
       "id": "socketApp",
       "x": 60,
-      "y": 1186,
+      "y": 850,
       "w": 260,
-      "h": 160,
+      "h": 120,
       "title": "모바일 앱",
       "lines": [
         "STOMP 구독 · 편지",
-        "CONNECT 인증"
+        "CONNECT Bearer 인증"
       ],
       "kind": "core",
       "stage": "클라이언트",
@@ -128,15 +120,17 @@
     },
     {
       "id": "realtime",
-      "x": 500,
-      "y": 1186,
-      "w": 300,
-      "h": 160,
+      "x": 440,
+      "y": 850,
+      "w": 360,
+      "h": 200,
       "title": "Realtime",
       "lines": [
-        "STOMP CONNECT Bearer 인증",
+        "/ws/chat · /ws/realtime STOMP",
         "편지 저장 · 조회 · fanout",
-        "prod WSS 배선 미확정"
+        "사건 입구 POST /internal/events",
+        "Kafka realtime-events 입구(선택)",
+        "앱 사건 14종은 수신만 · 구독 닫힘"
       ],
       "kind": "event",
       "stage": "main 구현 · dev overlay",
@@ -144,47 +138,66 @@
     },
     {
       "id": "chatRedis",
-      "x": 1000,
-      "y": 1186,
-      "w": 300,
-      "h": 160,
+      "x": 920,
+      "y": 850,
+      "w": 360,
+      "h": 170,
       "title": "채팅·집중 Redis",
       "lines": [
-        "presence:focus:* · 상태 사본",
-        "Realtime 읽기 · chat:fanout",
-        "Pub/Sub · 이벤트 재생 불가"
+        "chat:fanout Pub/Sub · 재생 불가",
+        "presence:focus:* 순번 조건부",
+        "탈퇴 tombstone · 끝난 세션 표식",
+        "Data 쓰기 · Realtime 읽기"
       ],
       "kind": "data",
-      "stage": "main dev · 서비스 ACL 미확인",
+      "stage": "main dev · ACL 미적용",
+      "state": "code"
+    },
+    {
+      "id": "chatDb",
+      "x": 60,
+      "y": 1070,
+      "w": 260,
+      "h": 150,
+      "title": "편지 DB",
+      "lines": [
+        "gromo_chat · 편지 정본",
+        "inbound_events",
+        "eventId PK · 중복 거름"
+      ],
+      "kind": "data",
+      "stage": "Realtime 소유 · dev",
       "state": "code"
     },
     {
       "id": "outboxSource",
       "x": 60,
-      "y": 1570,
+      "y": 1350,
       "w": 260,
-      "h": 176,
-      "title": "Data API · outbox",
+      "h": 170,
+      "title": "Data · outbox",
       "lines": [
         "상태 · receipt · outbox",
         "같은 TX로 사건 보존",
-        "커밋 이후 relay가 전달"
+        "대상 4종: KAFKA · NOTI",
+        "LINK · REALTIME"
       ],
       "kind": "core",
-      "stage": "Data API · 코어 DB 소유",
+      "stage": "코어 DB 소유",
       "state": "code"
     },
     {
       "id": "relay",
-      "x": 500,
-      "y": 1570,
-      "w": 300,
-      "h": 176,
+      "x": 440,
+      "y": 1350,
+      "w": 360,
+      "h": 180,
       "title": "Outbox relay",
       "lines": [
-        "lease · 목적지별 재시도",
-        "Kafka ACK 후 완료 표시",
-        "eventId 보존 · 중복 가능"
+        "Data 안 · lease · 대상별 재시도",
+        "대상마다 경로 하나",
+        "REALTIME: HTTP 기본 · Kafka 선택",
+        "OUTBOX_RELAY_ENABLED=false"
       ],
       "kind": "event",
       "stage": "main 구현 · 기본 OFF",
@@ -192,61 +205,76 @@
     },
     {
       "id": "kafka",
-      "x": 1000,
-      "y": 1570,
-      "w": 300,
-      "h": 176,
+      "x": 920,
+      "y": 1350,
+      "w": 360,
+      "h": 150,
       "title": "Kafka",
       "lines": [
-        "notification-events + .DLT",
-        "userId 키 · 각 3 partitions",
-        "KRaft 단일 노드 · RF 1"
+        "notification-events · userId 키",
+        "realtime-events · 플래그 선택",
+        "KRaft 1노드 · RF 1 · DLT"
       ],
       "kind": "event",
-      "stage": "overlay · 활성화 미확인",
+      "stage": "dev overlay · 활성화 미확인",
       "state": "off"
     },
     {
       "id": "notification",
-      "x": 1450,
-      "y": 1570,
-      "w": 250,
-      "h": 176,
+      "x": 1400,
+      "y": 1350,
+      "w": 300,
+      "h": 190,
       "title": "Notification",
       "lines": [
-        "eventId 중복 제거",
-        "version으로 역순 처리",
-        "템플릿 · 이력 · FCM"
+        "입구: Kafka 소비 · HTTP",
+        "POST /internal/events",
+        "eventId 중복 제거 · version",
+        "템플릿 · 이력 · FCM 발송"
       ],
       "kind": "event",
-      "stage": "소비 · 스케줄 기본 OFF",
+      "stage": "소비·스케줄 기본 OFF",
       "state": "off"
     },
     {
+      "id": "link",
+      "x": 440,
+      "y": 1580,
+      "w": 360,
+      "h": 120,
+      "title": "링크 서버",
+      "lines": [
+        "레포 밖 · Vercel origin",
+        "A23 흡수 결정 · LINK 대상 잔존"
+      ],
+      "kind": "external",
+      "stage": "외부 · 흡수 예정",
+      "state": "unknown"
+    },
+    {
       "id": "notiDb",
-      "x": 1410,
-      "y": 1826,
-      "w": 290,
-      "h": 144,
+      "x": 1400,
+      "y": 1580,
+      "w": 300,
+      "h": 120,
       "title": "알림 DB",
       "lines": [
         "gromo_notification",
         "Notification 소유"
       ],
       "kind": "data",
-      "stage": "prod RDS 내 별도 DB: 목표",
+      "stage": "prod RDS 별도 DB: 목표",
       "state": "off"
     },
     {
       "id": "score",
       "x": 60,
-      "y": 2130,
+      "y": 1815,
       "w": 330,
-      "h": 128,
+      "h": 120,
       "title": "score-events · DLT",
       "lines": [
-        "Data outbox",
-        "절대 점수 + version"
+        "Data outbox · 절대 점수 + version"
       ],
       "kind": "future",
       "stage": "설계 · 알림과 별도 스트림",
@@ -255,13 +283,12 @@
     {
       "id": "rankConsumer",
       "x": 600,
-      "y": 2130,
+      "y": 1815,
       "w": 330,
-      "h": 128,
+      "h": 120,
       "title": "랭킹 컨슈머",
       "lines": [
-        "중복 · 역순 적용 수렴",
-        "랭킹 projection 반영"
+        "중복 · 역순 적용 수렴"
       ],
       "kind": "future",
       "stage": "설계 · 조건 충족 후 도입",
@@ -270,13 +297,12 @@
     {
       "id": "rankRedis",
       "x": 1130,
-      "y": 2130,
+      "y": 1815,
       "w": 570,
-      "h": 128,
+      "h": 120,
       "title": "랭킹 Redis",
       "lines": [
-        "완료 ZSET + 라이브 presence",
-        "Business 조회 · 정본 DB에서 재구축"
+        "완료 ZSET + 라이브 presence · 정본 DB에서 재구축"
       ],
       "kind": "future",
       "stage": "설계 · 코어 정본의 projection",
@@ -291,17 +317,17 @@
       "points": [
         [
           320,
-          442
+          355
         ],
         [
-          500,
-          442
+          440,
+          355
         ]
       ],
       "label": "REST",
       "at": [
-        410,
-        426
+        380,
+        345
       ],
       "async_": false,
       "state": "code"
@@ -309,43 +335,43 @@
     {
       "id": "internalHttp",
       "source": "business",
-      "target": "dataHttp",
+      "target": "data",
       "points": [
         [
           800,
-          442
+          355
         ],
         [
-          1000,
-          442
+          920,
+          355
         ]
       ],
-      "label": "내부 HTTP",
+      "label": "/internal",
       "at": [
-        900,
-        426
+        860,
+        345
       ],
       "async_": false,
       "state": "code"
     },
     {
       "id": "coreWrite",
-      "source": "dataHttp",
+      "source": "data",
       "target": "coreDb",
       "points": [
         [
-          1300,
-          442
+          1280,
+          355
         ],
         [
-          1450,
-          442
+          1400,
+          355
         ]
       ],
       "label": "단일 TX",
       "at": [
-        1375,
-        426
+        1340,
+        345
       ],
       "async_": false,
       "state": "code"
@@ -356,18 +382,74 @@
       "target": "previewRedis",
       "points": [
         [
-          650,
+          480,
+          570
+        ],
+        [
+          480,
+          655
+        ],
+        [
+          320,
+          655
+        ]
+      ],
+      "label": "TTL 캐시",
+      "at": [
+        400,
+        645
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "notiSettings",
+      "source": "business",
+      "target": "notiApi",
+      "points": [
+        [
+          800,
           530
         ],
         [
-          650,
-          602
+          860,
+          530
+        ],
+        [
+          860,
+          655
+        ],
+        [
+          920,
+          655
         ]
       ],
-      "label": "캐시",
+      "label": "기기·설정",
       "at": [
-        705,
-        578
+        860,
+        600
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "mailboxHttp",
+      "source": "business",
+      "target": "realtime",
+      "points": [
+        [
+          700,
+          570
+        ],
+        [
+          700,
+          850
+        ]
+      ],
+      "label": "우체통 HTTP",
+      "at": [
+        700,
+        745
       ],
       "async_": false,
       "state": "code"
@@ -379,61 +461,17 @@
       "points": [
         [
           320,
-          1266
+          905
         ],
         [
-          500,
-          1266
+          440,
+          905
         ]
       ],
       "label": "STOMP",
       "at": [
-        410,
-        1250
-      ],
-      "async_": false,
-      "state": "code"
-    },
-    {
-      "id": "chatPersistence",
-      "source": "realtime",
-      "target": "chatDb",
-      "points": [
-        [
-          650,
-          1186
-        ],
-        [
-          650,
-          1098
-        ]
-      ],
-      "label": "저장·조회",
-      "at": [
-        720,
-        1152
-      ],
-      "async_": false,
-      "state": "code"
-    },
-    {
-      "id": "focusPresence",
-      "source": "data",
-      "target": "chatRedis",
-      "points": [
-        [
-          1150,
-          1098
-        ],
-        [
-          1150,
-          1186
-        ]
-      ],
-      "label": "쓰기",
-      "at": [
-        1200,
-        1152
+        380,
+        895
       ],
       "async_": false,
       "state": "code"
@@ -445,17 +483,73 @@
       "points": [
         [
           800,
-          1266
+          905
         ],
         [
-          1000,
-          1266
+          920,
+          905
         ]
       ],
       "label": "읽기 · fanout",
       "at": [
-        900,
-        1250
+        860,
+        895
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "focusPresence",
+      "source": "data",
+      "target": "chatRedis",
+      "points": [
+        [
+          1280,
+          530
+        ],
+        [
+          1340,
+          530
+        ],
+        [
+          1340,
+          960
+        ],
+        [
+          1280,
+          960
+        ]
+      ],
+      "label": "presence 쓰기",
+      "at": [
+        1340,
+        800
+      ],
+      "async_": false,
+      "state": "code"
+    },
+    {
+      "id": "chatPersistence",
+      "source": "realtime",
+      "target": "chatDb",
+      "points": [
+        [
+          480,
+          1050
+        ],
+        [
+          480,
+          1140
+        ],
+        [
+          320,
+          1140
+        ]
+      ],
+      "label": "저장 · 수신 기록",
+      "at": [
+        400,
+        1130
       ],
       "async_": false,
       "state": "code"
@@ -467,17 +561,17 @@
       "points": [
         [
           320,
-          1658
+          1405
         ],
         [
-          500,
-          1658
+          440,
+          1405
         ]
       ],
       "label": "outbox",
       "at": [
-        410,
-        1642
+        380,
+        1395
       ],
       "async_": false,
       "state": "off"
@@ -489,17 +583,17 @@
       "points": [
         [
           800,
-          1658
+          1405
         ],
         [
-          1000,
-          1658
+          920,
+          1405
         ]
       ],
-      "label": "발행",
+      "label": "KAFKA",
       "at": [
-        900,
-        1642
+        860,
+        1395
       ],
       "async_": false,
       "state": "off"
@@ -510,18 +604,110 @@
       "target": "notification",
       "points": [
         [
-          1300,
-          1658
+          1280,
+          1405
         ],
         [
-          1450,
-          1658
+          1400,
+          1405
         ]
       ],
       "label": "소비",
       "at": [
-        1375,
-        1642
+        1340,
+        1395
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "relayNoti",
+      "source": "relay",
+      "target": "notification",
+      "points": [
+        [
+          800,
+          1520
+        ],
+        [
+          1400,
+          1520
+        ]
+      ],
+      "label": "NOTI · HTTP",
+      "at": [
+        1100,
+        1520
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "relayRealtime",
+      "source": "relay",
+      "target": "realtime",
+      "points": [
+        [
+          700,
+          1350
+        ],
+        [
+          700,
+          1050
+        ]
+      ],
+      "label": "REALTIME · HTTP 기본",
+      "at": [
+        700,
+        1245
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "kafkaRealtime",
+      "source": "kafka",
+      "target": "realtime",
+      "points": [
+        [
+          1000,
+          1350
+        ],
+        [
+          1000,
+          1035
+        ],
+        [
+          800,
+          1035
+        ]
+      ],
+      "label": "realtime-events",
+      "at": [
+        1000,
+        1245
+      ],
+      "async_": false,
+      "state": "off"
+    },
+    {
+      "id": "relayLink",
+      "source": "relay",
+      "target": "link",
+      "points": [
+        [
+          620,
+          1530
+        ],
+        [
+          620,
+          1580
+        ]
+      ],
+      "label": "LINK · HTTP",
+      "at": [
+        690,
+        1560
       ],
       "async_": false,
       "state": "off"
@@ -532,18 +718,18 @@
       "target": "notiDb",
       "points": [
         [
-          1575,
-          1746
+          1550,
+          1540
         ],
         [
-          1575,
-          1826
+          1550,
+          1580
         ]
       ],
       "label": "저장",
       "at": [
-        1630,
-        1796
+        1600,
+        1563
       ],
       "async_": false,
       "state": "off"
@@ -555,17 +741,17 @@
       "points": [
         [
           390,
-          2194
+          1875
         ],
         [
           600,
-          2194
+          1875
         ]
       ],
       "label": "소비",
       "at": [
         495,
-        2178
+        1865
       ],
       "async_": false,
       "state": "plan"
@@ -577,17 +763,17 @@
       "points": [
         [
           930,
-          2194
+          1875
         ],
         [
           1130,
-          2194
+          1875
         ]
       ],
       "label": "반영",
       "at": [
         1030,
-        2178
+        1865
       ],
       "async_": false,
       "state": "plan"

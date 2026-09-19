@@ -1,4 +1,6 @@
-"""v5: 흐름별 정렬과 상세 컴포넌트 설명으로 SVG/XML/HTML을 함께 생성한다.
+"""v6: 흐름별 정렬과 상세 컴포넌트 설명으로 SVG/XML/HTML을 함께 생성한다.
+
+v6은 /screens BFF·Realtime 사건 입구·outbox REALTIME 대상·위성 배치를 반영한다(phone main c247e71).
 
 운영 실측을 주장하지 않는다. main 대조 커밋과 배포 미확인 상태를 도면에 남긴다.
 archify v3 HTML은 최초 실행 시 보존하며 다른 도면은 수정하지 않는다.
@@ -10,163 +12,166 @@ from shutil import copy2
 
 base = importlib.import_module("make-architecture-diagrams")
 ROOT = base.ROOT
-VERSION = 5
+VERSION = 6
 base.TARGET_VERSIONS.update({"03-service": VERSION, "04-system": VERSION})
-COMMIT = "59790ce4916f3e91887caaa6945eefa86c0d6890"
+COMMIT = "c247e7108b1296a3f76c280553fa8779d221d753"
 
 
 def frame(name, title, height):
     d = base.Diagram(name, title,
-                     "2026.09.17 · 역할·정본·전달·운영 상태 · main 구현과 운영 활성화는 별도", height)
+                     "2026.09.19 · phone main c247e71 · 역할·정본·전달·운영 상태 · main 구현과 운영 활성화는 별도", height)
     d.band(40, 120, 1680, 70, "상태")
     d.legend_items = [(180,155,"main 구현 · 운영 별도",""),
-                      (680,155,"구현 · 기본 OFF","8 5"),
+                      (680,155,"구현 · 기본 OFF · 수동 적용","8 5"),
                       (1180,155,"설계 · 배포 미확정","2 5")]
     return d
 
 
-def detailed(d, descriptions):
-    """선의 경로는 유지하고 세로 여백을 늘려 상세 계약을 박스 안에 넣는다."""
-    def y(value):
-        return round(210 + (value - 210) * 1.6) if value >= 210 else value
+def text_width(value, size):
+    return sum(size if ord(ch) > 127 and ch not in "·→" else size * 0.56 for ch in value)
 
-    d.height = y(d.height)
-    d.decorations = [(x, y(top), w, y(top+h)-y(top), title, subtitle)
-                     for x, top, w, h, title, subtitle in d.decorations]
-    for node in d.nodes:
-        top = node['y']
-        node['y'], node['h'] = y(top), y(top+node['h'])-y(top)
-        if node['id'] in descriptions:
-            node['lines'], node['stage'] = descriptions[node['id']]
-        assert 59 + (len(node['lines'])-1)*24 < node['h']-30, node['id']
-    for edge in d.edges:
-        edge['points'] = [(x, y(top)) for x, top in edge['points']]
-        if edge['at']:
-            edge['at'] = (edge['at'][0], y(edge['at'][1]))
-    return d
+
+def box(d, ident, x, y, w, h, title, lines, kind="core", stage="", state="code"):
+    """v5와 같은 상자 문법. 줄 수·글자 폭이 상자를 넘으면 생성을 멈춘다."""
+    assert 59 + (len(lines)-1)*24 < h-30, ident
+    assert text_width(title, 21) <= w-30, (ident, title)
+    for line in lines + [stage]:
+        assert text_width(line, 16) <= w-30, (ident, line)
+    d.box(ident, x, y, w, h, title, lines, kind, stage, state)
 
 
 def service():
-    d = frame("03-service", "Gromo · 서비스 아키텍처", 1590)
-    d.band(40, 210, 1680, 350, "공개 REST", "공개 계약은 Business, 코어 정본과 원자 명령은 Data가 소유한다.")
-    d.box("app", 60, 300, 260, 110, "모바일 앱", ["명령 · 화면 조회"], state="code")
-    d.box("business", 500, 300, 300, 110, "Business API", ["인증 · DTO · 화면 조합", "영속 DB 없음"], state="code")
-    d.box("dataHttp", 1000, 300, 300, 110, "Data API", ["권한 · 정산 · 원자 명령"], state="code")
-    d.box("coreDb", 1450, 300, 250, 110, "코어 DB", ["gromo", "Data API 소유"], "data", state="code")
-    d.box("previewRedis", 500, 455, 300, 90, "미리보기 Redis", ["Business 전용 · LRU · 비영속"], "data", state="code")
-    d.edge("appRest", "app", "business", [(320,355),(500,355)], "REST", (410,345), state="code")
-    d.edge("internalHttp", "business", "dataHttp", [(800,355),(1000,355)], "내부 HTTP", (900,345), state="code")
-    d.edge("coreWrite", "dataHttp", "coreDb", [(1300,355),(1450,355)], "단일 TX", (1375,345), state="code")
-    d.edge("previewCache", "business", "previewRedis", [(650,410),(650,455)], "캐시", (705,440), state="code")
+    d = frame("03-service", "Gromo · 서비스 아키텍처", 2090)
+    b = lambda *a, **k: box(d, *a, **k)
+    d.band(40, 210, 1680, 520, "공개 REST · /screens BFF", "공개 계약은 Business, 코어 정본은 Data가 소유한다.")
+    b("app", 60, 300, 260, 120, "모바일 앱", ["REST 명령 · 화면 조회", "React Native · Expo"], stage="클라이언트")
+    b("business", 440, 300, 360, 270, "Business API",
+      ["공개 인증 · 응답 봉투 · 서비스 토큰", "/screens 14종 · 조각 병렬 조합",
+       "launch · raft · account · explore", "visit · home · focus · town-hall",
+       "board · library · shop · playback", "mailbox · friends",
+       "빈 조각은 missingFragments"], stage="main 구현 · 영속 DB 없음")
+    b("data", 920, 300, 360, 270, "Data API",
+      ["/internal/* · 레거시 /api/v1", "권한 · 정산 · 원장 · receipt",
+       "9/19 추가: 가입·초대 · 외양", "공지 · 퀘스트 · 방송기 · 섬 관리",
+       "계정 조회·수정 · 탈퇴 파기", "상점은 테이블 선구축만"], stage="main 구현 · 코어 정본 소유")
+    b("coreDb", 1400, 300, 300, 150, "코어 DB", ["gromo · PostgreSQL", "상태 · 원장 · receipt · outbox", "링크 원장도 코어 DB(A23)"],
+      "data", "Data 전용")
+    b("previewRedis", 60, 600, 260, 120, "미리보기 Redis", ["Business 전용 · 128mb", "allkeys-lru · 비영속"], "data", "main · 재생성 가능")
+    b("notiApi", 920, 600, 360, 120, "Notification · 설정", ["기기 토큰 · 알림 설정 · 결과 ack", "Business만 HTTP로 호출"], "event", "main 구현 · 위성 수동 기동")
+    d.edge("appRest", "app", "business", [(320,355),(440,355)], "REST", (380,345), state="code")
+    d.edge("internalHttp", "business", "data", [(800,355),(920,355)], "/internal", (860,345), state="code")
+    d.edge("coreWrite", "data", "coreDb", [(1280,355),(1400,355)], "단일 TX", (1340,345), state="code")
+    d.edge("previewCache", "business", "previewRedis", [(480,570),(480,655),(320,655)], "TTL 캐시", (400,645), state="code")
+    d.edge("notiSettings", "business", "notiApi", [(800,530),(860,530),(860,655),(920,655)], "기기·설정", (860,600), state="code")
 
-    d.band(40, 590, 1680, 355, "실시간과 편지", "Redis는 상태 사본과 fanout. 편지 정본은 PostgreSQL이다.")
-    d.box("chatDb", 500, 675, 300, 90, "편지 DB", ["gromo_chat · Realtime 소유"], "data", state="code")
-    d.box("data", 1000, 675, 300, 90, "Data API · presence", ["커밋 후 상태 사본 작성"], state="code")
-    d.box("socketApp", 60, 820, 260, 100, "모바일 앱", ["STOMP 연결"], state="code")
-    d.box("realtime", 500, 820, 300, 100, "Realtime", ["세션 인증 · 편지 · fanout"], "event", state="code")
-    d.box("chatRedis", 1000, 820, 300, 100, "채팅·집중 Redis", ["presence 사본 · Pub/Sub", "Realtime은 presence 읽기"], "data", state="code")
-    d.edge("appSocket", "socketApp", "realtime", [(320,870),(500,870)], "STOMP", (410,860), state="code")
-    d.edge("chatPersistence", "realtime", "chatDb", [(650,820),(650,765)], "저장·조회", (720,799), state="code")
-    d.edge("focusPresence", "data", "chatRedis", [(1150,765),(1150,820)], "쓰기", (1200,799), state="code")
-    d.edge("chatFanout", "realtime", "chatRedis", [(800,870),(1000,870)], "읽기 · fanout", (900,860), state="code")
+    d.band(40, 760, 1680, 470, "실시간 · 편지 · 사건 수신", "Realtime은 사건을 두 입구로 받는다.")
+    b("socketApp", 60, 850, 260, 120, "모바일 앱", ["STOMP 구독 · 편지", "CONNECT Bearer 인증"], stage="클라이언트")
+    b("realtime", 440, 850, 360, 200, "Realtime",
+      ["/ws/chat · /ws/realtime STOMP", "편지 저장 · 조회 · fanout", "사건 입구 POST /internal/events",
+       "Kafka realtime-events 입구(선택)", "앱 사건 14종은 수신만 · 구독 닫힘"], "event", "main 구현 · dev overlay")
+    b("chatRedis", 920, 850, 360, 170, "채팅·집중 Redis",
+      ["chat:fanout Pub/Sub · 재생 불가", "presence:focus:* 순번 조건부", "탈퇴 tombstone · 끝난 세션 표식",
+       "Data 쓰기 · Realtime 읽기"], "data", "main dev · ACL 미적용")
+    b("chatDb", 60, 1070, 260, 150, "편지 DB", ["gromo_chat · 편지 정본", "inbound_events", "eventId PK · 중복 거름"], "data", "Realtime 소유 · dev")
+    d.edge("mailboxHttp", "business", "realtime", [(700,570),(700,850)], "우체통 HTTP", (700,745), state="code")
+    d.edge("appSocket", "socketApp", "realtime", [(320,905),(440,905)], "STOMP", (380,895), state="code")
+    d.edge("chatFanout", "realtime", "chatRedis", [(800,905),(920,905)], "읽기 · fanout", (860,895), state="code")
+    d.edge("focusPresence", "data", "chatRedis", [(1280,530),(1340,530),(1340,960),(1280,960)], "presence 쓰기", (1340,800), state="code")
+    d.edge("chatPersistence", "realtime", "chatDb", [(480,1050),(480,1140),(320,1140)], "저장 · 수신 기록", (400,1130), state="code")
 
-    d.band(40, 975, 1680, 340, "알림 · 기본 OFF", "상태 변경·receipt·outbox는 같은 TX. 중복은 eventId, 역순은 version으로 처리한다.")
-    d.box("outboxSource", 60, 1060, 260, 110, "Data API · outbox", ["커밋된 사건 보존"], state="code")
-    d.box("relay", 500, 1060, 300, 110, "Outbox relay", ["선점 · 재시도 · ACK"], "event", state="off")
-    d.box("kafka", 1000, 1060, 300, 110, "Kafka", ["notification-events · DLT", "단일 KRaft · RF 1"], "event", state="off")
-    d.box("notification", 1450, 1060, 250, 110, "Notification", ["이벤트 소비 · FCM 발송"], "event", state="off")
-    d.box("notiDb", 1410, 1220, 290, 90, "알림 DB", ["gromo_notification"], "data", state="off")
-    d.edge("relayOwnership", "outboxSource", "relay", [(320,1115),(500,1115)], "outbox", (410,1105), state="off")
-    d.edge("relayKafka", "relay", "kafka", [(800,1115),(1000,1115)], "발행", (900,1105), state="off")
-    d.edge("kafkaConsume", "kafka", "notification", [(1300,1115),(1450,1115)], "소비", (1375,1105), state="off")
-    d.edge("notificationWrite", "notification", "notiDb", [(1575,1170),(1575,1220)], "저장", (1630,1201), state="off")
+    d.band(40, 1260, 1680, 460, "outbox 전달 · 알림 · relay 기본 OFF", "상태·receipt·outbox는 같은 TX.")
+    b("outboxSource", 60, 1350, 260, 170, "Data · outbox",
+      ["상태 · receipt · outbox", "같은 TX로 사건 보존", "대상 4종: KAFKA · NOTI", "LINK · REALTIME"], stage="코어 DB 소유")
+    b("relay", 440, 1350, 360, 180, "Outbox relay",
+      ["Data 안 · lease · 대상별 재시도", "대상마다 경로 하나", "REALTIME: HTTP 기본 · Kafka 선택",
+       "OUTBOX_RELAY_ENABLED=false"], "event", "main 구현 · 기본 OFF", "off")
+    b("kafka", 920, 1350, 360, 150, "Kafka",
+      ["notification-events · userId 키", "realtime-events · 플래그 선택", "KRaft 1노드 · RF 1 · DLT"],
+      "event", "dev overlay · 활성화 미확인", "off")
+    b("notification", 1400, 1350, 300, 190, "Notification",
+      ["입구: Kafka 소비 · HTTP", "POST /internal/events", "eventId 중복 제거 · version", "템플릿 · 이력 · FCM 발송"],
+      "event", "소비·스케줄 기본 OFF", "off")
+    b("link", 440, 1580, 360, 120, "링크 서버", ["레포 밖 · Vercel origin", "A23 흡수 결정 · LINK 대상 잔존"],
+      "external", "외부 · 흡수 예정", "unknown")
+    b("notiDb", 1400, 1580, 300, 120, "알림 DB", ["gromo_notification", "Notification 소유"], "data", "prod RDS 별도 DB: 목표", "off")
+    d.edge("relayOwnership", "outboxSource", "relay", [(320,1405),(440,1405)], "outbox", (380,1395), state="off")
+    d.edge("relayKafka", "relay", "kafka", [(800,1405),(920,1405)], "KAFKA", (860,1395), state="off")
+    d.edge("kafkaConsume", "kafka", "notification", [(1280,1405),(1400,1405)], "소비", (1340,1395), state="off")
+    d.edge("relayNoti", "relay", "notification", [(800,1520),(1400,1520)], "NOTI · HTTP", (1100,1520), state="off")
+    d.edge("relayRealtime", "relay", "realtime", [(700,1350),(700,1050)], "REALTIME · HTTP 기본", (700,1245), state="off")
+    d.edge("kafkaRealtime", "kafka", "realtime", [(1000,1350),(1000,1035),(800,1035)], "realtime-events", (1000,1245), state="off")
+    d.edge("relayLink", "relay", "link", [(620,1530),(620,1580)], "LINK · HTTP", (690,1560), state="off")
+    d.edge("notificationWrite", "notification", "notiDb", [(1550,1540),(1550,1580)], "저장", (1600,1563), state="off")
 
-    d.band(40, 1345, 1680, 155, "랭킹 · Target-2 · 조건 충족 후 도입")
-    d.box("score", 60, 1410, 330, 80, "score-events · DLT", ["절대 점수 + version"], "future", state="plan")
-    d.box("rankConsumer", 600, 1410, 330, 80, "랭킹 컨슈머", ["중복 · 역순 수렴"], "future", state="plan")
-    d.box("rankRedis", 1130, 1410, 570, 80, "랭킹 Redis", ["projection · Business 조회 · DB로 재구축"], "future", state="plan")
-    d.edge("scoreConsume", "score", "rankConsumer", [(390,1450),(600,1450)], "소비", (495,1440), state="plan")
-    d.edge("rankProject", "rankConsumer", "rankRedis", [(930,1450),(1130,1450)], "반영", (1030,1440), state="plan")
-    d.band(40, 1525, 1680, 55, "흐름별로 같은 서비스를 다시 표시했다. 링크·MMP는 Business/Data에 포함한다. 배치·활성화 조건은 시스템 문서를 따른다.")
-    return detailed(d, {
-        'app': (["REST 명령 · 화면 조회", "React Native · Expo"], "클라이언트"),
-        'business': (["공개 DTO · 인증 · 화면 조합", "Data 명령 호출 · 내부 HTTP", "영속 DB 소유 없음"], "main 구현 · 전체 전환 미확인"),
-        'dataHttp': (["권한 · 정산 · 원장 · receipt", "상태 + version + outbox", "같은 TX에서 원자적 반영"], "main 구현 · 운영 전환 미확인"),
-        'coreDb': (["gromo · 코어 정본", "Data API 소유", "링크 원장도 코어 DB"], "PostgreSQL"),
-        'previewRedis': (["Business 전용 · 재생성 가능", "128 MiB · LRU · 비영속"], "main dev · 채팅 Redis와 별도"),
-        'chatDb': (["gromo_chat · 편지 정본", "Realtime 소유 · DB 히스토리"], "main dev · prod 배치 미확정"),
-        'data': (["코어 상태 커밋 후 사본 작성", "presence:focus:* 쓰기"], "main 구현 · 서비스 ACL 미확인"),
-        'socketApp': (["STOMP 구독 · 편지", "CONNECT 인증"], "클라이언트"),
-        'realtime': (["STOMP CONNECT Bearer 인증", "편지 저장 · 조회 · fanout", "prod WSS 배선 미확정"], "main 구현 · dev overlay"),
-        'chatRedis': (["presence:focus:* · 상태 사본", "Realtime 읽기 · chat:fanout", "Pub/Sub · 이벤트 재생 불가"], "main dev · 서비스 ACL 미확인"),
-        'outboxSource': (["상태 · receipt · outbox", "같은 TX로 사건 보존", "커밋 이후 relay가 전달"], "Data API · 코어 DB 소유"),
-        'relay': (["lease · 목적지별 재시도", "Kafka ACK 후 완료 표시", "eventId 보존 · 중복 가능"], "main 구현 · 기본 OFF"),
-        'kafka': (["notification-events + .DLT", "userId 키 · 각 3 partitions", "KRaft 단일 노드 · RF 1"], "overlay · 활성화 미확인"),
-        'notification': (["eventId 중복 제거", "version으로 역순 처리", "템플릿 · 이력 · FCM"], "소비 · 스케줄 기본 OFF"),
-        'notiDb': (["gromo_notification", "Notification 소유"], "prod RDS 내 별도 DB: 목표"),
-        'score': (["Data outbox", "절대 점수 + version"], "설계 · 알림과 별도 스트림"),
-        'rankConsumer': (["중복 · 역순 적용 수렴", "랭킹 projection 반영"], "설계 · 조건 충족 후 도입"),
-        'rankRedis': (["완료 ZSET + 라이브 presence", "Business 조회 · 정본 DB에서 재구축"], "설계 · 코어 정본의 projection"),
-    })
+    d.band(40, 1750, 1680, 215, "랭킹 · Target-2 · 조건 충족 후 도입")
+    b("score", 60, 1815, 330, 120, "score-events · DLT", ["Data outbox · 절대 점수 + version"], "future", "설계 · 알림과 별도 스트림", "plan")
+    b("rankConsumer", 600, 1815, 330, 120, "랭킹 컨슈머", ["중복 · 역순 적용 수렴"], "future", "설계 · 조건 충족 후 도입", "plan")
+    b("rankRedis", 1130, 1815, 570, 120, "랭킹 Redis", ["완료 ZSET + 라이브 presence · 정본 DB에서 재구축"], "future", "설계 · 코어 정본의 projection", "plan")
+    d.edge("scoreConsume", "score", "rankConsumer", [(390,1875),(600,1875)], "소비", (495,1865), state="plan")
+    d.edge("rankProject", "rankConsumer", "rankRedis", [(930,1875),(1130,1875)], "반영", (1030,1865), state="plan")
+    d.band(40, 1995, 1680, 55, "흐름별로 같은 서비스를 다시 표시했다. 상점 상품·지갑과 통계 조각은 아직 missingFragments다.")
+    return d
 
 
 def system():
-    d = frame("04-system", "Gromo · 시스템 아키텍처", 1460)
-    d.band(40, 210, 1680, 215, "Target-1 · 공개 REST", "배치 목표 · 현재 운영 전환은 별도 확인")
-    for ident,x,w,title,lines,kind in [
-        ("app",60,250,"모바일 앱",["HTTPS"],"core"),
-        ("cloudflare",400,270,"Cloudflare",["Edge 프록시"],"external"),
-        ("nginx",760,270,"Nginx",["Origin TLS 종료"],"core"),
-        ("business",1120,250,"Business API",["공개 REST · :8080"],"core"),
-        ("data",1450,250,"Data API",["내부망 · :8081"],"core")]:
-        d.box(ident,x,300,w,105,title,lines,kind,state="plan")
-    for ident,src,dst,points,label,at in [
-        ("appCf","app","cloudflare",[(310,350),(400,350)],"HTTPS",(355,340)),
-        ("cfNginx","cloudflare","nginx",[(670,350),(760,350)],"Proxy",(715,340)),
-        ("nginxBusiness","nginx","business",[(1030,350),(1120,350)],"REST",(1075,340)),
-        ("businessData","business","data",[(1370,350),(1450,350)],"HTTP",(1410,340))]:
-        d.edge(ident,src,dst,points,label,at,state="plan")
+    d = frame("04-system", "Gromo · 시스템 아키텍처", 1780)
+    b = lambda *a, **k: box(d, *a, **k)
+    d.band(40, 210, 1680, 410, "prod · AWS gromo-prod", "컨테이너는 app · nginx · datadog-agent, DB는 RDS다.")
+    b("app", 60, 300, 240, 130, "모바일 앱", ["HTTPS · 공개 REST", "React Native · Expo"], stage="클라이언트")
+    b("cloudflare", 380, 300, 260, 130, "Cloudflare", ["DNS · 프록시", "Origin 인증서"], "external", "prod 공개 진입")
+    b("nginx", 700, 300, 340, 170, "nginx :443",
+      ["TLS 종료 · /api/v1 → Data", "위성 include: 무접두 → Business", "/internal/admin → Notification",
+       "그 밖의 /internal · /actuator 404"], stage="prod · include 수동 적용")
+    b("dataProd", 1100, 300, 280, 130, "Data API · prod", ["app 컨테이너 · /api/v1", "코어 정본 gromo 접근"], stage="release → ECR · SSM")
+    b("prodRds", 1440, 300, 260, 130, "RDS PostgreSQL", ["gromo-prod-db · 코어", "gromo_notification: 목표"], "data", "prod · 알림 DB 미확인")
+    b("prodCd", 60, 470, 400, 120, "prod 배포", ["release push → ECR 이미지", "compose → S3 → SSM send-command"], "external", "prod-cd.yml")
+    b("datadog", 1100, 480, 190, 110, "datadog-agent", ["APM · 로그"], "external", "prod 사이드카")
+    b("s3", 1310, 480, 200, 120, "S3 로그 버킷", ["gromo-prod-logs", "접두 3개 · 90일 만료"], "data", "적용 2026-09-19")
+    for ident, src, dst, points, label, at in [
+        ("appCf", "app", "cloudflare", [(300,365),(380,365)], "HTTPS", (340,355)),
+        ("cfNginx", "cloudflare", "nginx", [(640,365),(700,365)], "Proxy", (670,355)),
+        ("nginxData", "nginx", "dataProd", [(1040,365),(1100,365)], "/api/v1", (1070,355)),
+        ("dataRds", "dataProd", "prodRds", [(1380,365),(1440,365)], "JDBC", (1410,355)),
+        ("dataDatadog", "dataProd", "datadog", [(1180,430),(1180,480)], "APM", (1225,460)),
+        ("dataLogs", "dataProd", "s3", [(1350,430),(1350,480)], "app.log", (1405,460))]:
+        d.edge(ident, src, dst, points, label, at, state="code")
 
-    d.band(40, 455, 1680, 345, "prod · RDS와 알림", "알림은 같은 RDS 인스턴스의 별도 database · 생성·권한 적용 미확인")
-    d.box("prodRds", 1410, 490, 290, 145, "RDS PostgreSQL", ["gromo · Data", "gromo_notification", "Notification 전용 DB"], "data", state="plan")
-    d.box("kafka", 760, 675, 270, 100, "Kafka overlay", ["내부 :9092 · 단일 노드"], "event", "활성화 미확인", "off")
-    d.box("notification", 1120, 675, 250, 100, "Notification", ["소비 · 스케줄 OFF"], "event", state="off")
-    d.edge("dataRds", "data", "prodRds", [(1575,405),(1575,490)], "코어 DB", (1630,446), state="plan")
-    d.edge("kafkaNotification", "kafka", "notification", [(1030,725),(1120,725)], "소비", (1075,715), state="off")
-    d.edge("notificationDb", "notification", "prodRds", [(1370,725),(1555,725),(1555,635)], "알림 DB", (1460,715), state="off")
+    d.band(40, 650, 1680, 270, "위성 · satellites.yml 수동 적용", "prod·dev 호스트 공통 · CD 없음")
+    b("business", 600, 740, 320, 150, "Business API · :8080",
+      ["공개 인증 · /screens 14종", "내부 호출: Data · Notification", "Realtime 우체통 · 영속 DB 없음"], stage="satellites.yml · 수동")
+    b("notification", 980, 740, 320, 150, "Notification · :8082",
+      ["/internal/admin 콘솔", "Kafka 소비 · HTTP 사건 입구", "FCM 발송 · 전용 DB"], "event", "소비·스케줄 기본 OFF", "off")
+    b("previewRedis", 260, 740, 280, 150, "미리보기 Redis", ["business-redis · 128mb", "allkeys-lru · 비영속"], "data", "Business 전용")
+    d.edge("nginxBusiness", "nginx", "business", [(780,470),(780,740)], "무접두 · /screens", (780,635), state="off")
+    d.edge("nginxNotification", "nginx", "notification", [(1010,470),(1010,740)], "/internal/admin", (1010,635), state="off")
+    d.edge("businessPreview", "business", "previewRedis", [(600,815),(540,815)], "캐시", (570,805), state="code")
+    d.edge("notificationDb", "notification", "prodRds", [(1300,800),(1600,800),(1600,430)], "gromo_notification", (1600,635), state="off")
 
-    d.band(40, 830, 1680, 410, "dev · main Compose 구성", "서비스 포트와 저장소 배선 · Realtime overlay는 dev 전용")
-    d.box("devData", 60, 925, 300, 100, "Data API · :8080", ["코어 DB · presence 작성"], state="code")
-    d.box("realtime", 500, 925, 300, 100, "Realtime · :8081", ["STOMP · 편지 · fanout"], "event", state="code")
-    d.box("devBusiness", 1000, 925, 300, 100, "Business · :8082", ["미리보기"], state="code")
-    d.box("devPg", 60, 1120, 740, 100, "PostgreSQL · 같은 인스턴스", ["gromo: Data / gromo_chat: Realtime · 별도 database"], "data", state="code")
-    d.box("chatRedis", 930, 1120, 350, 100, "채팅·집중 Redis", ["Data 쓰기 · Realtime 읽기/fanout"], "data", state="code")
-    d.box("previewRedis", 1390, 1120, 310, 100, "미리보기 Redis", ["Business 전용 · 비영속"], "data", state="code")
-    d.edge("devDataDb", "devData", "devPg", [(210,1025),(210,1120)], "gromo", (265,1079), state="code")
-    d.edge("realtimeDb", "realtime", "devPg", [(650,1025),(650,1120)], "gromo_chat", (720,1079), state="code")
-    d.edge("realtimeRedis", "realtime", "chatRedis", [(800,975),(860,975),(860,1170),(930,1170)], "fanout", (895,1079), state="code")
-    d.edge("businessPreview", "devBusiness", "previewRedis", [(1150,1025),(1150,1070),(1545,1070),(1545,1120)], "캐시", (1435,1060), state="code")
+    d.band(40, 950, 1680, 580, "dev · GCP gromo-dev-app", "main push → GAR 자동 배포 · 오버레이는 있을 때만 겹친다")
+    b("realtime", 60, 1040, 420, 150, "Realtime · :8081",
+      ["/ws/chat · /ws/realtime STOMP", "POST /internal/events 사건 입구", "편지 · inbound_events 저장"], "event", "dev overlay 전용 · prod 없음")
+    b("devData", 600, 1040, 320, 150, "Data API · :8080", ["dev app · 코어 정본", "presence 조건부 쓰기", "relay 내장 · 기본 OFF"], stage="main push → GAR 자동")
+    b("kafka", 980, 1040, 320, 150, "Kafka overlay",
+      ["내부 :9092 · KRaft 1노드", "notification-events", "realtime-events (선택)"], "event", "dev overlay · 수동", "off")
+    b("chatRedis", 300, 1240, 460, 120, "Redis · 채팅·집중", ["chat:fanout · presence:focus:*", "탈퇴 tombstone"], "data", "dev compose · ACL 미적용")
+    b("devPg", 60, 1400, 860, 100, "PostgreSQL 컨테이너", ["gromo: Data / gromo_chat: Realtime · 같은 인스턴스 별도 database"], "data", "dev compose")
+    b("devCd", 1360, 1040, 340, 150, "dev 배포", ["main push → GAR back:<sha>", "self-hosted 러너 → VM", "gromo/dev/env · 오버레이"], "external", "dev-cd.yml")
+    d.edge("businessData", "business", "devData", [(760,890),(760,1040)], "/internal", (760,935), state="code")
+    d.edge("kafkaNotification", "kafka", "notification", [(1130,1040),(1130,890)], "소비", (1130,935), state="off")
+    d.edge("dataKafka", "devData", "kafka", [(920,1100),(980,1100)], "relay", (950,1090), state="off")
+    d.edge("dataRealtime", "devData", "realtime", [(600,1100),(480,1100)], "REALTIME", (540,1090), state="off")
+    d.edge("realtimeRedis", "realtime", "chatRedis", [(400,1190),(400,1240)], "fanout", (440,1220), state="code")
+    d.edge("dataRedis", "devData", "chatRedis", [(650,1190),(650,1240)], "presence", (705,1220), state="code")
+    d.edge("realtimeDb", "realtime", "devPg", [(150,1190),(150,1400)], "gromo_chat", (150,1300), state="code")
+    d.edge("devDataDb", "devData", "devPg", [(850,1190),(850,1400)], "gromo", (850,1300), state="code")
 
-    d.box("rankRedis", 60, 1290, 660, 120, "Target-2 · 랭킹 Redis", ["score-events · 별도 소비자", "리그 p95 > 1.5초 / findRankOf p95 > 500ms"], "future", "또는 Business 다중 인스턴스 필요", "plan")
-    d.box("wssPolicy", 760, 1290, 940, 120, "prod WSS · 배포 미확정", ["TLS 종료 · rate limit · 연결 수 상한을 배포 전에 확정", "편지 DB의 prod 배치와 Redis ACL도 후속 확인"], "future", state="unknown")
-    return detailed(d, {
-        'app': (["공개 REST · HTTPS", "prod WSS 경로 미확정"], "Target-1 · 전환 미확인"),
-        'cloudflare': (["프록시 · edge 정책", "공개 진입점"], "Target-1 · 전환 미확인"),
-        'nginx': (["Origin TLS 종료", "REST 경로 → Business", "admin → Notification: 목표"], "Target-1 · 전환 미확인"),
-        'business': (["공개 REST · BFF · :8080", "Data 내부 HTTP 호출", "영속 DB 소유 없음"], "Target-1 · 전환 미확인"),
-        'data': (["내부망 · :8081", "정산 · 코어 정본 접근", "코어 DB 전용 자격"], "Target-1 · 전환 미확인"),
-        'prodRds': (["gromo: Data 소유", "gromo_notification:", "Notification 소유", "별도 database · 유저 · Flyway"], "알림 DB 생성 · 권한 미확인"),
-        'kafka': (["내부 :9092 · 영속 볼륨", "KRaft 1 node · RF 1", "단일 노드 장애 내성 한계"], "main 구현 · 활성화 미확인"),
-        'notification': (["전용 DB · FCM 자격", "소비 · 스케줄 기본 OFF", "알림 이력 · 중복 처리"], "main 구현 · 운영 미확인"),
-        'devData': (["코어 DB · 정산 · 원자 명령", "presence:focus:* 작성", "dev 공개 :8080"], "main Compose"),
-        'realtime': (["/ws/chat · /ws/realtime", "STOMP CONNECT Bearer 검증", "편지 저장 · Redis fanout"], "main dev overlay · prod 미확정"),
-        'devBusiness': (["공개 DTO · 인증 · 화면 조합", "Data 내부 HTTP 호출", "미리보기 캐시 전용"], "main Compose · :8082"),
-        'devPg': (["gromo: Data / gromo_chat: Realtime", "같은 인스턴스 · 별도 database · 소유권 분리"], "main dev · 편지 prod 배치 미확정"),
-        'chatRedis': (["Data presence 쓰기", "Realtime presence 읽기 · fanout", "상태 사본 · Pub/Sub 재생 불가"], "main dev · 서비스 ACL 미확인"),
-        'previewRedis': (["Business 전용 · 128 MiB", "LRU · 비영속 · 재생성 가능"], "main dev · 채팅 Redis와 별도"),
-        'rankRedis': (["score-events · 알림과 별도 스트림 · 소비자", "리그 p95 > 1.5초 / findRankOf p95 > 500ms", "또는 Business 다중 인스턴스 필요"], "Target-2 · 설계 · 조건 충족 후 도입"),
-        'wssPolicy': (["TLS 종료 · rate limit · 연결 수 상한을 배포 전에 확정", "편지 DB prod 배치 · Redis ACL 적용 후속 확인", "dev overlay 존재는 prod WSS 운영의 근거가 아니다"], "prod 배포 미확정"),
-    })
+    b("rankRedis", 60, 1560, 660, 150, "Target-2 · 랭킹 Redis",
+      ["score-events · 알림과 별도 스트림 · 소비자", "리그 p95 > 1.5초 / findRankOf p95 > 500ms", "또는 Business 다중 인스턴스 필요"],
+      "future", "설계 · 조건 충족 후 도입", "plan")
+    b("wssPolicy", 760, 1560, 940, 150, "prod WSS · 배포 미확정",
+      ["prod compose에 Realtime·Kafka·Redis가 아직 없다", "TLS 종료 · rate limit · 연결 수 상한을 배포 전에 확정",
+       "편지 DB prod 배치 · Redis ACL 적용 후속 확인"], "future", "prod 배포 미확정", "unknown")
+    return d
 
 
 def write_html(d):

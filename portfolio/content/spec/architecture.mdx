@@ -2,7 +2,7 @@
 title: "Gromo 아키텍처 개요"
 summary: "Business·Data·Realtime·Notification의 책임과 정본을 연결합니다. main 구현·활성화 기본 OFF·Target-2 설계를 구분하고 도입 조건과 운영 미확인 상태를 함께 표시합니다."
 status: "설계 확정 · 구현 진행"
-date: "2026-09-17"
+date: "2026-09-19"
 order: 1
 keywords: [Gromo, Kafka, Redis, outbox, 서비스 분리, Realtime, BFF]
 related:
@@ -16,13 +16,13 @@ related:
 
 ## 지금 구현된 것과 조건을 만나면 켤 것
 
-2026-09-17에 main `59790ce4916f3e91887caaa6945eefa86c0d6890`의 코드·배포 정의를 대조했다. **코드 위치, 활성화 기본값, 호스트에서 실제 트래픽을 받는 상태는 서로 다른 사실이다.** 이번 확인은 운영 호스트 실측이 아니다.
+2026-09-19에 main `c247e7108b1296a3f76c280553fa8779d221d753`의 코드·배포 정의를 대조했다(도면 v6). **코드 위치, 활성화 기본값, 호스트에서 실제 트래픽을 받는 상태는 서로 다른 사실이다.** 이번 확인은 운영 호스트 실측이 아니다.
 
 | 구성 | 확인한 코드·환경 상태 | 활성화·도입 조건 / 미확인 경계 |
 | --- | --- | --- |
 | Data API · `gromo` | main에 코어 도메인·원장·receipt·outbox 구현. prod RDS와 dev DB는 환경별 정의 | 전체 신규 계약의 운영 전환은 별도 확인. 원자성은 Data의 단일 TX 안에서 성립 |
-| Business API | main에 공개 표면·내부 HTTP·화면 조합 구현, 영속 DB 없음 | 전체 공개 REST 이관과 prod 활성화는 미확인 |
-| Realtime · `gromo_chat` · 채팅·집중 Redis | main에 구현. 확인한 Realtime overlay는 dev 전용 | prod WSS 라우팅·편지 DB 배치·Redis ACL 적용은 미확인. 신규 전달 경로도 별도 확인 |
+| Business API | main에 공개 표면·내부 HTTP·`/screens` 14종 화면 조합 구현, 영속 DB 없음. 위성은 `satellites.yml` 수동 적용 | 상점 상품·지갑과 통계 조각은 `missingFragments`. 전체 공개 REST 이관과 prod 활성화는 미확인 |
+| Realtime · `gromo_chat` · 채팅·집중 Redis | main에 구현. 사건 입구 `POST /internal/events`·Kafka(기본 OFF)와 `inbound_events` 중복 제거. 확인한 Realtime overlay는 dev 전용 | prod WSS 라우팅·편지 DB 배치·Redis ACL 적용은 미확인. 신규 전달 경로도 별도 확인 |
 | 미리보기 Redis | main의 Business 전용 dev overlay. 128 MiB·LRU·비영속 | prod 기동 여부는 미확인. 손실 후 재생성 가능한 캐시만 저장 |
 | Kafka · relay · Notification · `gromo_notification` | PR #745가 2026-09-13 12:45 KST 병합됨. main에 구현. relay·소비·스케줄 기본 OFF | consumer lag·DLT 유입률·outbox oldest-pending·relay 실패율 기준선과 재처리 검증을 남긴 뒤 활성화 판단. 호스트 활성화 미확인 |
 | 랭킹 Redis · `score-events` | Target-2 설계만 | 리그 화면 p95 1.5초 초과 / `findRankOf` p95 500ms 초과 / Business 다중 인스턴스 필요 중 하나 |
@@ -43,7 +43,7 @@ related:
 | [서비스 아키텍처](/diagrams/03-service) | 명령·정본·outbox·Kafka·실시간 전달과 데이터 소유권 | [책임과 계약](/spec/service-architecture) |
 | [시스템 아키텍처](/diagrams/04-system) | Target-1 배치와 현재 main의 dev 구성, 외부 서비스·문서 배포 경계 | [배치와 운영](/spec/system-architecture) |
 
-그림의 상자를 선택하면 연결된 요소를 강조하고, **문서 보기**로 같은 연결 그래프를 읽을 수 있다. 현재 v5는 SVG·draw.io XML·HTML을 같은 정의에서 만들며 이전 버전은 당시 상태로 보존한다. 서비스 도면은 긴 우회선을 줄이기 위해 같은 서비스를 흐름별로 다시 표시한다. 반복된 상자가 별도 프로세스를 뜻하지 않는다.
+그림의 상자를 선택하면 연결된 요소를 강조하고, **문서 보기**로 같은 연결 그래프를 읽을 수 있다. 현재 v6은 SVG·draw.io XML·HTML을 같은 정의에서 만들며 이전 버전은 당시 상태로 보존한다. 서비스 도면은 긴 우회선을 줄이기 위해 같은 서비스를 흐름별로 다시 표시한다. 반복된 상자가 별도 프로세스를 뜻하지 않는다.
 
 ## 이전 대조 기록 — 2026-09-13
 
