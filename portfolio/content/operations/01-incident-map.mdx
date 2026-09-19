@@ -23,6 +23,7 @@ related:
 | --- | --- | --- |
 | 필수 시드 누락 | prod | 빈 배열 200·마스터 0행 |
 | 마이그레이션 순서 역전 | dev | 502·Flyway 적용 이력 |
+| 적용된 마이그레이션 수정 | dev | 기동 로그의 체크섬 불일치(V38) |
 | 배포 성공 단절 | dev CI/CD | timeout 시점의 부팅 로그 |
 | 리뷰 잡 미실행 | CI | 실제 요청 run의 cancelled |
 
@@ -38,6 +39,12 @@ related:
 
 **복구·남은 일:** dev 전용 out-of-order로 기동을 회복한 뒤 이미 적용된 V20을 수정해 checksum mismatch가 발생했다. 수습 2회 실패까지 기록했다. 재배포 전 적용 이력·체크섬을 확인해야 한다. [사고 3 — 머지 순서 역전](/research/migration-incidents#사고-3--53초-차이가-만든-3연쇄-gromo-1050) · [GROMO-1050](https://romance.atlassian.net/browse/GROMO-1050)
 
+### dev — 적용된 마이그레이션 수정으로 배포 차단
+
+**영향·근거:** 2026-09-17 04:21(KST) 이후 main의 Dev CD가 전부 실패했다. 문서 경로 일괄 치환([PR #773](https://github.com/OneOrThree/phone/pull/773))이 이미 적용된 `V38`의 주석 한 줄을 바꿔 Flyway `validate`가 기동을 막았다. 체크섬은 DDL이 아니라 파일의 해시라 주석도 대상이다. 근거는 기동 로그의 `Migration checksum mismatch for migration version 38`과 [run 35168718059](https://github.com/OneOrThree/phone/actions/runs/35168718059)이다.
+
+**복구·남은 일:** 주석을 원복해 파일을 바이트 단위로 되돌렸다([PR #779](https://github.com/OneOrThree/phone/pull/779)). 같은 PR이 `migration-immutable` 워크플로로 적용된 마이그레이션의 수정·삭제·개명을 CI에서 막았고, 그 가드가 base를 PR 생성 시점 SHA로 잡아 낸 오탐을 [PR #781](https://github.com/OneOrThree/phone/pull/781)이 정정했다. 사람이 지키던 규칙을 CI로 옮긴 사례다. [주석 한 줄이 dev 배포를 멈췄다](/operations/03-migration-checksum-dev-block) · [GROMO-1911](https://romance.atlassian.net/browse/GROMO-1911)
+
 ### dev CI/CD — 실배포 성공 단절
 
 **영향·근거:** 최근 40회 중 성공 12회가 전부 7/24 이전이었다. 마지막 성공도 55초·12번째 시도였고, 실패 컷오프 때 앱은 에러 없이 Hibernate 초기화 중이었다.
@@ -48,7 +55,7 @@ related:
 
 **영향·근거:** GROMO-862 연계 사례에서 skipped 대부분은 정상 if 분기였다. 실제 요청 run은 Set up job에서 cancelled됐고 OAuth 사용 전에 종료돼 키 교체로 풀리지 않았다. 원문은 배정 러너 소멸을 근거로 Spot 선점을 원인으로 판정했다.
 
-**대책·남은 일:** 대화형 잡만 hosted로 복귀하고 이벤트 분기를 고치는 방안을 제안했다. 당시 쿼터 리셋 후 적용 예정으로, 적용·재검증 완료는 미확인이다. [Spot 러너 선점 사례](/operations/02-spot-runner-preemption)
+**대책·남은 일:** 대화형 잡만 hosted로 복귀하고 이벤트 분기를 고치는 방안을 제안했다. 당시 쿼터 리셋 후 적용 예정이었으나, 실제로는 2026-09-17 저장소 공개 전환(GROMO-1910 · [PR #778](https://github.com/OneOrThree/phone/pull/778))으로 한도 전제가 사라지고 GROMO-1918([PR #788](https://github.com/OneOrThree/phone/pull/788))이 GAR 의존 없는 잡을 전부 옮기면서 적용됐다 — 제안보다 범위가 넓다. **이벤트 분기 결함은 그대로 열려 있다**(`claude-review.yml`의 if가 여전히 `github.event.issue.pull_request`를 요구해 인라인 리뷰 요청은 항상 skipped). [Spot 러너 선점 사례](/operations/02-spot-runner-preemption) · [GitHub-hosted 이전](/research/ci-github-hosted-migration)
 
 ## 운영 판단으로 이어진 변화
 

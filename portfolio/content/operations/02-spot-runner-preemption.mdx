@@ -1,15 +1,17 @@
 ---
 title: "리뷰가 안 돈 원인은 키가 아니었다 — Spot 러너 선점"
 summary: "PR #347의 리뷰 요청은 정상 트리거를 통과했지만 Set up job에서 취소됐습니다. skipped와 cancelled를 나누고 실행 단계·러너 생존을 확인해 인증 문제가 아닌 러너 선점으로 진단한 기록입니다."
-status: "원문 진단 · 후속 적용 미확인"
+status: "원문 진단 · 선점 축 해소(2026-09-17) · 이벤트 조건 결함 잔존"
 date: "2026-07-24"
 order: 2
-keywords: [운영, CI, self-hosted, Spot, preemption, cancelled, GROMO-862]
+keywords: [운영, CI, self-hosted, Spot, preemption, cancelled, GROMO-862, GROMO-1918]
 related:
   - label: "운영·트러블슈팅 사례 지도"
     href: "/operations/01-incident-map"
   - label: "CI/CD 트러블슈팅"
     href: "/research/cicd-infra"
+  - label: "줄 서던 CI를 GitHub-hosted로 옮기다"
+    href: "/research/ci-github-hosted-migration"
 ---
 
 ## 영향과 증상
@@ -38,11 +40,29 @@ GROMO-862는 GitHub 무료 러너 쿼터 소진으로 CI가 막히자 워크플�
 
 원문은 리뷰 잡만 GitHub-hosted로 돌리고, 일반 댓글·인라인 댓글을 이벤트별로 나누는 방안을 제안했다. 리뷰는 내부 DB나 무거운 툴체인이 필요 없으므로 dev 배포 서버에 함께 올리는 안은 배포 간섭·자원 경합 때문에 배제했다.
 
-**원문 상태는 다음 달 무료 쿼터 리셋 후 적용 예정이다.** 후속 PR·실행 성공 근거는 이번 수집에서 확인하지 못했으므로 완료 처리하지 않는다. 검증할 것은 일반/인라인 요청의 정상 실행, 비요청 댓글의 정상 skip, 새 러너에서 인증 스텝까지 도달한 실행 결과다.
+원문 상태는 다음 달 무료 쿼터 리셋 후 적용 예정이었다. 검증할 것은 일반/인라인 요청의 정상 실행, 비요청 댓글의 정상 skip, 새 러너에서 인증 스텝까지 도달한 실행 결과다.
+
+## 2026-09-17 — 선점 축은 닫혔고, 이벤트 조건은 열려 있다
+
+적용은 됐지만 계기가 달랐다. 쿼터 리셋을 기다린 것이 아니라 **저장소를 공개로 바꾸면서 분 한도라는 전제 자체가 사라졌다**(GROMO-1910, [PR #778](https://github.com/OneOrThree/phone/pull/778)). 그 뒤 GROMO-1918([PR #788](https://github.com/OneOrThree/phone/pull/788))이 GAR·GCE 메타데이터에 묶이지 않은 잡을 전부 GitHub-hosted로 옮겼고, 리뷰 워크플로도 여기에 포함됐다.
+
+| 축 | 2026-07-24 | 2026-09-17 | 근거 |
+| --- | --- | --- | --- |
+| 리뷰 잡 러너 | `[self-hosted, ci, spot]` — 선점에 노출 | `ubuntu-latest` | `.github/workflows/claude-review.yml` · #788 |
+| 선점 위험 | 대화형 잡이 선점 대상 | 구조적으로 해소 — 잡이 Spot에 배정되지 않는다 | 위와 같음 |
+| 인라인 댓글 조건 | `github.event.issue.pull_request` 없는 이벤트에 같은 if 적용 → 항상 skipped | **그대로** | 아래 |
+
+리뷰 워크플로에 남은 주석이 이 왕복을 그대로 적고 있다 — "리뷰 액션만 돌아 GAR·GCE 의존이 없다. self-hosted 에 두면 러너가 죽었을 때 «리뷰 자체»가 막혀 머지 판정이 서지 않는다 — 실제로 그런 적이 있다." [GROMO-862(#277)](https://github.com/OneOrThree/phone/pull/277)가 비용을 보고 옮긴 것을 2개월 뒤 같은 파일이 되돌린 셈이다.
+
+<Callout label="절반만 닫혔다" tone="warn">
+2026-09-17 현재 `claude-review.yml`의 조건은 여전히 `github.event.issue.pull_request != null && contains(github.event.comment.body, '@claude')`이고, 트리거에는 `pull_request_review_comment`가 그대로 있다. 이 이벤트에는 `issue.pull_request`가 없으므로 **인라인 리뷰 요청은 지금도 항상 skipped다.** 원문이 "선점 문제와 이벤트 조건 문제는 다른 수정이다"라고 못박아 둔 대로, 러너를 옮긴 것으로는 이쪽이 닫히지 않았다. 러너 이전을 근거로 이 문서를 완료 처리하면 두 달째 열려 있는 결함이 기록에서 사라진다.
+</Callout>
 
 ## 재발 방지로 남긴 기준
 
 CI를 일괄적으로 비용만 보고 옮기지 않고 잡의 무게·상태·대기성을 나눈다. 무거운 재실행 가능 빌드와 짧은 대화형 잡은 선점의 손실 의미가 다르다. 장애 판단도 skipped의 개수가 아니라 실제 요청 run의 conclusion, 마지막 성공 단계, 배정 러너 생존 여부로 시작한다.
+
+2026-09-17의 이전이 축을 하나 더 얹었다. 잡의 무게·대기성만이 아니라 **그 잡이 인프라 자격(GAR·GCE 메타데이터 토큰)에 실제로 묶여 있는지**로 먼저 가른다. 묶이지 않은 잡을 self-hosted에 두면, 선점이 없더라도 러너가 죽는 순간 그 잡이 통째로 막힌다.
 
 ## 출처
 

@@ -1,0 +1,88 @@
+---
+title: "예산 계산은 필요 없어졌습니다 — 저장소를 공개로 바꾸고 CI를 옮긴 날"
+summary: "9월 13일에 「월 2,000분 예산을 먼저 계산해야 옮길 수 있다」고 적어 뒀는데, 저장소를 공개로 바꾸자 그 제약 자체가 사라졌습니다. Gradle 잡부터 옮기고(#778) 남긴 잡들은 self-hosted 러너 3대가 결제 비활성으로 한꺼번에 죽으면서 강제로 옮겼습니다(#788). 기준은 「빠른가」가 아니라 「GAR·GCE 메타데이터에 실제로 묶였는가」였고, 마지막으로 문서 PR이 서버 빌드를 켜던 경로 필터를 좁혔습니다(#791)."
+status: "해소 · 이전 후 대기 미계측"
+date: "2026-09-17"
+author: "조재영"
+order: 66
+keywords:
+  - GitHub-hosted 러너
+  - self-hosted 러너
+  - 공개 저장소 전환
+  - GAR 인증
+  - 경로 필터
+  - CI 큐 대기
+related:
+  - label: "실행이 느린 게 아니라 줄을 서 있다 — CI 속도 실측"
+    href: "/research/ci-queue-wait"
+  - label: "성공률 0%의 만성 원인은 60초였다 — CI/CD 트러블슈팅"
+    href: "/research/cicd-infra"
+  - label: "리뷰가 안 돈 원인은 키가 아니었다 — Spot 러너 선점"
+    href: "/operations/02-spot-runner-preemption"
+---
+
+[나흘 전 글](/research/ci-queue-wait)의 마지막 절에 이렇게 적어 뒀습니다 — "순수 검사 잡을 GitHub-hosted 로 옮기는 일은 월 2,000분 예산 계산이 선행돼야 해서 착수하지 않았습니다." 그 계산은 끝내 하지 않았습니다. **계산해야 할 제약이 없어졌기 때문입니다.**
+
+## 전제가 계산이 아니라 저장소 설정이었습니다
+
+앞 글에서 제가 옮기지 못한 이유로 든 것은 "조직 플랜이 free + private 이라 GitHub-hosted 는 월 2,000분"이었습니다. 이 문장에서 실제로 한도를 만드는 단어는 `free`가 아니라 **`private`** 입니다. 공개 저장소의 표준 러너 사용량은 한도에 잡히지 않습니다.
+
+저장소를 공개로 바꾸자 예산 항목이 통째로 사라졌습니다. 제가 "다시 계산해야 한다"고 적어 둔 섹션은 계산 대상이 없어져 무효가 됐습니다. 며칠간 저를 막고 있던 것이 측정해야 할 수치가 아니라 되돌릴 수 있는 설정 하나였다는 뜻입니다.
+
+부수 효과가 반대 방향으로 하나 붙습니다. 공개 저장소에서 self-hosted 러너는 **포크 PR이 자기 머신에서 코드를 실행할 수 있게** 되므로, 옮길 이유가 비용에서 보안으로 바뀝니다. 비용 때문에 못 옮기던 것을 이제는 보안 때문에 옮겨야 합니다.
+
+## 1차 — Gradle 잡만 옮겼습니다
+
+[#778(GROMO-1910)](https://github.com/OneOrThree/phone/pull/778)에서 `dev-ci.yml`의 test 잡을 `ubuntu-latest`로 호출하게 바꿨습니다. 기술적으로 self-hosted가 필요한 잡(GAR 인증이 GCE 메타데이터 토큰을 쓰는 build·deploy, dev VM 안에서 도는 잡, 부하 테스트)은 그대로 뒀고, 남긴 이유를 워크플로 주석에 적었습니다.
+
+여기서 멈춘 것이 다음 사고를 만들었습니다.
+
+## 2차 — 러너 3대가 한꺼번에 죽었습니다
+
+self-hosted `ci` 러너 3대가 **전부 offline** 이 됐습니다. 원인은 GCP 프로젝트 결제 비활성이었습니다. 1차에서 옮기지 않고 남겨 둔 위성 검증·이미지·문서 생성 잡이 영원히 대기 상태로 남았고, **PR CI가 통째로 막혔습니다.**
+
+앞 글에서 제가 세운 규칙 하나가 여기서 반쯤만 맞았습니다 — "'CI 만 빨갛다'는 러너부터 본다." 러너를 보는 것까지는 맞았지만, 제가 상정한 고장은 선점·과부하처럼 **한 잡이 실패하는** 종류였습니다. 러너 풀 전체가 동시에 사라지는 경우는 잡의 실패가 아니라 **판정의 부재**로 나타납니다. 빨간 게 아니라 아무것도 끝나지 않습니다.
+
+[#788(GROMO-1918)](https://github.com/OneOrThree/phone/pull/788)에서 남은 잡을 다시 판정했습니다. GAR·GCE 메타데이터에 실제로 묶인 것은 **이미지 push 경로뿐**이었고, PR 경로와 문서 생성 잡은 묶임이 없었습니다. 1차에서 제가 "남겨도 되는 잡"으로 분류한 것들은 기술 제약이 아니라 관성으로 남아 있던 셈입니다.
+
+<Callout label="기준을 잘못 골랐습니다" tone="warn">
+1차에서 제가 쓴 분류 기준은 "이 잡이 self-hosted에서 잘 돌고 있는가"였습니다. 잘 돌고 있으니 남겼습니다. 2차에서 쓴 기준은 "이 잡이 인프라 자격에 **묶여 있는가**"입니다. 첫 기준은 러너가 살아 있는 동안에만 유효한 기준이었고, 그래서 러너가 죽자 그 분류 전체가 무너졌습니다. 의존이 없는 잡을 의존이 있는 러너에 두면, 그 잡은 쓰지도 않는 인프라의 가용성을 그대로 물려받습니다.
+</Callout>
+
+## 지금 배치
+
+2026-09-17 기준 `origin/main`의 `runs-on`을 훑으면 이렇습니다.
+
+| 워크플로 | 러너 | 근거 |
+| --- | --- | --- |
+| `dev-ci` · `realtime-ci` · `satellite-ci` · `prod-ci` | PR 이벤트면 `ubuntu-latest`, push면 `[self-hosted, ci, spot]` | 이미지 push 경로만 GAR 인증이 필요하다 |
+| `claude-review` | `ubuntu-latest` | 리뷰 액션만 돌아 GAR·GCE 의존이 없다 |
+| `dev-cd` · `dev-kafka` · `dev-monitor` · `dev-datadog` | `[self-hosted, dev]` | dev VM 안에서 돌아야 한다 |
+| `loadtest` | `[self-hosted, loadtest]` | 전용 러너 |
+| `app-android-build` · `app-lint` · `prod-cd` · `prod-rollback` | `[self-hosted, ci, spot]` | 아직 남아 있다 |
+
+이벤트로 가르는 방식이라 한 워크플로 안에서 PR은 hosted, push는 self-hosted로 갈립니다. `be-gradle.yml`이 `runs-on`을 JSON 배열 문자열로 받아 `fromJSON`으로 푸는 재사용 워크플로라 이게 가능했습니다.
+
+`claude-review`가 `ubuntu-latest`로 돌아온 것은 [7월 24일 선점 사고](/operations/02-spot-runner-preemption)의 뒤늦은 마무리이기도 합니다. [GROMO-862(#277)](https://github.com/OneOrThree/phone/pull/277)가 비용을 보고 이 파일을 self-hosted로 옮겼고, 두 달 뒤 같은 파일이 되돌아왔습니다.
+
+## 3차 — 옮기고 나니 트리거가 넓다는 게 보였습니다
+
+[#790](https://github.com/OneOrThree/phone/pull/790)은 `server/data-api/docs/db/`의 문서·스크립트와 `.gitignore`만 바꿨는데 checkstyle·spotbugs·test·business-api 이미지·notification 이미지가 전부 돌았습니다. 원인이 둘이었습니다.
+
+1. `dev-ci.yml`·`satellite-ci.yml`의 경로 필터가 `server/data-api/**`라 그 아래 `docs/`까지 빨아들입니다.
+2. `satellite-ci-plan.py`가 분류하지 못한 루트 파일(`.gitignore`)을 만나면 안전하게 «두 서비스 전체 빌드»로 떨어집니다.
+
+[#791(GROMO-1925)](https://github.com/OneOrThree/phone/pull/791)에서 두 경로를 좁혔습니다. 앞 글의 [cicd-infra](/research/cicd-infra)에서는 경로 필터를 **넓히는** 방향으로 고쳤던 적이 있어 상충처럼 보이지만, 축이 다릅니다 — **빌드 결과를 바꾸는 파일은 넓히고, 빌드와 무관한 입력은 좁힙니다.** 넓혀야 할 때 좁히면 깨진 걸 못 잡고, 좁혀야 할 때 넓히면 러너 슬롯을 물고 관계없는 PR을 줄 세웁니다.
+
+두 번째 원인은 고치면서도 성격을 바꾸지 않았습니다. 분류하지 못한 파일을 만나면 여전히 전체 빌드로 떨어집니다. 모르는 입력을 안전한 쪽으로 보내는 것 자체는 맞고, 줄여야 할 것은 "모르는 입력"의 범위입니다.
+
+## 남은 것과 다음
+
+- **이전 후 대기 시간을 재지 않았습니다.** 앞 글의 수치(잡당 대기 중앙 27~36분, 이미지 잡 16.8분)는 전부 이전 *전* 값입니다. 앞 글이 "남은 self-hosted 3 슬롯은 이미지 빌드·배포 전용이 되어 그쪽 대기도 함께 사라집니다"라고 예측해 뒀으니, 맞았는지 사후 수치로 잠가야 합니다. 이 문서에 숫자를 적지 않은 것은 아직 재지 않았기 때문입니다.
+- **`maxParallelForks` 재측정.** 앞 글의 곡선(1/2/4포크 190.3/138.7/143.3초)은 로컬 8 vCPU 실측이라 2코어 hosted 러너에 그대로 쓸 수 없습니다. 선행 조건은 풀렸지만 값은 다시 재야 합니다.
+- **아직 남은 self-hosted 잡.** `app-android-build`·`app-lint`·`prod-cd`·`prod-rollback`이 `[self-hosted, ci, spot]`에 있습니다. 이 중 `app-lint`는 GAR 의존이 없어 보이므로 2차의 기준을 그대로 적용하면 옮길 대상입니다. `cicd-infra`에 적어 둔 `NODE_OPTIONS=--max-old-space-size=2048`의 근거가 self-hosted 박스 사양(4GB)이라, 옮기면 그 수치도 다시 계산해야 합니다.
+- **결제 비활성으로 러너가 죽는 것 자체는 막지 않았습니다.** 이번에는 잡을 옮겨 영향을 없앴을 뿐입니다. dev VM에서 돌아야 하는 잡들은 여전히 같은 프로젝트에 묶여 있습니다.
+
+### 관련 기록
+
+PR #778(GROMO-1910) · #788(GROMO-1918) · #791(GROMO-1925) · #790 · #277(GROMO-862) · `.github/workflows/dev-ci.yml` · `be-gradle.yml` · `satellite-ci.yml` · `claude-review.yml` · `satellite-ci-plan.py`
