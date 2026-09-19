@@ -74,7 +74,7 @@ related:
 
 ## Gromo 아키텍처 갱신
 
-현재 서비스·시스템 v5는 `scripts/make-reviewed-architecture-diagrams.py`의 같은 노드·상태·연결 정의에서 SVG·draw.io XML·HTML·`<id>.source.json`을 생성한다. v3의 archify 스펙과 HTML은 이전 버전 근거이며 현재 생성 원본이 아니다.
+현재 서비스·시스템 v6은 `scripts/make-reviewed-architecture-diagrams.py`의 같은 노드·상태·연결 정의에서 SVG·draw.io XML·HTML·`<id>.source.json`을 생성한다. v3의 archify 스펙과 HTML은 이전 버전 근거이며 현재 생성 원본이 아니다.
 
 ```bash
 python3 scripts/make-reviewed-architecture-diagrams.py
