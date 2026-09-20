@@ -20,8 +20,8 @@ related:
     href: "/research/league-batch"
   - label: "ADR-018 — 그룹 탭을 준비중(Fakedoor)으로 되돌린 뒤, 백엔드를 먼저 깔고 앱을 얹어 실기능으로 전환한다"
     href: "/adr/adr-018-group-fakedoor-then-backend-first"
-  - label: "ADR-034 — 활성화는 가입 24시간 안에 집중 세션을 한 번이라도 시작한 것으로 정의한다"
-    href: "/adr/adr-034-activation-metric"
+  - label: "ADR-033 — 활성화는 가입 24시간 안에 집중 세션을 한 번이라도 시작한 것으로 정의한다"
+    href: "/adr/adr-033-activation-metric"
   - label: "유저 눈에 안 띄는 버그는 지표에서 먼저 보인다 — 죽은 이벤트·유령 분모·관측 창"
     href: "/research/metric-pitfalls"
 ---
@@ -86,7 +86,7 @@ related:
 - 배포 시점에 랭킹 인원수와 정산 대상 수가 한 번 움직였다. 닉네임 있는 게스트가 편입되고 닉네임 없는 유저가 빠졌다.
 - 알려진 한계: 과거 Apple 로그인이 이름(`fullName`)을 닉네임에 미리 채우던 시기의 계정은 온보딩을 이탈했어도 유효한 닉네임을 갖고 있어 모수에 남는다. 이전에도 모수였으므로 이 변경의 회귀는 아니고, 별도 후속으로 뺐다.
 - 서버 `setupProfile`의 조건부 가드는 BE 후속 과제로 남았다.
-- 앱을 다시 켜지 않는 유령 계정은 자가 치유되지 않는다. 그래서 활성화 지표를 셀 때는 닉네임 없는 계정을 분모에서 뺀다 — [ADR-034](/adr/adr-034-activation-metric), [지표 함정 노트](/research/metric-pitfalls).
+- 앱을 다시 켜지 않는 유령 계정은 자가 치유되지 않는다. 그래서 활성화 지표를 셀 때는 닉네임 없는 계정을 분모에서 뺀다 — [ADR-033](/adr/adr-033-activation-metric), [지표 함정 노트](/research/metric-pitfalls).
 - 게스트 승격(게스트 → 소셜 연결)은 같은 User 행에 소셜 연동을 붙이는 구조라 코인·집중 기록·그룹이 그대로 유지된다. 고지 문구의 "기록 그대로 옮겨가요"는 이 서버 코드를 확인하고 넣었다. 승격 경로의 동시 로그인 레이스는 [인증 하드닝](/research/auth-hardening)에 있다.
 - 2.0도 게스트 로그인과 refresh 경로를 그대로 유지하고, 게스트에게 열린 쓰기에 계정당 시간 한도를 짝으로 붙이는 같은 방식을 이었다(GROMO-1934).
 
