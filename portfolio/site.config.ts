@@ -92,6 +92,17 @@ export const sections: SectionConfig[] = [
     sort: "date",
   },
   {
+    slug: "growth",
+    label: "그로스",
+    kicker: "GROWTH METRICS",
+    title: "그로스 지표와 분석",
+    description:
+      "실제 사용 데이터로 무엇을 판정했는지. 위쪽 수치는 GA4에서 매일 자동으로 갱신되고, 아래 문서는 그 수치로 내린 주간 판정과 기능별 실태 조사입니다.",
+    kind: "docs",
+    search: true,
+    sort: "date",
+  },
+  {
     slug: "evolution",
     label: "발전 기록",
     kicker: "EVOLUTION LOG",

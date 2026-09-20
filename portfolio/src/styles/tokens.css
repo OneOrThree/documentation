@@ -41,6 +41,14 @@
   --danger: oklch(0.52 0.18 25);
   --info: oklch(0.52 0.13 245);
 
+  /* Chart series — separate from --primary/--ok on purpose. A filled mark on the
+   * chart surface lives in a narrower lightness band than accent ink does: the
+   * dark-theme accent (L 0.74) glares as a fill. Both pairs are validated for
+   * colour-vision-deficiency separation against their own surface, so the light
+   * pair can borrow the accent values while the dark pair steps down. */
+  --chart-1: oklch(0.47 0.16 275);
+  --chart-2: oklch(0.5 0.13 155);
+
   /* Diagrams keep a light canvas in every theme (see DiagramViewer), so the
    * grid dots are pinned too — deriving them from --foreground painted white
    * dots on a white canvas as soon as the page went dark. Neither token is
@@ -75,6 +83,9 @@
     --warn: oklch(0.78 0.12 75);
     --danger: oklch(0.7 0.15 25);
     --info: oklch(0.72 0.12 245);
+
+    --chart-1: oklch(0.66 0.15 275);
+    --chart-2: oklch(0.63 0.13 155);
   }
 }
 
@@ -103,6 +114,9 @@
   --warn: oklch(0.78 0.12 75);
   --danger: oklch(0.7 0.15 25);
   --info: oklch(0.72 0.12 245);
+
+  --chart-1: oklch(0.66 0.15 275);
+  --chart-2: oklch(0.63 0.13 155);
 }
 
 /* Derived from --primary, so a rebrand stays a one-line change. */
