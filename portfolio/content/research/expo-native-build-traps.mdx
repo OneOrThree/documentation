@@ -1,0 +1,196 @@
+---
+title: "정답지는 블로그가 아니라 template.tgz였다 — Expo SDK 업그레이드와 iOS 네이티브 산출물의 함정"
+summary: "Expo SDK 54에서 57로(React Native 0.81에서 0.86으로) 올린 GROMO-944에서 빌드를 막은 함정 다섯 개와, 그 뒤 pod install을 돌릴 때마다 Podfile.lock·project.pbxproj가 늘 더러워지던 GROMO-1209를 정리했습니다. 더러움은 성격이 다른 셋이 한 파일에 섞인 것이었습니다 — 커밋해야 사라지는 빠진 산출물, 커밋하면 TestFlight 빌드가 깨지는 Xcode 서명 재작성, 버려도 되는 정렬 잡음. 업그레이드 여파로 온디바이스 NSFW.js를 설치조차 못 한 peer 의존성 충돌도 짧게 붙였습니다."
+status: "완료"
+date: "2026-08-10"
+author: "안수빈"
+order: 80
+keywords:
+  - Expo SDK 57
+  - React Native 0.86
+  - CocoaPods
+  - Podfile.lock
+  - project.pbxproj
+  - 코드 서명
+  - fastlane
+  - peer 의존성
+related:
+  - label: "초록인데 깨졌다 — 컴파일러와 CI가 보지 않는 참조들"
+    href: "/research/green-but-broken"
+  - label: "검사할 수 없음은 유해가 아니다 — 누끼 캐릭터의 서버 모더레이션"
+    href: "/research/cutout-moderation"
+  - label: "바이너리를 고쳐도 번들이 되돌린다 — OTA와 TestFlight, 축이 둘인 릴리즈"
+    href: "/research/ota-release-pipeline"
+  - label: "MVP 와 첫 애플 심사"
+    href: "/history/04-mvp-and-first-review"
+---
+
+## 0. 한눈에
+
+React Native 앱은 JS 코드와 **네이티브 프로젝트**(iOS의 Xcode 프로젝트, 안드로이드의 Gradle 프로젝트) 두 층으로 되어 있다. JS 쪽은 타입 검사·린트·테스트가 CI에서 지켜 주지만, iOS 네이티브 층은 CI가 빌드하지 않는다(iOS 빌드는 fastlane으로 사람이 돌린다). 그래서 네이티브 층의 사고는 **누군가의 맥에서 빌드가 깨지거나, 모두의 워킹트리가 조용히 더러워지는** 모양으로 드러난다. 이 문서는 그런 사고 두 건과 여파 하나다.
+
+| 사건 | 언제 | 무엇 |
+| --- | --- | --- |
+| **SDK 54 → 57 업그레이드** | 07-25 · GROMO-944 · #348 | 빌드를 막은 함정 5개 + 잔파도 |
+| **"항상 더러운" pod 산출물** | 08-10 · GROMO-1209 · #579 | 한 파일에 섞인 세 종류의 변경 |
+| **업그레이드 여파** | 08-02 | 온디바이스 NSFW.js를 peer 의존성 충돌로 설치조차 못 함 |
+
+| 값 | 무엇 |
+| --- | --- |
+| **0.81 → 0.86** | React Native 버전 |
+| **15.1 → 16.4** | 앱의 최소 iOS 버전 (SDK 57 강제) |
+| **6곳** | 배포 타깃을 올린 앱 타깃 설정 |
+| **34 → 16건** | npm high 취약점 (잔여는 전부 eslint 8 개발용 체인) |
+| **23파일** | #348 변경 파일 수 |
+| **2줄** | #579가 pbxproj에 채운 빠진 산출물 |
+
+<Callout label="먼저 알아 둘 용어">
+
+**Expo SDK**는 Expo가 버전 번호 하나로 묶어 내놓는 라이브러리·빌드 도구 세트다. SDK를 올리면 React Native 버전과 `expo-*` 모듈 수십 개가 한꺼번에 바뀐다. **pod**는 iOS 라이브러리 관리 도구 CocoaPods의 패키지 단위이고, `pod install`이 설치 결과를 `Podfile.lock`(설치된 버전·체크섬 목록)과 `project.pbxproj`(Xcode 프로젝트 설정 파일)에 적는다. 둘 다 사람이 아니라 도구가 쓰는 파일인데 git에 커밋된다 — 이 문서의 사고는 대부분 거기서 나온다.
+
+</Callout>
+
+## 1. SDK 54 → 57 — 빌드를 막은 함정 다섯
+
+**왜 올렸나** — npm high 취약점 대부분이 SDK 54 툴체인에 묶여 있어서 개별 패키지만 올려서는 풀리지 않았다. 올린 뒤 34건이 16건으로 줄었고 남은 것은 전부 eslint 8의 개발용 의존성 체인이다.
+
+### 함정 1. 최소 iOS 16.4가 아니면 expo pod가 하나도 링크되지 않는다
+
+**증상** — `pod install` 뒤 빌드하면 expo 모듈 전부가 "requires iOS 16.4"로 링크되지 않는다(not linked).
+
+**원인** — SDK 57은 최소 iOS를 16.4로 요구하는데 앱의 배포 타깃은 15.1이었다.
+
+**해결** — `Podfile`의 platform과 `post_install` 통일 로직, 그리고 `project.pbxproj`의 **앱 타깃 6곳**을 16.4로 올렸다. 스크린타임 익스텐션(16.0)과 위젯(17.0)은 각자의 최소 버전이 따로 있어 그대로 뒀다. 대가는 **iOS 15.x–16.3 기기 지원 종료**다. SDK의 강제 요건이라 선택지는 없었고, 스토어 공지 관점에서 팀에 공유했다.
+
+### 함정 2. Firebase pod가 React 모듈맵과 충돌한다
+
+**증상** — react-native-firebase(RNFB) pod들이 `declaration must be imported from module` 클랭 에러로 컴파일되지 않는다.
+
+**원인** — SDK 57이 `use_frameworks` 호환용 React **모듈맵**(헤더를 모듈 단위로 묶는 선언 파일)을 새로 만들면서, RNFB가 쓰던 헤더 가시성 규칙과 부딪혔다. Expo 이슈 39607·RNFB 이슈 8988 계열의 알려진 문제다.
+
+**해결** — `Podfile`의 `post_install`에서 **RNFB 타깃에만** `CLANG_ENABLE_MODULES=NO`와 `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES=YES`를 걸었다. RNFB가 `@import` 구문을 쓰지 않는 것을 확인했기 때문에 모듈 기능을 꺼도 안전하다. 전 타깃에 걸지 않은 이유는 다른 pod의 동작까지 바꾸기 때문이다.
+
+### 함정 3. `.env`에 개인 변수가 있으면 빌드를 거부한다
+
+**증상** — 빌드 중 `EXConstants` 스크립트 단계에서 실패한다.
+
+**원인** — SDK 57의 `@expo/env`가 `REACT_NATIVE_PACKAGER_HOSTNAME`처럼 **머신마다 다른 변수**가 공용 `.env`에 들어 있으면 빌드를 거부하도록 정책이 바뀌었다.
+
+**해결** — 그 줄을 `.env.local`로 옮긴다. 저장소 쪽은 `.env.example`에 안내 주석을 달았고, 이미 로컬 `.env`에 그 줄이 있는 **팀원은 각자 한 번** 옮겨야 한다고 PR 주의사항에 적었다. 코드로는 끝낼 수 없는 종류의 변경이다.
+
+### 함정 4. AppDelegate의 API가 바뀌었다
+
+**증상** — `AppDelegate.swift`가 컴파일되지 않는다. 하나는 `import Expo`의 모호성 에러, 하나는 없는 메서드 호출.
+
+**원인** — 자동 생성되는 `ExpoModulesProvider`가 `internal import Expo`를 쓰면서 접근 수준을 지정하지 않은 import가 모호해졌다. 그리고 `bindReactNativeFactory(factory)`는 SDK 57에서 API 자체가 사라졌다(바인딩이 자동화됨).
+
+**해결** — `public import Expo`로 명시하고 `bindReactNativeFactory` 호출을 지웠다. **답은 `node_modules/expo/template.tgz`에 있었다.** SDK에 동봉된 새 프로젝트 템플릿의 `AppDelegate.swift`와 우리 파일을 diff하니 차이가 정확히 이 두 줄이었고, Firebase·Kakao·LINE·OTA(HotUpdater) 커스텀은 전부 그대로 둘 수 있었다.
+
+<Callout label="정답지는 블로그가 아니라 동봉된 템플릿이다">
+
+SDK 메이저 업그레이드에서 네이티브 파일이 깨지면 검색 결과는 대개 다른 버전·다른 구성의 이야기다. 그 SDK가 **새 프로젝트를 만들 때 쓰는 템플릿**이 같은 패키지 안에 들어 있으므로, 그것과 diff하면 "이 SDK가 기대하는 모양"과 "우리 커스텀"이 줄 단위로 갈린다. 다음 업그레이드에서도 첫 수는 이것이다.
+
+</Callout>
+
+### 함정 5. Kakao 로그인 config plugin이 모듈을 못 찾는다
+
+**증상** — Kakao의 config plugin(빌드 전에 네이티브 설정을 자동으로 고쳐 주는 Expo 플러그인)이 `@expo/config-plugins`를 해석하지 못한다.
+
+**원인** — SDK 57부터 `@expo/config-plugins`가 `node_modules` 최상위로 끌어올려지지(호이스팅) 않는다. 플러그인은 그 자리에 있을 거라고 가정하고 있었다.
+
+**해결** — `@expo/config-plugins@~57.0.6`을 개발 의존성으로 직접 넣었다. `expo-doctor`가 경고를 내지만, 닥터 스스로 이 경우를 허용 케이스로 명시하고 있다.
+
+### 잔파도
+
+| 변화 | 대응 |
+| --- | --- |
+| `@expo/vector-icons`가 expo 본체에 동봉되지 않음 | 명시 의존성으로 추가 |
+| `StyleSheet.absoluteFillObject`가 RN 0.86에서 제거 | `absoluteFill`로 일괄 치환(15파일). 같은 순수 객체라 스프레드 용법도 동작이 같다 |
+| TypeScript 6.0이 tsconfig `baseUrl`을 거부 | `baseUrl`을 지우고 `paths`를 상대경로(`./src/*`)로 |
+| react-navigation v6은 npm에서 deprecated 표기 | RN 0.86과 빌드·구동 호환을 확인하고 v6 유지. v7은 API 변경이 커서 별도 티켓 |
+| Firebase가 CocoaPods 배포 중단을 예고(빌드 경고) | Swift Package Manager 전환을 후속 티켓으로 |
+
+**검증과 남긴 것** — 타입 검사·린트·포맷, `expo export -p ios`(Hermes 번들 6.7MB), `pod install`, 시뮬레이터 Debug 빌드, 온보딩 첫 화면까지의 런타임 스모크(Metro 에러·경고 0건)까지 통과했다. 실기기 회귀(집중 세션·스크린타임·위젯·푸시·소셜 로그인)는 머지 전 수동 확인으로 남겼다. 스크린타임과 위젯은 시뮬레이터에서 원리적으로 돌지 않는다. 그리고 네이티브가 바뀌었으니 **새 TestFlight 바이너리가 필수**이고, 그 바이너리에 옛 OTA 번들이 덮어씌워지지 않는지 따로 점검해야 했다 — 그 이유는 [OTA 릴리즈 노트](/research/ota-release-pipeline)에 있다.
+
+## 2. "항상 더러운" pod 산출물 — 한 파일에 섞인 세 종류
+
+**증상 (GROMO-1209)** — `Podfile.lock`과 `project.pbxproj`가 늘 변경 상태로 떠서 `git pull`을 할 때마다 stash가 필요했다. 모두가 습관처럼 stash하고 넘어갔다.
+
+**원인** — 원인이 셋이었고 성격이 전부 달랐다. 문제는 셋이 **같은 파일 안에 섞여** 있었다는 것이다.
+
+| 종류 | 무엇이 바뀌나 | 처리 |
+| --- | --- | --- |
+| ① 빠진 커밋 | 네이티브 의존성을 추가한 PR이 pod 산출물을 커밋하지 않아, 누가 `pod install`을 돌리든 같은 줄이 다시 생긴다 | **커밋할 것** — 커밋해야 사라진다 |
+| ② Xcode 서명 재작성 | 로컬 Xcode가 전 타깃의 서명 방식을 Manual → Automatic으로 뒤집고 `PROVISIONING_PROFILE_SPECIFIER`를 지운다. 스크린타임 리포트 익스텐션의 Release 설정은 `CODE_SIGN_IDENTITY`까지 바꾼다 | **커밋하면 사고** — 폐기 |
+| ③ 정렬 잡음 | Xcode가 `fileSystemSynchronizedGroups`의 순서만 바꾼다 | **잡음** — 폐기 |
+
+**① 빠진 커밋의 경위** — #422(08-02, 누끼 캐릭터 정식화)가 `expo-image-manipulator`를 `package.json`에 넣으면서 iOS pod 산출물을 같이 커밋하지 않았다. `Podfile.lock` 쪽은 08-07 배포 툴링 정리 PR(#511)에서 따로 채워졌지만("cannot find native module ExpoImageManipulator"를 막으려고), `project.pbxproj`의 리소스 복사 단계에 들어가야 할 `SDWebImage.bundle` 두 줄은 #579까지 빠져 있었다. 그래서 되돌려도 `pod install` 한 번이면 부활했다.
+
+**② 서명 재작성이 왜 사고인가** — iOS 배포는 fastlane이 `signingStyle: "manual"`로 빌드한다. 즉 **저장소에 커밋된 Manual 설정이 정답**이다. 로컬 Xcode가 편의로 Automatic으로 바꾼 상태가 올라가면 TestFlight 업로드 빌드가 서명 단계에서 깨진다. 로컬에서는 오히려 잘 돌기 때문에 커밋하는 사람은 문제를 모른다.
+
+**해결 (#579)** — ①만 커밋하고 ②③은 버렸다. 같은 파일에 섞여 있어서 원칙은 hunk(변경 덩어리) 단위 선별인데, 실제 PR은 더 안전한 길을 택했다. **깨끗한 워크트리에서 `pod install`만 돌려** 나온 산출물을 그대로 커밋했고(서명 변경은 애초에 생기지 않는다), `pod install`을 한 번 더 돌려 변경이 없는 것까지(멱등성) 확인했다. 결과는 3파일 6줄 추가·1줄 삭제다.
+
+- `Podfile.lock`의 `hermes-engine` SPEC CHECKSUM도 바뀌어 있었다. 머신의 hermes 아티팩트 캐시 차이로 값이 달라지는데, 이력을 보면 값이 오락가락(flip-flop)하는 상태는 아니었다. **락파일은 부분 편집하지 않고 통째로 커밋한다** — 손으로 일부만 고친 락파일은 어떤 `pod install`도 만들어 내지 않는 파일이 된다. 다른 머신에서 값이 되돌아오면 그때 따로 조사하기로 했다.
+- 로컬 모듈의 안드로이드 빌드 캐시(`modules/*/android/.gradle/`)가 untracked로 계속 뜨던 것은 `.gitignore`에 넣었다.
+- `pull.rebase`를 쓰는데 `rebase.autoStash`가 꺼져 있어 더러운 트리에서 pull이 실패하던 것은 로컬 git 설정으로 켰다.
+
+<Callout label='"항상 더러운 파일"은 stash 대상이 아니라 빠진 커밋의 신호다' tone="warn">
+
+pbxproj diff를 **통째로 커밋해도**(서명 사고) **통째로 버려도**(재생성 무한 반복) 사고가 난다. 성격별로 갈라야 한다. 그리고 네이티브 의존성을 추가하는 PR은 **pod 산출물까지 같은 PR에** 넣는다. 안 그러면 팀 전원의 워킹트리가 오염되고, 모두가 그걸 습관적으로 stash하는 동안 진짜 빠진 커밋은 그대로 남는다 — 이번에는 #422에서 #579까지 8일이었다.
+
+</Callout>
+
+pbxproj는 사람이 손으로 쓰는 파일도 아니다. 6월 초 스크린타임 Report 익스텐션 타깃을 `project.pbxproj`를 손으로 편집해 추가했다가 구식 `NSExtension` 방식으로 등록돼 이틀 동안 빈 화면만 본 일이 있다([MVP 와 첫 애플 심사](/history/04-mvp-and-first-review)). Xcode 마법사로 타깃을 다시 만들자 풀렸다. 도구가 쓰는 파일은 도구가 만들게 두고, 사람은 **무엇을 커밋할지만** 고른다.
+
+**통째 커밋의 조건** — 2주 뒤 디렉토리 개편 PR(#708)에서 반대 방향 사고가 있었다. 개편 커밋에 로컬의 낡은 pod 상태가 딸려 들어가 `Podfile.lock`의 Reanimated가 4.5.3에서 4.5.0으로 내려간 것이다([초록인데 깨졌다 §4](/research/green-but-broken)). "락파일은 통째로 커밋한다"는 규칙은 **깨끗한 워크트리에서 방금 돌린 `pod install`의 산출물**일 때만 안전하다. 로컬에 오래 묵은 상태를 통째로 올리면 그건 동기화가 아니라 혼입이다. 둘을 가르는 확인은 main과의 바이트 대조, 그리고 `pod install` 재실행 뒤 변경 없음이다.
+
+**CI가 이 자리를 보지 않는다** — 앱 CI는 ESLint·Prettier·타입 검사·jest를 돌린다. 안드로이드는 08-22(#689)부터 XML 정합과 Gradle 컴파일 검사가 붙었지만, iOS 네이티브 산출물(`Podfile.lock`·`project.pbxproj`)은 CI가 빌드하지 않는다. 위 세 건이 전부 사람 눈과 로컬 빌드로만 잡힌 이유다.
+
+## 3. 업그레이드 여파 — 온디바이스 NSFW.js를 설치조차 못 했다
+
+누끼 캐릭터(사진에서 물건을 오려 캐릭터로 만드는 기능)에 유해 이미지 대응을 붙이면서, 서버 검사 앞에 기기 안에서 먼저 거르는 선필터로 NSFW.js를 붙이려 했다(08-02). 설치 단계에서 막혔다. NSFW.js가 기대는 `tfjs-react-native@1.0.0`의 **peer 의존성**(이 라이브러리를 쓰려면 앱에 함께 깔려 있어야 하는 패키지와 그 버전 범위)이 지금 스택과 메이저 버전으로 부딪혔다.
+
+| peer | 요구 | 우리 |
+| --- | --- | --- |
+| `@react-native-async-storage/async-storage` | `^1.13.0` | 2.2.0 |
+| `expo-gl` | `^13.0.1` | SDK 57은 16.x |
+| 그 밖 | `expo-camera`, `react-native-fs`(bare 전용) | — |
+
+`--force`나 `--legacy-peer-deps`로 밀어 넣으면 설치는 된다. 하지만 lockfile이 선언과 어긋나 CI의 `npm ci`가 깨지고, async-storage가 1.x로 내려갈 위험이 있다. 앱 전체의 로컬 저장이 걸린 패키지다. 강제 설치는 하지 않았고, 선필터를 아예 쓰지 않기로 했다. 그 결정이 왜 안전 구멍이 아닌지는 [누끼 모더레이션 노트](/research/cutout-moderation)에 있다.
+
+**교훈** — 온디바이스 ML 라이브러리는 네이티브 모듈과 여러 peer에 걸쳐 있어 SDK 메이저 업그레이드에 특히 약하다. 도입 전에 peer 의존 트리부터 본다.
+
+## 4. 다음에 쓸 체크리스트
+
+| 언제 | 할 일 |
+| --- | --- |
+| SDK 메이저 업그레이드 | `node_modules/expo/template.tgz`의 템플릿과 `AppDelegate`·`Podfile`을 diff한다 |
+| | 최소 iOS 요구를 먼저 확인하고 앱 타깃 전부(pbxproj 포함)를 올린다. 익스텐션·위젯은 각자 판단 |
+| | 네이티브가 바뀌면 새 바이너리가 필수다. 옛 OTA 번들이 새 바이너리를 덮지 않는지 점검한다 |
+| | 팀원 로컬에서만 끝나는 조치(`.env.local` 이동 등)는 PR 주의사항에 따로 적는다 |
+| 네이티브 의존성 추가 | pod 산출물(`Podfile.lock`·`project.pbxproj`)을 같은 PR에 넣는다 |
+| pbxproj가 더러울 때 | 성격별로 가른다 — 빠진 산출물은 커밋, 서명 설정은 폐기, 정렬은 폐기 |
+| 락파일 커밋 | 깨끗한 워크트리에서 `pod install` → 재실행 시 변경 없음 확인 → 통째로 커밋 |
+| 새 라이브러리 도입 | peer 의존 범위를 먼저 본다. `--force`·`--legacy-peer-deps`는 쓰지 않는다 |
+
+## 5. 용어
+
+| 용어 | 뜻 |
+| --- | --- |
+| Expo SDK | Expo가 한 버전으로 묶어 내놓는 라이브러리·도구 세트. 올리면 React Native와 `expo-*` 모듈이 한꺼번에 바뀐다 |
+| 배포 타깃 | 앱이 설치될 수 있는 최소 OS 버전. 앱·익스텐션·위젯이 각자 가진다 |
+| pod / CocoaPods | iOS 라이브러리 관리 도구와 그 패키지 단위 |
+| `Podfile.lock` | 설치된 pod의 버전·체크섬 목록. 팀이 같은 버전을 쓰게 하는 기준 파일 |
+| `project.pbxproj` | Xcode 프로젝트 설정 파일. 타깃·빌드 설정·서명 설정·리소스 복사 목록이 전부 들어 있다 |
+| 코드 서명 (Manual / Automatic) | 앱에 서명할 인증서·프로비저닝 프로파일을 사람이 지정하느냐, Xcode가 고르느냐 |
+| fastlane | iOS 빌드·서명·TestFlight 업로드를 자동화하는 도구 |
+| 모듈맵 | 헤더 파일들을 하나의 모듈로 묶어 선언하는 파일. 클랭이 import 가시성을 판단하는 근거 |
+| config plugin | Expo 빌드 전에 네이티브 설정 파일을 자동으로 고쳐 주는 플러그인 |
+| 호이스팅 | npm이 하위 의존성을 `node_modules` 최상위로 끌어올리는 것. 끌어올려지지 않으면 다른 패키지가 그 경로로 찾지 못한다 |
+| peer 의존성 | 라이브러리가 직접 설치하지 않고, 앱에 이미 깔려 있기를 기대하는 패키지와 그 버전 범위 |
+| 멱등성 | 같은 작업을 여러 번 해도 결과가 한 번 한 것과 같은 성질. 여기서는 `pod install`을 다시 돌려도 파일이 안 바뀌는 것 |
+
+---
+
+- **PR·티켓**: #348(GROMO-944 SDK 57) · #422(누끼 정식화, `expo-image-manipulator` 추가) · #511(배포 툴링 정리, `Podfile.lock` 반영) · #579(GROMO-1209 pod 산출물 동기화) · #689(안드로이드 네이티브 검사) · #708(디렉토리 개편, [초록인데 깨졌다](/research/green-but-broken) §4)
+- **파일**: `app/legacy/app-dev/ios/Podfile` · `ios/Podfile.lock` · `ios/gromo.xcodeproj/project.pbxproj` · `ios/gromo/AppDelegate.swift` · `ios/fastlane/Fastfile`(`signingStyle: "manual"`) · `.env.example`

@@ -1,0 +1,80 @@
+---
+title: "ADR-023 — JS 번들 OTA는 EAS Update 대신 자체 호스팅 hot-updater로 하고, 인프라는 카드 없이 시작할 수 있는 Supabase에 둔다"
+summary: "CodePush가 끝난 뒤 JS 한 줄을 고쳐도 심사를 다시 받아야 했다. 공식 EAS Update, 부품만 주는 react-native-ota-hot-update, 자체 호스팅 hot-updater를 비교해 비용과 인프라 통제를 이유로 hot-updater를 골랐고, 인프라는 같은 날 Firebase에서 Supabase로 바꿨다. 다음 날 예전 OTA 번들이 새 빌드를 덮어쓸 뻔한 일을 겪고 '새 정식 빌드 전에 살아 있는 이전 번들을 비운다'는 체크 항목이 붙었다."
+status: "유효 (1.x)"
+date: "2026-07-19"
+order: 23
+author: "안수빈"
+keywords: [OTA, hot-updater, EAS Update, CodePush, Supabase, JS 번들, 자체 호스팅, minBundleId]
+related:
+  - label: "ADR-024 — 앱은 main에서 다음 버전을 만들고 arelease 브랜치에서 핫픽스·OTA·심사 빌드를 낸다"
+    href: "/adr/adr-024-app-release-branch"
+  - label: "바이너리를 고쳐도 번들이 되돌린다 — OTA와 TestFlight, 축이 둘인 릴리즈"
+    href: "/research/ota-release-pipeline"
+  - label: "출시와 중간 심의"
+    href: "/history/05-launch-and-midterm"
+---
+
+## 맥락
+
+OTA(Over-The-Air) 업데이트는 앱스토어 심사 없이 JS 번들만 바꿔 내려보내는 업데이트다. React Native 앱은 화면과 로직 대부분이 JS 번들에 들어 있어서, 네이티브 코드를 건드리지 않은 수정이라면 번들만 교체해도 사용자 앱이 바뀐다. 이 역할을 하던 CodePush는 서비스가 종료됐다. 그래서 7월 중순의 gromo는 JS 한 줄을 고쳐도 TestFlight 업로드와 앱스토어 심사를 다시 거쳐야 했다.
+
+첫 심사 제출(1.0.0)이 07-20이었다. 사용자 규모는 작아서 어느 서비스를 골라도 무료 한도 안이었다.
+
+## 선택지
+
+MAU(Monthly Active Users)는 한 달 동안 앱을 쓴 사용자 수다. OTA 서비스는 보통 이 숫자로 과금한다.
+
+| 선택지 | 제공하는 것 | 걸리는 것 | 판정 |
+| --- | --- | --- | --- |
+| EAS Update (Expo 공식) | 서버 불필요, 학습 비용 최소, 무료 1K MAU | 한도를 넘으면 사용자 수에 비례해 유료, 인프라를 통제할 수 없음 | 기각 |
+| react-native-ota-hot-update | 번들 다운로드·설치 부품 | 버전 관리·롤백·운영 도구를 전부 직접 제작 | 기각 |
+| hot-updater (오픈소스, 자체 호스팅) | 웹 콘솔·롤백·강제 업데이트·점진 배포(cohort)·네이티브 호환성 체크 | 저장소·DB·업데이트 확인 API를 직접 마련 | 채택 |
+
+학습 비용과 출시 전 규모만 보면 EAS Update가 합리적이었고, AI 코딩 어시스턴트도 그쪽을 권했다. 결정은 비용이 사용자 수에 묶이지 않는 것과 인프라를 직접 쥐는 것을 앞에 두었다.
+
+hot-updater가 쓸 인프라도 같은 날 한 번 뒤집혔다.
+
+| 인프라 | 판정 | 이유 |
+| --- | --- | --- |
+| Firebase (Storage + Firestore + Functions) | 확정했다가 같은 날 번복 | Functions를 쓰려면 Blaze(종량제) 요금제 전환과 결제 카드 등록이 필요했다(GROMO-874) |
+| Supabase (Storage + PostgreSQL + Edge Functions) | 채택 | 카드 없이 시작할 수 있고, `hot-updater init`이 구성을 자동으로 세팅한다 |
+
+## 결정
+
+**JS 번들 OTA는 hot-updater로 한다. 번들은 Supabase Storage, 버전 목록은 Supabase PostgreSQL, 업데이트 확인 API는 Supabase Edge Function에 두고, 한 프로젝트로 묶는다.**
+
+| 항목 | 값 |
+| --- | --- |
+| 채널 | `production` 하나 |
+| 업데이트 전략 | `appVersion` — 마케팅 버전(예: 1.0.0)이 같은 바이너리는 같은 번들을 받는다. 빌드번호는 비교에 쓰이지 않는다 |
+| 동작 범위 | Release 빌드에서만. Debug 빌드는 개발 서버(Metro) 번들을 그대로 쓴다 |
+| 앱 통합 | 앱 루트를 `HotUpdater.wrap`으로 감싼다. 시작할 때 업데이트를 확인하고, 있으면 진행률 화면을 보여 준 뒤 적용한다 |
+| 배포 | `hot-updater deploy` |
+| 인증 정보 | 저장소에 커밋하지 않고 배포 담당 머신에만 둔다 |
+
+OTA로 낼 수 있는 것은 JS뿐이다. 라이브러리 추가, `ios/` 변경, 권한(Info.plist), 네이티브 모듈이 하나라도 섞이면 재빌드와 재심사를 거친다. 새 JS가 옛 바이너리에 없는 네이티브 모듈을 부르면 앱이 죽기 때문이다. 어느 브랜치에서 OTA를 내는지는 [ADR-024](/adr/adr-024-app-release-branch)가 정한다 — 배포된 바이너리와 같은 코드 계열(`arelease/*`)에서만 낸다.
+
+## 근거
+
+- 비용 구조: EAS Update는 무료 한도를 넘는 순간 사용자 수에 비례해 과금된다. Supabase는 무료 플랜(전송 월 5GB, 저장 1GB)으로 시작해, 넘으면 월 고정 요금의 유료 플랜으로 올리면 된다.
+- 통제: 번들과 버전 DB가 우리 프로젝트 안에 있어서 어떤 번들이 살아 있는지 직접 조회하고 비활성화할 수 있다. 다음 날 이 능력이 실제로 필요했다(아래 영향).
+- 운영 기능: 롤백·강제 업데이트·점진 배포가 도구에 들어 있다. 부품형 라이브러리를 골랐다면 이것을 전부 직접 만들어야 했다.
+
+## 영향
+
+- **07-20 교훈 — 예전 OTA 번들이 새 빌드를 덮어쓸 수 있다.** hot-updater는 바이너리에 "이보다 오래된 번들은 무시한다"는 기준점(`minBundleId`)을 박는데, 그 값이 네이티브 빌드 시각에서 26시간을 뺀 시각이다. 그래서 빌드 직전 하루 안에 배포한 번들은 새 바이너리에게도 "더 새로운 업데이트"로 내려간다. 07-20 새벽에 dev 서버 주소가 박힌 번들을 OTA로 올려 둔 상태에서 prod 빌드를 새로 만들자, 업데이트 서버가 그 새 빌드에 새벽 번들을 내려주도록 응답했다. 심사 제출 전에 발견해 그 번들을 비활성화했다. 경위와 진단 명령은 [OTA·릴리즈 파이프라인 연구 노트](/research/ota-release-pipeline)에 있다.
+  - 새 정식 빌드 전 체크리스트에 "enabled 상태인 이전 OTA 번들이 없는지"가 들어갔다.
+- API 주소 같은 `EXPO_PUBLIC_*` 환경 변수는 번들을 빌드하는 순간 코드에 박힌다. 같은 날 셸에서 export한 값이 `.env.production`보다 우선해 prod 빌드에 dev 주소가 들어간 일도 있었다. OTA 배포 전 체크리스트에 "배포하는 셸의 API 주소가 prod인지"가 들어갔다.
+- 무료 플랜은 1주 동안 활동이 없으면 프로젝트가 일시 정지된다. 사용자가 늘면 유료 플랜 전환이 필요하다.
+- E2E 테스트 빌드는 OTA 게이트를 건너뛴다. 테스트 도중 예전 번들이 내려와 화면이 바뀌는 오염을 막기 위해서다([ADR-025](/adr/adr-025-e2e-maestro)).
+- 후속 구상(미착수): `hot-updater deploy`를 감싸 체크리스트(브랜치·미커밋 변경·환경 변수·대상 버전 검사, 배포 뒤 업데이트 서버 응답 확인)를 기계가 수행하게 하는 OTA 가드 스크립트.
+- 2.0 앱은 hot-updater를 의존성으로 두지 않는다(09-19 기준).
+
+## 출처
+
+- 결정기록 2026-07-19 「OTA 핫 업데이트: hot-updater(자체 호스팅 오픈소스) 채택」, 2026-07-20 「1.0.0 심사 빌드 확정(prod 전환 배포 사고 2건 수습 후)」
+- GROMO-874(인프라) · GROMO-875 · PR #303(hot-updater 기반 JS 번들 OTA 도입) · PR #306(OTA 준비 화면)
+- 앱 운영 문서 「릴리즈·OTA 브랜치 전략」 §6 OTA 배포 전 체크리스트, §7 새 정식 빌드 전 체크리스트
+- 앱 트러블슈팅 문서 「hot-updater OTA 번들이 새 빌드를 덮어쓰는 문제」 §2 타임라인, §3 minBundleId −26h
+- [출시와 중간 심의](/history/05-launch-and-midterm) — 07-20 같은 날의 다른 사고들
