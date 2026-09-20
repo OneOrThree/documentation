@@ -20,7 +20,7 @@ related:
   - label: "검사할 수 없음은 유해가 아니다 — 누끼 캐릭터의 서버 모더레이션"
     href: "/research/cutout-moderation"
   - label: "바이너리를 고쳐도 번들이 되돌린다 — OTA와 TestFlight, 축이 둘인 릴리즈"
-    href: "/research/ota-release-pipeline"
+    href: "/operations/03-ota-release-pipeline"
   - label: "MVP 와 첫 애플 심사"
     href: "/history/04-mvp-and-first-review"
 ---
@@ -110,7 +110,7 @@ SDK 메이저 업그레이드에서 네이티브 파일이 깨지면 검색 결�
 | react-navigation v6은 npm에서 deprecated 표기 | RN 0.86과 빌드·구동 호환을 확인하고 v6 유지. v7은 API 변경이 커서 별도 티켓 |
 | Firebase가 CocoaPods 배포 중단을 예고(빌드 경고) | Swift Package Manager 전환을 후속 티켓으로 |
 
-**검증과 남긴 것** — 타입 검사·린트·포맷, `expo export -p ios`(Hermes 번들 6.7MB), `pod install`, 시뮬레이터 Debug 빌드, 온보딩 첫 화면까지의 런타임 스모크(Metro 에러·경고 0건)까지 통과했다. 실기기 회귀(집중 세션·스크린타임·위젯·푸시·소셜 로그인)는 머지 전 수동 확인으로 남겼다. 스크린타임과 위젯은 시뮬레이터에서 원리적으로 돌지 않는다. 그리고 네이티브가 바뀌었으니 **새 TestFlight 바이너리가 필수**이고, 그 바이너리에 옛 OTA 번들이 덮어씌워지지 않는지 따로 점검해야 했다 — 그 이유는 [OTA 릴리즈 노트](/research/ota-release-pipeline)에 있다.
+**검증과 남긴 것** — 타입 검사·린트·포맷, `expo export -p ios`(Hermes 번들 6.7MB), `pod install`, 시뮬레이터 Debug 빌드, 온보딩 첫 화면까지의 런타임 스모크(Metro 에러·경고 0건)까지 통과했다. 실기기 회귀(집중 세션·스크린타임·위젯·푸시·소셜 로그인)는 머지 전 수동 확인으로 남겼다. 스크린타임과 위젯은 시뮬레이터에서 원리적으로 돌지 않는다. 그리고 네이티브가 바뀌었으니 **새 TestFlight 바이너리가 필수**이고, 그 바이너리에 옛 OTA 번들이 덮어씌워지지 않는지 따로 점검해야 했다 — 그 이유는 [OTA 릴리즈 노트](/operations/03-ota-release-pipeline)에 있다.
 
 ## 2. "항상 더러운" pod 산출물 — 한 파일에 섞인 세 종류
 
