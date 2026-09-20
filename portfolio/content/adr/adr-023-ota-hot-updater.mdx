@@ -1,14 +1,14 @@
 ---
-title: "ADR-024 — JS 번들 OTA는 EAS Update 대신 자체 호스팅 hot-updater로 하고, 인프라는 카드 없이 시작할 수 있는 Supabase에 둔다"
+title: "ADR-023 — JS 번들 OTA는 EAS Update 대신 자체 호스팅 hot-updater로 하고, 인프라는 카드 없이 시작할 수 있는 Supabase에 둔다"
 summary: "CodePush가 끝난 뒤 JS 한 줄을 고쳐도 심사를 다시 받아야 했다. 공식 EAS Update, 부품만 주는 react-native-ota-hot-update, 자체 호스팅 hot-updater를 비교해 비용과 인프라 통제를 이유로 hot-updater를 골랐고, 인프라는 같은 날 Firebase에서 Supabase로 바꿨다. 다음 날 예전 OTA 번들이 새 빌드를 덮어쓸 뻔한 일을 겪고 '새 정식 빌드 전에 살아 있는 이전 번들을 비운다'는 체크 항목이 붙었다."
 status: "유효 (1.x)"
 date: "2026-07-19"
-order: 24
+order: 23
 author: "안수빈"
 keywords: [OTA, hot-updater, EAS Update, CodePush, Supabase, JS 번들, 자체 호스팅, minBundleId]
 related:
-  - label: "ADR-025 — 앱은 main에서 다음 버전을 만들고 arelease 브랜치에서 핫픽스·OTA·심사 빌드를 낸다"
-    href: "/adr/adr-025-app-release-branch"
+  - label: "ADR-024 — 앱은 main에서 다음 버전을 만들고 arelease 브랜치에서 핫픽스·OTA·심사 빌드를 낸다"
+    href: "/adr/adr-024-app-release-branch"
   - label: "바이너리를 고쳐도 번들이 되돌린다 — OTA와 TestFlight, 축이 둘인 릴리즈"
     href: "/research/ota-release-pipeline"
   - label: "출시와 중간 심의"
@@ -53,7 +53,7 @@ hot-updater가 쓸 인프라도 같은 날 한 번 뒤집혔다.
 | 배포 | `hot-updater deploy` |
 | 인증 정보 | 저장소에 커밋하지 않고 배포 담당 머신에만 둔다 |
 
-OTA로 낼 수 있는 것은 JS뿐이다. 라이브러리 추가, `ios/` 변경, 권한(Info.plist), 네이티브 모듈이 하나라도 섞이면 재빌드와 재심사를 거친다. 새 JS가 옛 바이너리에 없는 네이티브 모듈을 부르면 앱이 죽기 때문이다. 어느 브랜치에서 OTA를 내는지는 [ADR-025](/adr/adr-025-app-release-branch)가 정한다 — 배포된 바이너리와 같은 코드 계열(`arelease/*`)에서만 낸다.
+OTA로 낼 수 있는 것은 JS뿐이다. 라이브러리 추가, `ios/` 변경, 권한(Info.plist), 네이티브 모듈이 하나라도 섞이면 재빌드와 재심사를 거친다. 새 JS가 옛 바이너리에 없는 네이티브 모듈을 부르면 앱이 죽기 때문이다. 어느 브랜치에서 OTA를 내는지는 [ADR-024](/adr/adr-024-app-release-branch)가 정한다 — 배포된 바이너리와 같은 코드 계열(`arelease/*`)에서만 낸다.
 
 ## 근거
 
@@ -67,7 +67,7 @@ OTA로 낼 수 있는 것은 JS뿐이다. 라이브러리 추가, `ios/` 변경,
   - 새 정식 빌드 전 체크리스트에 "enabled 상태인 이전 OTA 번들이 없는지"가 들어갔다.
 - API 주소 같은 `EXPO_PUBLIC_*` 환경 변수는 번들을 빌드하는 순간 코드에 박힌다. 같은 날 셸에서 export한 값이 `.env.production`보다 우선해 prod 빌드에 dev 주소가 들어간 일도 있었다. OTA 배포 전 체크리스트에 "배포하는 셸의 API 주소가 prod인지"가 들어갔다.
 - 무료 플랜은 1주 동안 활동이 없으면 프로젝트가 일시 정지된다. 사용자가 늘면 유료 플랜 전환이 필요하다.
-- E2E 테스트 빌드는 OTA 게이트를 건너뛴다. 테스트 도중 예전 번들이 내려와 화면이 바뀌는 오염을 막기 위해서다([ADR-026](/adr/adr-026-e2e-maestro)).
+- E2E 테스트 빌드는 OTA 게이트를 건너뛴다. 테스트 도중 예전 번들이 내려와 화면이 바뀌는 오염을 막기 위해서다([ADR-025](/adr/adr-025-e2e-maestro)).
 - 후속 구상(미착수): `hot-updater deploy`를 감싸 체크리스트(브랜치·미커밋 변경·환경 변수·대상 버전 검사, 배포 뒤 업데이트 서버 응답 확인)를 기계가 수행하게 하는 OTA 가드 스크립트.
 - 2.0 앱은 hot-updater를 의존성으로 두지 않는다(09-19 기준).
 

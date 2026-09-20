@@ -1,16 +1,16 @@
 ---
-title: "ADR-025 — 앱은 main에서 다음 버전을 만들고 arelease 브랜치에서 핫픽스·OTA·심사 빌드를 내며, 태그는 심사 제출 빌드에만 단다"
+title: "ADR-024 — 앱은 main에서 다음 버전을 만들고 arelease 브랜치에서 핫픽스·OTA·심사 빌드를 내며, 태그는 심사 제출 빌드에만 단다"
 summary: "여러 명이 앱을 만지며 구버전 핫픽스와 신버전 개발을 동시에 하게 되자, 스토어에 나가 있는 바이너리와 같은 코드 계열을 가리킬 브랜치가 필요했다. `release/app-1.0`은 백엔드가 이미 쓰는 단독 `release` 브랜치와 git ref가 충돌해 만들 수 없었고, 앱 브랜치 접두 컨벤션에 맞춘 `arelease/1.0` 형식으로 정했다. 태그는 월 20회가 넘는 TestFlight 업로드가 아니라 심사 제출 빌드에만 단다."
 status: "유효 (1.x)"
 date: "2026-07-20"
-order: 25
+order: 24
 author: "안수빈"
 keywords: [릴리즈 브랜치, arelease, 핫픽스, 머지백, git 태그, fastlane, 빌드번호, OTA]
 related:
   - label: "ADR-021 — release 승격은 PR 머지가 아니라 main→release fast-forward push로 한다"
     href: "/adr/adr-021-release-fast-forward"
-  - label: "ADR-024 — JS 번들 OTA는 자체 호스팅 hot-updater로 한다"
-    href: "/adr/adr-024-ota-hot-updater"
+  - label: "ADR-023 — JS 번들 OTA는 자체 호스팅 hot-updater로 한다"
+    href: "/adr/adr-023-ota-hot-updater"
   - label: "바이너리를 고쳐도 번들이 되돌린다 — OTA와 TestFlight, 축이 둘인 릴리즈"
     href: "/research/ota-release-pipeline"
   - label: "멘토링 기록: 회차별로 무엇을 지적받고 무엇을 바꿨나"
@@ -21,7 +21,7 @@ related:
 
 07-20, 1.0.0 첫 심사 제출을 앞두고 팀이 두 가지를 전제로 확정했다. 앱 코드는 여러 명이 작업한다. 그리고 이미 나간 버전의 핫픽스(긴급 수정)와 다음 버전 개발을 동시에 한다.
 
-그러려면 "스토어에 나가 있는 바이너리가 정확히 어느 코드인가"를 가리킬 수 있어야 한다. 핫픽스와 OTA는 그 코드 위에서만 만들어야 한다. 다음 버전용 네이티브 변경이 이미 들어간 `main`에서 OTA를 내면, 새 JS가 구 바이너리에 없는 네이티브 모듈을 불러 앱이 죽는다([ADR-024](/adr/adr-024-ota-hot-updater)). 그때까지의 방식인 `main` 하나와 태그 없음으로는 이 구분이 불가능했다.
+그러려면 "스토어에 나가 있는 바이너리가 정확히 어느 코드인가"를 가리킬 수 있어야 한다. 핫픽스와 OTA는 그 코드 위에서만 만들어야 한다. 다음 버전용 네이티브 변경이 이미 들어간 `main`에서 OTA를 내면, 새 JS가 구 바이너리에 없는 네이티브 모듈을 불러 앱이 죽는다([ADR-023](/adr/adr-023-ota-hot-updater)). 그때까지의 방식인 `main` 하나와 태그 없음으로는 이 구분이 불가능했다.
 
 배포도 한 종류가 아니었다.
 

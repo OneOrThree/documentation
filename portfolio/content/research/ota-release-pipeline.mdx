@@ -15,10 +15,10 @@ keywords:
   - 릴리즈 브랜치
   - 배포 가드
 related:
-  - label: "ADR-024 — JS 번들 OTA는 EAS Update 대신 자체 호스팅 hot-updater로 하고, 인프라는 카드 없이 시작할 수 있는 Supabase에 둔다"
-    href: "/adr/adr-024-ota-hot-updater"
-  - label: "ADR-025 — 앱 릴리즈 라인은 arelease 브랜치에서 낸다"
-    href: "/adr/adr-025-app-release-branch"
+  - label: "ADR-023 — JS 번들 OTA는 EAS Update 대신 자체 호스팅 hot-updater로 하고, 인프라는 카드 없이 시작할 수 있는 Supabase에 둔다"
+    href: "/adr/adr-023-ota-hot-updater"
+  - label: "ADR-024 — 앱 릴리즈 라인은 arelease 브랜치에서 낸다"
+    href: "/adr/adr-024-app-release-branch"
   - label: "실패한 배포도 DB는 이미 바꿔놨다 — 마이그레이션 사고 3연발"
     href: "/research/migration-incidents"
   - label: "핵심 기능은 시뮬레이터에서 돌지 않는다 — 앱 자동 검증의 사각지대"
@@ -52,7 +52,7 @@ gromo 1.x는 앱 하나를 **서로를 모르는 두 파이프라인**으로 내
 
 <Callout label="1.x 앱의 기록이다" tone="warn">
 
-이 문서의 파이프라인은 지금은 동결된 1.x 앱(`app/legacy/app-dev`)의 것이다. 2.0 앱(`app/app-dev`)에는 현재 hot-updater 설정이 없다. OTA 도구 선택의 기각 대안은 [ADR-024](/adr/adr-024-ota-hot-updater), 브랜치 전략의 결정 근거는 [ADR-025](/adr/adr-025-app-release-branch)에 있다.
+이 문서의 파이프라인은 지금은 동결된 1.x 앱(`app/legacy/app-dev`)의 것이다. 2.0 앱(`app/app-dev`)에는 현재 hot-updater 설정이 없다. OTA 도구 선택의 기각 대안은 [ADR-023](/adr/adr-023-ota-hot-updater), 브랜치 전략의 결정 근거는 [ADR-024](/adr/adr-024-app-release-branch)에 있다.
 
 </Callout>
 

@@ -16,14 +16,14 @@ keywords:
   - 분모 오염
   - last_active_at
 related:
-  - label: "ADR-036 — 활성화는 가입 24시간 안에 집중 세션을 한 번이라도 시작한 것으로 정의한다"
-    href: "/adr/adr-036-activation-metric"
+  - label: "ADR-034 — 활성화는 가입 24시간 안에 집중 세션을 한 번이라도 시작한 것으로 정의한다"
+    href: "/adr/adr-034-activation-metric"
   - label: "유니크 제약은 예외 계약의 변경이다 — 인증·소셜 로그인 하드닝"
     href: "/research/auth-hardening"
   - label: "멘토링 기록 — 퍼널·이벤트 설계 지적"
     href: "/history/07-mentoring"
-  - label: "ADR-031 — 게스트는 소셜 유저와 똑같이 취급하고, 참가 자격은 닉네임으로 가른다"
-    href: "/adr/adr-031-guest-equals-social-user"
+  - label: "ADR-030 — 게스트는 소셜 유저와 똑같이 취급하고, 참가 자격은 닉네임으로 가른다"
+    href: "/adr/adr-030-guest-equals-social-user"
 ---
 
 ## 0. 한눈에
@@ -40,7 +40,7 @@ related:
 
 <Callout label="이 문서가 다루는 것">
 
-활성화 지표를 *무엇으로 정했고 왜 그런지*는 [ADR-036](/adr/adr-036-activation-metric)에 있다. 여기서는 그 계산과 주변 계측에서 **측정이 틀렸던 자리**만 다룬다. 운영 수치(가입자·코호트 인원, 리텐션·완주율)는 공개하지 않으므로, 효과는 "분모가 오염됐다", "비율이 크게 뒤집혔다"처럼 방향과 크기감으로만 적는다.
+활성화 지표를 *무엇으로 정했고 왜 그런지*는 [ADR-034](/adr/adr-034-activation-metric)에 있다. 여기서는 그 계산과 주변 계측에서 **측정이 틀렸던 자리**만 다룬다. 운영 수치(가입자·코호트 인원, 리텐션·완주율)는 공개하지 않으므로, 효과는 "분모가 오염됐다", "비율이 크게 뒤집혔다"처럼 방향과 크기감으로만 적는다.
 
 </Callout>
 
@@ -97,7 +97,7 @@ isExistingAccount(login) = login.isNewUser === false && !!login.nickname?.trim()
 - 서버 확인: 프로필 등록(`setupProfile`)에는 "이미 등록됨" 검사가 없고 닉네임 중복 409만 있다. 유령 계정이 온보딩을 다시 끝까지 밟아도 정상 처리되므로 서버를 바꿀 이유가 없었다.
 - 판별 헬퍼는 신규 / 기존 / 유령 / 빈·공백 닉네임 / undefined 5케이스 유닛 테스트로 묶었다.
 
-기존 유령 계정은 **다음 로그인 때 스스로 낫는다** — 남은 온보딩으로 안내된다. 다만 앱을 다시 켜지 않는 계정은 그대로 남는다. 일괄 정리는 이 PR 범위 밖이다. 이 일로 닉네임이 "온보딩을 끝냈다"는 사실상 유일한 서버 신호가 됐고, 그 신호를 참가 자격에 쓰기로 한 결정은 [ADR-031](/adr/adr-031-guest-equals-social-user)에 있다.
+기존 유령 계정은 **다음 로그인 때 스스로 낫는다** — 남은 온보딩으로 안내된다. 다만 앱을 다시 켜지 않는 계정은 그대로 남는다. 일괄 정리는 이 PR 범위 밖이다. 이 일로 닉네임이 "온보딩을 끝냈다"는 사실상 유일한 서버 신호가 됐고, 그 신호를 참가 자격에 쓰기로 한 결정은 [ADR-030](/adr/adr-030-guest-equals-social-user)에 있다.
 
 <Callout label="서버 쪽에도 다른 유령이 있었다">
 
@@ -187,7 +187,7 @@ isExistingAccount(login) = login.isNewUser === false && !!login.nickname?.trim()
 | 항목 | 지금 상태 | 넘어가면 할 일 |
 | --- | --- | --- |
 | 다시 로그인하지 않는 유령 계정 | 자가 치유가 안 된다. 분모에서는 닉네임 null 필터로 뺀다 | 일괄 정리는 별건. 서버 쪽 조건부 가드도 후속 |
-| 활성화 지표의 표본 | 방향은 믿되 배수는 믿지 않는다 | 누적 대상이 충분히 커지거나 A/B가 가능해지면 다시 계산 (재검증 조건은 [ADR-036](/adr/adr-036-activation-metric)) |
+| 활성화 지표의 표본 | 방향은 믿되 배수는 믿지 않는다 | 누적 대상이 충분히 커지거나 A/B가 가능해지면 다시 계산 (재검증 조건은 [ADR-034](/adr/adr-034-activation-metric)) |
 | `last_active_at` 정밀도 | 최대 2시간 지연. 생존 판정에는 충분 | 재방문 빈도를 재려면 별도 이벤트가 필요 |
 | 1.x `group_owner_transferred`의 `source` 충돌 | 1.x 동결로 미수정 | 2.0 이벤트 설계에서 공통 파라미터 이름을 예약어로 막는다 |
 

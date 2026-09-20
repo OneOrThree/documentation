@@ -15,8 +15,8 @@ keywords:
   - 워클릿
   - 테스트 플래그
 related:
-  - label: "ADR-026 — 앱 E2E는 Maestro로 하고 스크린타임은 자동화하지 않는다"
-    href: "/adr/adr-026-e2e-maestro"
+  - label: "ADR-025 — 앱 E2E는 Maestro로 하고 스크린타임은 자동화하지 않는다"
+    href: "/adr/adr-025-e2e-maestro"
   - label: "성공률 0%의 만성 원인은 60초였다 — CI/CD 트러블슈팅"
     href: "/research/cicd-infra"
   - label: "초록인데 깨졌다 — 컴파일러와 CI가 보지 않는 참조들"
@@ -58,7 +58,7 @@ related:
 
 ### 1.1 도구는 둘뿐
 
-자동 검증에 쓰는 도구는 **jest 하나와 Maestro 하나**다. jest는 JS 코드를 화면 없이 돌려 보는 테스트 러너이고, Maestro는 시뮬레이터에 앱을 띄워 사람처럼 누르는 E2E(End-to-End) 도구다. 설정 파일은 셋 — jest 설정 14줄, jest 준비 27줄, E2E 실행 스크립트 86줄. 그게 전부다. 스냅샷 도구도, 비주얼 회귀 도구도, 별도 E2E 프레임워크도 없다. Maestro를 고른 이유와 기각한 대안은 [ADR-026](/adr/adr-026-e2e-maestro)에 있다.
+자동 검증에 쓰는 도구는 **jest 하나와 Maestro 하나**다. jest는 JS 코드를 화면 없이 돌려 보는 테스트 러너이고, Maestro는 시뮬레이터에 앱을 띄워 사람처럼 누르는 E2E(End-to-End) 도구다. 설정 파일은 셋 — jest 설정 14줄, jest 준비 27줄, E2E 실행 스크립트 86줄. 그게 전부다. 스냅샷 도구도, 비주얼 회귀 도구도, 별도 E2E 프레임워크도 없다. Maestro를 고른 이유와 기각한 대안은 [ADR-025](/adr/adr-025-e2e-maestro)에 있다.
 
 <Callout label="적은 게 나쁜 건 아니다">
 
