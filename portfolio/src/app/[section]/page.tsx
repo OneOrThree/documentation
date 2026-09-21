@@ -5,6 +5,7 @@ import { docSections, findSection } from "@root/site.config";
 import { getDocs } from "@/lib/content";
 import { ContributionDonuts } from "@/components/contribution-donuts";
 import { DocSearch } from "@/components/doc-search";
+import { GrowthMetrics } from "@/components/growth-metrics";
 import { Kicker } from "@/components/kicker";
 import { NumberedIndex } from "@/components/numbered-index";
 
@@ -50,6 +51,7 @@ export default async function SectionIndexPage({
 
       <div className="mt-10">
         {section.slug === "team" && <ContributionDonuts />}
+        {section.slug === "growth" && <GrowthMetrics />}
         {section.search ? (
           <DocSearch
             section={section.slug}
