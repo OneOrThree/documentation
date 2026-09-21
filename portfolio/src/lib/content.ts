@@ -99,14 +99,22 @@ function compareDocs(a: Doc, b: Doc, mode: SortMode): number {
     if (!b.date) return -1;
     return b.date.localeCompare(a.date);
   }
-  return byCuratedOrder(a, b);
+  return byCuratedOrder(a, b, mode === "curated-desc" ? -1 : 1);
 }
 
-function byCuratedOrder(a: Doc, b: Doc): number {
+/**
+ * `direction` is 1 for ascending `order` and -1 for descending.
+ *
+ * A missing `order` goes last either way, so the sign is applied only to the
+ * comparison between two documents that both have one. Reversing the whole
+ * comparison instead would float an `order`-less document to the top of a
+ * descending section, which is the opposite of what "no position given" means.
+ */
+function byCuratedOrder(a: Doc, b: Doc, direction: 1 | -1 = 1): number {
   if (a.order !== undefined || b.order !== undefined) {
-    const ao = a.order ?? Number.MAX_SAFE_INTEGER;
-    const bo = b.order ?? Number.MAX_SAFE_INTEGER;
-    if (ao !== bo) return ao - bo;
+    if (a.order === undefined) return 1;
+    if (b.order === undefined) return -1;
+    if (a.order !== b.order) return (a.order - b.order) * direction;
   }
   if (a.date && b.date && a.date !== b.date) return b.date.localeCompare(a.date);
   return a.title.localeCompare(b.title, "ko");
