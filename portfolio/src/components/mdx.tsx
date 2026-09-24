@@ -6,6 +6,7 @@ import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 
 import { Callout } from "@/components/callout";
+import { Contrib, ContributionTable, DocumentTable } from "@/components/contribution-table";
 import { StatusPill } from "@/components/status-pill";
 
 /**
@@ -37,6 +38,9 @@ const components = {
 
   // Available to document bodies.
   Callout,
+  Contrib,
+  ContributionTable,
+  DocumentTable,
   StatusPill,
 };
 

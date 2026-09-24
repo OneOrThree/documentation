@@ -1,108 +1,143 @@
 {
-  "asOf": "2026-09-24T05:33:59Z",
-  "asOfKst": "2026-09-24 14:33 KST",
+  "asOf": "2026-09-24T14:30:47Z",
+  "asOfKst": "2026-09-24 23:30 KST",
   "basis": "OneOrThree/phone 머지 PR의 GitHub assignee 기준. 작성자·커밋 계정은 사용하지 않음. 미배정 PR은 비율에서 제외.",
   "recentSince": "2026-09-10",
   "overall": {
-    "merged": 942,
+    "merged": 954,
     "areas": {
       "overall": {
         "label": "전체",
         "unit": "PR",
-        "total": 925,
+        "total": 937,
         "unassigned": 17,
+        "lines": 954068,
         "members": {
           "jo": {
-            "count": 573,
-            "pct": 61.9
+            "count": 584,
+            "pct": 62.3,
+            "lines": 714802,
+            "linesPct": 74.9
           },
           "ahn": {
             "count": 260,
-            "pct": 28.1
+            "pct": 27.7,
+            "lines": 177719,
+            "linesPct": 18.6
           },
           "kwon": {
-            "count": 92,
-            "pct": 9.9
+            "count": 93,
+            "pct": 9.9,
+            "lines": 61547,
+            "linesPct": 6.5
           }
         }
       },
       "backend": {
         "label": "백엔드",
         "unit": "PR",
-        "total": 386,
+        "total": 391,
         "unassigned": 7,
+        "lines": 410843,
         "members": {
           "jo": {
-            "count": 355,
-            "pct": 92.0
+            "count": 360,
+            "pct": 92.1,
+            "lines": 397084,
+            "linesPct": 96.7
           },
           "ahn": {
             "count": 24,
-            "pct": 6.2
+            "pct": 6.1,
+            "lines": 12530,
+            "linesPct": 3.0
           },
           "kwon": {
             "count": 7,
-            "pct": 1.8
+            "pct": 1.8,
+            "lines": 1229,
+            "linesPct": 0.3
           }
         }
       },
       "infra": {
         "label": "인프라 · CI",
         "unit": "PR",
-        "total": 165,
+        "total": 168,
         "unassigned": 6,
+        "lines": 22975,
         "members": {
           "jo": {
-            "count": 139,
-            "pct": 84.2
+            "count": 142,
+            "pct": 84.5,
+            "lines": 21147,
+            "linesPct": 92.0
           },
           "ahn": {
             "count": 9,
-            "pct": 5.5
+            "pct": 5.4,
+            "lines": 331,
+            "linesPct": 1.4
           },
           "kwon": {
             "count": 17,
-            "pct": 10.3
+            "pct": 10.1,
+            "lines": 1497,
+            "linesPct": 6.5
           }
         }
       },
       "docs": {
         "label": "문서 정본",
         "unit": "PR",
-        "total": 156,
+        "total": 160,
         "unassigned": 0,
+        "lines": 91182,
         "members": {
           "jo": {
-            "count": 144,
-            "pct": 92.3
+            "count": 147,
+            "pct": 91.9,
+            "lines": 74363,
+            "linesPct": 81.6
           },
           "ahn": {
             "count": 8,
-            "pct": 5.1
+            "pct": 5.0,
+            "lines": 6488,
+            "linesPct": 7.1
           },
           "kwon": {
-            "count": 4,
-            "pct": 2.6
+            "count": 5,
+            "pct": 3.1,
+            "lines": 10331,
+            "linesPct": 11.3
           }
         }
       },
       "app": {
         "label": "앱 (React Native)",
         "unit": "PR",
-        "total": 418,
+        "total": 421,
         "unassigned": 8,
+        "lines": 406810,
         "members": {
           "jo": {
-            "count": 110,
-            "pct": 26.3
+            "count": 113,
+            "pct": 26.8,
+            "lines": 214708,
+            "linesPct": 52.8
           },
           "ahn": {
             "count": 236,
-            "pct": 56.5
+            "pct": 56.1,
+            "lines": 144213,
+            "linesPct": 35.4
           },
           "kwon": {
             "count": 72,
-            "pct": 17.2
+            "pct": 17.1,
+            "lines": 47889,
+            "linesPct": 11.8
           }
         }
       },
@@ -111,18 +146,25 @@
         "unit": "PR",
         "total": 102,
         "unassigned": 5,
+        "lines": 10550,
         "members": {
           "jo": {
             "count": 16,
-            "pct": 15.7
+            "pct": 15.7,
+            "lines": 2096,
+            "linesPct": 19.9
           },
           "ahn": {
             "count": 75,
-            "pct": 73.5
+            "pct": 73.5,
+            "lines": 7892,
+            "linesPct": 74.8
           },
           "kwon": {
             "count": 11,
-            "pct": 10.8
+            "pct": 10.8,
+            "lines": 562,
+            "linesPct": 5.3
           }
         }
       },
@@ -131,123 +173,188 @@
         "unit": "PR",
         "total": 28,
         "unassigned": 2,
+        "lines": 7853,
         "members": {
           "jo": {
             "count": 8,
-            "pct": 28.6
+            "pct": 28.6,
+            "lines": 1889,
+            "linesPct": 24.1
           },
           "ahn": {
             "count": 19,
-            "pct": 67.9
+            "pct": 67.9,
+            "lines": 5925,
+            "linesPct": 75.4
           },
           "kwon": {
             "count": 1,
-            "pct": 3.6
+            "pct": 3.6,
+            "lines": 39,
+            "linesPct": 0.5
           }
         }
+      }
+    },
+    "scale": {
+      "jo": {
+        "cappedLines": 362539,
+        "cappedPct": 68.5,
+        "medianLines": 342.0,
+        "bigPrs": 238,
+        "activeDays": 75
+      },
+      "ahn": {
+        "cappedLines": 118893,
+        "cappedPct": 22.5,
+        "medianLines": 177.5,
+        "bigPrs": 70,
+        "activeDays": 59
+      },
+      "kwon": {
+        "cappedLines": 47740,
+        "cappedPct": 9.0,
+        "medianLines": 247,
+        "bigPrs": 32,
+        "activeDays": 28
       }
     }
   },
   "recent": {
-    "merged": 242,
+    "merged": 254,
     "areas": {
       "overall": {
         "label": "전체",
         "unit": "PR",
-        "total": 241,
+        "total": 253,
         "unassigned": 1,
+        "lines": 305699,
         "members": {
           "jo": {
-            "count": 208,
-            "pct": 86.3
+            "count": 219,
+            "pct": 86.6,
+            "lines": 247289,
+            "linesPct": 80.9
           },
           "ahn": {
             "count": 33,
-            "pct": 13.7
+            "pct": 13.0,
+            "lines": 58380,
+            "linesPct": 19.1
           },
           "kwon": {
-            "count": 0,
-            "pct": 0.0
+            "count": 1,
+            "pct": 0.4,
+            "lines": 30,
+            "linesPct": 0.0
           }
         }
       },
       "backend": {
         "label": "백엔드",
         "unit": "PR",
-        "total": 132,
+        "total": 137,
         "unassigned": 0,
+        "lines": 180265,
         "members": {
           "jo": {
-            "count": 131,
-            "pct": 99.2
+            "count": 136,
+            "pct": 99.3,
+            "lines": 180249,
+            "linesPct": 100.0
           },
           "ahn": {
             "count": 1,
-            "pct": 0.8
+            "pct": 0.7,
+            "lines": 16,
+            "linesPct": 0.0
           },
           "kwon": {
             "count": 0,
-            "pct": 0.0
+            "pct": 0.0,
+            "lines": 0,
+            "linesPct": 0.0
           }
         }
       },
       "infra": {
         "label": "인프라 · CI",
         "unit": "PR",
-        "total": 76,
+        "total": 79,
         "unassigned": 0,
+        "lines": 9409,
         "members": {
           "jo": {
-            "count": 73,
-            "pct": 96.1
+            "count": 76,
+            "pct": 96.2,
+            "lines": 9296,
+            "linesPct": 98.8
           },
           "ahn": {
             "count": 3,
-            "pct": 3.9
+            "pct": 3.8,
+            "lines": 113,
+            "linesPct": 1.2
           },
           "kwon": {
             "count": 0,
-            "pct": 0.0
+            "pct": 0.0,
+            "lines": 0,
+            "linesPct": 0.0
           }
         }
       },
       "docs": {
         "label": "문서 정본",
         "unit": "PR",
-        "total": 111,
+        "total": 115,
         "unassigned": 0,
+        "lines": 24608,
         "members": {
           "jo": {
-            "count": 108,
-            "pct": 97.3
+            "count": 111,
+            "pct": 96.5,
+            "lines": 24129,
+            "linesPct": 98.1
           },
           "ahn": {
             "count": 3,
-            "pct": 2.7
+            "pct": 2.6,
+            "lines": 449,
+            "linesPct": 1.8
           },
           "kwon": {
-            "count": 0,
-            "pct": 0.0
+            "count": 1,
+            "pct": 0.9,
+            "lines": 30,
+            "linesPct": 0.1
           }
         }
       },
       "app": {
         "label": "앱 (React Native)",
         "unit": "PR",
-        "total": 60,
+        "total": 63,
         "unassigned": 1,
+        "lines": 84624,
         "members": {
           "jo": {
-            "count": 27,
-            "pct": 45.0
+            "count": 30,
+            "pct": 47.6,
+            "lines": 31522,
+            "linesPct": 37.2
           },
           "ahn": {
             "count": 33,
-            "pct": 55.0
+            "pct": 52.4,
+            "lines": 53102,
+            "linesPct": 62.8
           },
           "kwon": {
             "count": 0,
-            "pct": 0.0
+            "pct": 0.0,
+            "lines": 0,
+            "linesPct": 0.0
           }
         }
       },
@@ -256,18 +363,25 @@
         "unit": "PR",
         "total": 15,
         "unassigned": 1,
+        "lines": 3296,
         "members": {
           "jo": {
             "count": 4,
-            "pct": 26.7
+            "pct": 26.7,
+            "lines": 63,
+            "linesPct": 1.9
           },
           "ahn": {
             "count": 11,
-            "pct": 73.3
+            "pct": 73.3,
+            "lines": 3233,
+            "linesPct": 98.1
           },
           "kwon": {
             "count": 0,
-            "pct": 0.0
+            "pct": 0.0,
+            "lines": 0,
+            "linesPct": 0.0
           }
         }
       },
@@ -276,21 +390,65 @@
         "unit": "PR",
         "total": 5,
         "unassigned": 0,
+        "lines": 1372,
         "members": {
           "jo": {
             "count": 1,
-            "pct": 20.0
+            "pct": 20.0,
+            "lines": 0,
+            "linesPct": 0.0
           },
           "ahn": {
             "count": 4,
-            "pct": 80.0
+            "pct": 80.0,
+            "lines": 1372,
+            "linesPct": 100.0
           },
           "kwon": {
             "count": 0,
-            "pct": 0.0
+            "pct": 0.0,
+            "lines": 0,
+            "linesPct": 0.0
           }
         }
       }
+    },
+    "scale": {
+      "jo": {
+        "cappedLines": 153199,
+        "cappedPct": 84.4,
+        "medianLines": 400,
+        "bigPrs": 99,
+        "activeDays": 14
+      },
+      "ahn": {
+        "cappedLines": 28331,
+        "cappedPct": 15.6,
+        "medianLines": 712,
+        "bigPrs": 19,
+        "activeDays": 9
+      },
+      "kwon": {
+        "cappedLines": 30,
+        "cappedPct": 0.0,
+        "medianLines": 30,
+        "bigPrs": 0,
+        "activeDays": 1
+      }
+    }
+  },
+  "documents": {
+    "jo": {
+      "count": 86,
+      "lines": 11274
+    },
+    "ahn": {
+      "count": 20,
+      "lines": 3883
+    },
+    "kwon": {
+      "count": 0,
+      "lines": 0
     }
   }
 }
