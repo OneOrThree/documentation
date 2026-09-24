@@ -17,6 +17,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const NAV = [
   { href: "/", label: "개요" },
   ...sections.map((s) => ({ href: `/${s.slug}`, label: s.label })),
+  // Password-gated, so kept out of site.config sections (sitemap, llms.txt, search).
+  { href: "/conflict", label: "갈등관리" },
 ];
 
 function isActive(pathname: string, href: string): boolean {
