@@ -126,13 +126,13 @@ npm run build
 
 ## 팀 기여도 스냅샷 갱신
 
-`src/data/contributions.json`은 GitHub에서 조회한 **머지 PR의 assignee**만 사람별로 센다. 커밋 작성자와 PR 작성자는 사용하지 않으며, assignee가 없는 PR은 미배정으로 따로 남긴다. 현재 `back/`과 `server/` 경로를 모두 포함해 영역을 분류한다.
+`src/data/contributions.json`은 GitHub에서 조회한 **머지 PR의 assignee**만 사람별로 센다. 커밋 작성자와 PR 작성자는 사용하지 않으며, assignee가 없는 PR은 미배정으로 따로 남긴다. 현재 `back/`과 `server/` 경로를 모두 포함해 영역을 분류한다. PR 건수와 함께 파일별 변경 줄 수(락파일·`.json`·이미지 등 `NOISE_SUFFIXES` 제외)를 영역별로 더하고, 이 사이트 `content/`의 문서 수를 frontmatter `author`로 센다. `contributions.mdx`·`roles.mdx`의 수치는 `<Contrib>`·`<ContributionTable>`이 JSON에서 직접 읽으므로 손으로 고치지 않는다.
 
 ```bash
 python3 scripts/sync-contributions.py
 ```
 
-`gh` 로그인과 `OneOrThree/phone` 읽기 권한이 필요하다. 생성된 JSON의 마감 시각·전체/미배정 수·영역별 수를 `content/team/contributions.mdx`와 대조한 뒤 커밋한다. Jira는 별도 인증 조회가 필요하며 이 스크립트는 Jira 수치를 생성하지 않는다.
+`gh` 로그인과 `OneOrThree/phone` 읽기 권한이 필요하다. 생성된 JSON을 커밋한다. Jira는 별도 인증 조회가 필요하며 이 스크립트는 Jira 수치를 생성하지 않는다.
 
 ## 발전 기록 자동 생성
 

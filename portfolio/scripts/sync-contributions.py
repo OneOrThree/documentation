@@ -12,6 +12,7 @@ import subprocess
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from statistics import median
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,17 +32,20 @@ LABELS = {
     "android": "안드로이드 네이티브",
 }
 RECENT_SINCE = "2026-09-10"
+# Lock, generated, data and asset files: large diffs that are not hand-written work.
+NOISE_SUFFIXES = (".json", ".lock", ".pbxproj", ".gypi", ".svg", ".png", ".jpg", ".drawio", "gradlew", "gradlew.bat")
+PR_LINE_CAP = 2000
 
 PR_QUERY = """query($cursor:String){repository(owner:"OneOrThree",name:"phone"){
   pullRequests(states:MERGED,first:25,after:$cursor,orderBy:{field:CREATED_AT,direction:ASC}){
     totalCount pageInfo{hasNextPage endCursor}
     nodes{number mergedAt assignees(first:10){nodes{login}}
-      files(first:100){totalCount pageInfo{hasNextPage} nodes{path}}}
+      files(first:100){totalCount pageInfo{hasNextPage} nodes{path additions deletions}}}
   }
 }}"""
 FILES_QUERY = """query($number:Int!,$cursor:String){repository(owner:"OneOrThree",name:"phone"){
   pullRequest(number:$number){files(first:100,after:$cursor){
-    pageInfo{hasNextPage endCursor} nodes{path}
+    pageInfo{hasNextPage endCursor} nodes{path additions deletions}
   }}
 }}"""
 
@@ -110,8 +114,19 @@ def areas_for(path):
     return areas
 
 
+def lines_of(file):
+    return 0 if file["path"].endswith(NOISE_SUFFIXES) else file["additions"] + file["deletions"]
+
+
+def pct(part, total):
+    return round(part * 100 / total, 1) if total else 0
+
+
 def summarize(prs, since=None):
     counts = {key: Counter() for key in LABELS}
+    lines = {key: Counter() for key in LABELS}
+    pr_lines = {person: [] for person in PEOPLE.values()}
+    days = {person: set() for person in PEOPLE.values()}
     unassigned = Counter()
     merged = 0
     for pr in prs:
@@ -125,8 +140,18 @@ def summarize(prs, since=None):
             raise RuntimeError(f"PR #{pr['number']} has unknown assignee {assignees[0]}")
         person = PEOPLE[assignees[0]] if assignees else None
         areas = {"overall"}
+        total_lines = 0
         for file in pr["files"]["nodes"]:
-            areas.update(areas_for(file["path"]))
+            file_areas = areas_for(file["path"])
+            areas.update(file_areas)
+            n = lines_of(file)
+            total_lines += n
+            if person:
+                for area in file_areas | {"overall"}:
+                    lines[area][person] += n
+        if person:
+            pr_lines[person].append(total_lines)
+            days[person].add(pr["mergedAt"][:10])
         for area in areas:
             if person:
                 counts[area][person] += 1
@@ -135,20 +160,48 @@ def summarize(prs, since=None):
     result = {}
     for area, label in LABELS.items():
         total = sum(counts[area].values())
+        line_total = sum(lines[area].values())
         result[area] = {
             "label": label,
             "unit": "PR",
             "total": total,
             "unassigned": unassigned[area],
+            "lines": line_total,
             "members": {
                 person: {
                     "count": counts[area][person],
-                    "pct": round(counts[area][person] * 100 / total, 1) if total else 0,
+                    "pct": pct(counts[area][person], total),
+                    "lines": lines[area][person],
+                    "linesPct": pct(lines[area][person], line_total),
                 }
                 for person in PEOPLE.values()
             },
         }
-    return {"merged": merged, "areas": result}
+    capped = {person: sum(min(n, PR_LINE_CAP) for n in pr_lines[person]) for person in PEOPLE.values()}
+    scale = {
+        person: {
+            "cappedLines": capped[person],
+            "cappedPct": pct(capped[person], sum(capped.values())),
+            "medianLines": median(pr_lines[person]) if pr_lines[person] else 0,
+            "bigPrs": sum(n > 500 for n in pr_lines[person]),
+            "activeDays": len(days[person]),
+        }
+        for person in PEOPLE.values()
+    }
+    return {"merged": merged, "areas": result, "scale": scale}
+
+
+def site_documents():
+    """Documents on this site, credited by their frontmatter author (the declared owner)."""
+    names = {"조재영": "jo", "안수빈": "ahn", "권태화": "kwon"}
+    docs = {person: {"count": 0, "lines": 0} for person in PEOPLE.values()}
+    for path in sorted((ROOT / "content").glob("*/*.mdx")):
+        text = path.read_text()
+        author = next((line.split(":", 1)[1].strip().strip('"') for line in text.splitlines() if line.startswith("author:")), "")
+        if author in names:
+            docs[names[author]]["count"] += 1
+            docs[names[author]]["lines"] += len(text.splitlines())
+    return docs
 
 
 def main():
@@ -171,6 +224,7 @@ def main():
         "recentSince": RECENT_SINCE,
         "overall": summarize(prs),
         "recent": summarize(prs, RECENT_SINCE),
+        "documents": site_documents(),
     }
     args.output.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n")
     print(f"{snapshot['overall']['merged']} merged PRs, cutoff {cutoff}")
