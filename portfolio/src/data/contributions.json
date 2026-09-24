@@ -1,182 +1,296 @@
 {
-  "asOf": "2026-08-24",
-  "basis": "담당자 기준 — GitHub PR은 assignee(머지된 666건 중 파일 정보가 있는 665건, 2026-08-24 스냅샷), 지라는 상태가 완료인 티켓의 assignee(완료 1,177건 중 담당자가 지정된 1,112건, 2026-09-21 조회). 팀이 Claude 계정을 공유해 커밋 작성자가 실제 담당자와 다를 수 있어, 커밋이 아니라 담당자를 기준으로 셉니다",
-  "areas": {
-    "overall": {
-      "total": 665,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 345,
-          "lines": 255482,
-          "pct": 51.9
-        },
-        "ahn": {
-          "commits": 223,
-          "lines": 124321,
-          "pct": 33.5
-        },
-        "kwon": {
-          "commits": 97,
-          "lines": 52297,
-          "pct": 14.6
+  "asOf": "2026-09-24T03:44:46Z",
+  "basis": "OneOrThree/phone 머지 PR의 GitHub assignee 기준. 작성자·커밋 계정은 사용하지 않음. 미배정 PR은 비율에서 제외.",
+  "recentSince": "2026-09-10",
+  "overall": {
+    "merged": 936,
+    "areas": {
+      "overall": {
+        "label": "전체",
+        "unit": "PR",
+        "total": 919,
+        "unassigned": 17,
+        "members": {
+          "jo": {
+            "count": 568,
+            "pct": 61.8
+          },
+          "ahn": {
+            "count": 259,
+            "pct": 28.2
+          },
+          "kwon": {
+            "count": 92,
+            "pct": 10.0
+          }
         }
       },
-      "label": "전체"
-    },
-    "backend": {
-      "total": 237,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 207,
-          "lines": 113219,
-          "pct": 87.3
-        },
-        "ahn": {
-          "commits": 23,
-          "lines": 11317,
-          "pct": 9.7
-        },
-        "kwon": {
-          "commits": 7,
-          "lines": 960,
-          "pct": 3.0
+      "backend": {
+        "label": "백엔드",
+        "unit": "PR",
+        "total": 386,
+        "unassigned": 7,
+        "members": {
+          "jo": {
+            "count": 355,
+            "pct": 92.0
+          },
+          "ahn": {
+            "count": 24,
+            "pct": 6.2
+          },
+          "kwon": {
+            "count": 7,
+            "pct": 1.8
+          }
         }
       },
-      "label": "백엔드"
-    },
-    "infra": {
-      "total": 91,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 67,
-          "lines": 23677,
-          "pct": 73.6
-        },
-        "ahn": {
-          "commits": 7,
-          "lines": 434,
-          "pct": 7.7
-        },
-        "kwon": {
-          "commits": 17,
-          "lines": 1011,
-          "pct": 18.7
+      "infra": {
+        "label": "인프라 · CI",
+        "unit": "PR",
+        "total": 160,
+        "unassigned": 6,
+        "members": {
+          "jo": {
+            "count": 134,
+            "pct": 83.8
+          },
+          "ahn": {
+            "count": 9,
+            "pct": 5.6
+          },
+          "kwon": {
+            "count": 17,
+            "pct": 10.6
+          }
         }
       },
-      "label": "인프라 · CI"
-    },
-    "docs": {
-      "total": 32,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 23,
-          "lines": 18627,
-          "pct": 71.9
-        },
-        "ahn": {
-          "commits": 5,
-          "lines": 5990,
-          "pct": 15.6
-        },
-        "kwon": {
-          "commits": 4,
-          "lines": 8501,
-          "pct": 12.5
+      "docs": {
+        "label": "문서 정본",
+        "unit": "PR",
+        "total": 154,
+        "unassigned": 0,
+        "members": {
+          "jo": {
+            "count": 142,
+            "pct": 92.2
+          },
+          "ahn": {
+            "count": 8,
+            "pct": 5.2
+          },
+          "kwon": {
+            "count": 4,
+            "pct": 2.6
+          }
         }
       },
-      "label": "문서 정본"
-    },
-    "app": {
-      "total": 356,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 80,
-          "lines": 89493,
-          "pct": 22.5
-        },
-        "ahn": {
-          "commits": 199,
-          "lines": 86702,
-          "pct": 55.9
-        },
-        "kwon": {
-          "commits": 77,
-          "lines": 39540,
-          "pct": 21.6
+      "app": {
+        "label": "앱 (React Native)",
+        "unit": "PR",
+        "total": 417,
+        "unassigned": 8,
+        "members": {
+          "jo": {
+            "count": 110,
+            "pct": 26.4
+          },
+          "ahn": {
+            "count": 235,
+            "pct": 56.4
+          },
+          "kwon": {
+            "count": 72,
+            "pct": 17.3
+          }
         }
       },
-      "label": "앱 (React Native)"
-    },
-    "ios": {
-      "total": 89,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 12,
-          "lines": 6709,
-          "pct": 13.5
-        },
-        "ahn": {
-          "commits": 64,
-          "lines": 10368,
-          "pct": 71.9
-        },
-        "kwon": {
-          "commits": 13,
-          "lines": 2213,
-          "pct": 14.6
+      "ios": {
+        "label": "iOS 네이티브",
+        "unit": "PR",
+        "total": 102,
+        "unassigned": 5,
+        "members": {
+          "jo": {
+            "count": 16,
+            "pct": 15.7
+          },
+          "ahn": {
+            "count": 75,
+            "pct": 73.5
+          },
+          "kwon": {
+            "count": 11,
+            "pct": 10.8
+          }
         }
       },
-      "label": "iOS 네이티브"
-    },
-    "android": {
-      "total": 23,
-      "unit": "PR",
-      "members": {
-        "jo": {
-          "commits": 7,
-          "lines": 2721,
-          "pct": 30.4
-        },
-        "ahn": {
-          "commits": 15,
-          "lines": 5289,
-          "pct": 65.2
-        },
-        "kwon": {
-          "commits": 1,
-          "lines": 35,
-          "pct": 4.3
-        }
-      },
-      "label": "안드로이드 네이티브"
-    },
-    "jira": {
-      "label": "지라 담당 (완료)",
-      "unit": "티켓",
-      "total": 1112,
-      "members": {
-        "jo": {
-          "commits": 567,
-          "lines": 0,
-          "pct": 51.0
-        },
-        "ahn": {
-          "commits": 362,
-          "lines": 0,
-          "pct": 32.6
-        },
-        "kwon": {
-          "commits": 183,
-          "lines": 0,
-          "pct": 16.5
+      "android": {
+        "label": "안드로이드 네이티브",
+        "unit": "PR",
+        "total": 28,
+        "unassigned": 2,
+        "members": {
+          "jo": {
+            "count": 8,
+            "pct": 28.6
+          },
+          "ahn": {
+            "count": 19,
+            "pct": 67.9
+          },
+          "kwon": {
+            "count": 1,
+            "pct": 3.6
+          }
         }
       }
     }
-  }
+  },
+  "recent": {
+    "merged": 236,
+    "areas": {
+      "overall": {
+        "label": "전체",
+        "unit": "PR",
+        "total": 235,
+        "unassigned": 1,
+        "members": {
+          "jo": {
+            "count": 203,
+            "pct": 86.4
+          },
+          "ahn": {
+            "count": 32,
+            "pct": 13.6
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "backend": {
+        "label": "백엔드",
+        "unit": "PR",
+        "total": 132,
+        "unassigned": 0,
+        "members": {
+          "jo": {
+            "count": 131,
+            "pct": 99.2
+          },
+          "ahn": {
+            "count": 1,
+            "pct": 0.8
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "infra": {
+        "label": "인프라 · CI",
+        "unit": "PR",
+        "total": 71,
+        "unassigned": 0,
+        "members": {
+          "jo": {
+            "count": 68,
+            "pct": 95.8
+          },
+          "ahn": {
+            "count": 3,
+            "pct": 4.2
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "docs": {
+        "label": "문서 정본",
+        "unit": "PR",
+        "total": 109,
+        "unassigned": 0,
+        "members": {
+          "jo": {
+            "count": 106,
+            "pct": 97.2
+          },
+          "ahn": {
+            "count": 3,
+            "pct": 2.8
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "app": {
+        "label": "앱 (React Native)",
+        "unit": "PR",
+        "total": 59,
+        "unassigned": 1,
+        "members": {
+          "jo": {
+            "count": 27,
+            "pct": 45.8
+          },
+          "ahn": {
+            "count": 32,
+            "pct": 54.2
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "ios": {
+        "label": "iOS 네이티브",
+        "unit": "PR",
+        "total": 15,
+        "unassigned": 1,
+        "members": {
+          "jo": {
+            "count": 4,
+            "pct": 26.7
+          },
+          "ahn": {
+            "count": 11,
+            "pct": 73.3
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      },
+      "android": {
+        "label": "안드로이드 네이티브",
+        "unit": "PR",
+        "total": 5,
+        "unassigned": 0,
+        "members": {
+          "jo": {
+            "count": 1,
+            "pct": 20.0
+          },
+          "ahn": {
+            "count": 4,
+            "pct": 80.0
+          },
+          "kwon": {
+            "count": 0,
+            "pct": 0.0
+          }
+        }
+      }
+    }
+  },
+  "asOfKst": "2026-09-24 12:44 KST"
 }

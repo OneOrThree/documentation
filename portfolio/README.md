@@ -124,6 +124,16 @@ npm run build
 
 두 번째 생성기(`make-product-html-diagrams.mjs`)는 IA·유저 저니 v3까지만 만든다. v4부터 IA·유저 저니는 설계 쪽 R61 HTML 원본을 `scripts/sync-r61-html.py`로 가져온다. 생성기는 manifest의 현재 버전이 자기 버전보다 높으면 덮어쓰지 않고 멈춘다 (아래 "HTML 다이어그램의 표시").
 
+## 팀 기여도 스냅샷 갱신
+
+`src/data/contributions.json`은 GitHub에서 조회한 **머지 PR의 assignee**만 사람별로 센다. 커밋 작성자와 PR 작성자는 사용하지 않으며, assignee가 없는 PR은 미배정으로 따로 남긴다. 현재 `back/`과 `server/` 경로를 모두 포함해 영역을 분류한다.
+
+```bash
+python3 scripts/sync-contributions.py
+```
+
+`gh` 로그인과 `OneOrThree/phone` 읽기 권한이 필요하다. 생성된 JSON의 마감 시각·전체/미배정 수·영역별 수를 `content/team/contributions.mdx`와 대조한 뒤 커밋한다. Jira는 별도 인증 조회가 필요하며 이 스크립트는 Jira 수치를 생성하지 않는다.
+
 ## 발전 기록 자동 생성
 
 `src/data/evolution.json`은 직접 편집하지 않는다. 생성기가 `phone` 저장소 `origin/main`의 first-parent 기록에서 `docs/`, `.github/workflows/`, `server/scripts/` 변경만 모아 날짜·제목·SHA·변경 파일을 기록한다.
