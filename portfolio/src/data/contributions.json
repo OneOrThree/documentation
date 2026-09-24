@@ -1,27 +1,28 @@
 {
-  "asOf": "2026-09-24T03:44:46Z",
+  "asOf": "2026-09-24T05:33:59Z",
+  "asOfKst": "2026-09-24 14:33 KST",
   "basis": "OneOrThree/phone 머지 PR의 GitHub assignee 기준. 작성자·커밋 계정은 사용하지 않음. 미배정 PR은 비율에서 제외.",
   "recentSince": "2026-09-10",
   "overall": {
-    "merged": 936,
+    "merged": 942,
     "areas": {
       "overall": {
         "label": "전체",
         "unit": "PR",
-        "total": 919,
+        "total": 925,
         "unassigned": 17,
         "members": {
           "jo": {
-            "count": 568,
-            "pct": 61.8
+            "count": 573,
+            "pct": 61.9
           },
           "ahn": {
-            "count": 259,
-            "pct": 28.2
+            "count": 260,
+            "pct": 28.1
           },
           "kwon": {
             "count": 92,
-            "pct": 10.0
+            "pct": 9.9
           }
         }
       },
@@ -48,36 +49,36 @@
       "infra": {
         "label": "인프라 · CI",
         "unit": "PR",
-        "total": 160,
+        "total": 165,
         "unassigned": 6,
         "members": {
           "jo": {
-            "count": 134,
-            "pct": 83.8
+            "count": 139,
+            "pct": 84.2
           },
           "ahn": {
             "count": 9,
-            "pct": 5.6
+            "pct": 5.5
           },
           "kwon": {
             "count": 17,
-            "pct": 10.6
+            "pct": 10.3
           }
         }
       },
       "docs": {
         "label": "문서 정본",
         "unit": "PR",
-        "total": 154,
+        "total": 156,
         "unassigned": 0,
         "members": {
           "jo": {
-            "count": 142,
-            "pct": 92.2
+            "count": 144,
+            "pct": 92.3
           },
           "ahn": {
             "count": 8,
-            "pct": 5.2
+            "pct": 5.1
           },
           "kwon": {
             "count": 4,
@@ -88,20 +89,20 @@
       "app": {
         "label": "앱 (React Native)",
         "unit": "PR",
-        "total": 417,
+        "total": 418,
         "unassigned": 8,
         "members": {
           "jo": {
             "count": 110,
-            "pct": 26.4
+            "pct": 26.3
           },
           "ahn": {
-            "count": 235,
-            "pct": 56.4
+            "count": 236,
+            "pct": 56.5
           },
           "kwon": {
             "count": 72,
-            "pct": 17.3
+            "pct": 17.2
           }
         }
       },
@@ -148,21 +149,21 @@
     }
   },
   "recent": {
-    "merged": 236,
+    "merged": 242,
     "areas": {
       "overall": {
         "label": "전체",
         "unit": "PR",
-        "total": 235,
+        "total": 241,
         "unassigned": 1,
         "members": {
           "jo": {
-            "count": 203,
-            "pct": 86.4
+            "count": 208,
+            "pct": 86.3
           },
           "ahn": {
-            "count": 32,
-            "pct": 13.6
+            "count": 33,
+            "pct": 13.7
           },
           "kwon": {
             "count": 0,
@@ -193,16 +194,16 @@
       "infra": {
         "label": "인프라 · CI",
         "unit": "PR",
-        "total": 71,
+        "total": 76,
         "unassigned": 0,
         "members": {
           "jo": {
-            "count": 68,
-            "pct": 95.8
+            "count": 73,
+            "pct": 96.1
           },
           "ahn": {
             "count": 3,
-            "pct": 4.2
+            "pct": 3.9
           },
           "kwon": {
             "count": 0,
@@ -213,16 +214,16 @@
       "docs": {
         "label": "문서 정본",
         "unit": "PR",
-        "total": 109,
+        "total": 111,
         "unassigned": 0,
         "members": {
           "jo": {
-            "count": 106,
-            "pct": 97.2
+            "count": 108,
+            "pct": 97.3
           },
           "ahn": {
             "count": 3,
-            "pct": 2.8
+            "pct": 2.7
           },
           "kwon": {
             "count": 0,
@@ -233,16 +234,16 @@
       "app": {
         "label": "앱 (React Native)",
         "unit": "PR",
-        "total": 59,
+        "total": 60,
         "unassigned": 1,
         "members": {
           "jo": {
             "count": 27,
-            "pct": 45.8
+            "pct": 45.0
           },
           "ahn": {
-            "count": 32,
-            "pct": 54.2
+            "count": 33,
+            "pct": 55.0
           },
           "kwon": {
             "count": 0,
@@ -291,6 +292,5 @@
         }
       }
     }
-  },
-  "asOfKst": "2026-09-24 12:44 KST"
+  }
 }
