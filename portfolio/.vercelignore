@@ -1,0 +1,6 @@
+# Never upload plaintext or secrets with `vercel deploy`.
+/private/
+.env
+.env.*
+node_modules
+.next
