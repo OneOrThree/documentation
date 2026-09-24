@@ -34,8 +34,15 @@ export interface SectionConfig {
    * chronicle. "date" puts the newest document first, which is what a log of
    * decisions and notes should do; documents sharing a date fall back to
    * `order`, so a batch written on one day keeps its intended sequence.
+   * "curated-desc" reverses `order` — for a numbered series where the number
+   * is the identity and the newest entry has the highest one, like the ADRs.
+   * Sorting those by date scatters the numbers (022 · 002 · 003 · 020 …)
+   * because a revised ADR carries its revision date, not its decision date.
+   *
+   * A document with no `order` sorts last in every mode, including the
+   * reversed one — absence should not win a ranking.
    */
-  sort?: "curated" | "date";
+  sort?: "curated" | "date" | "curated-desc";
 }
 
 export const sections: SectionConfig[] = [
@@ -67,7 +74,7 @@ export const sections: SectionConfig[] = [
       "무엇을 정했는지가 아니라, 왜 그렇게 정했고 무엇을 기각했는지를 남깁니다. 뒤집힌 결정도 지우지 않고 대체됨으로 표시합니다.",
     kind: "docs",
     search: true,
-    sort: "date",
+    sort: "curated-desc",
   },
   {
     slug: "operations",
