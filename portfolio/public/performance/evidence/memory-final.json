@@ -1,0 +1,115 @@
+{
+  "runId": "e9a4eebce3a3",
+  "imageId": "sha256:903cfb5d146c942013ea58dfad0696e16cf13d6bc58077074df35342d4e9b7ab",
+  "probeSha256": "805d4d755a1812805abfeb8a309ff710a9640ed0269bf0d965ee82e413b13839",
+  "jarSha256": "2e185d2fcb47d7ce50c6114b47af89341eaadb555ba99ade728193daa5a960ce",
+  "javaVersion": "openjdk version \"17.0.20.1\" 2026-08-18\nOpenJDK Runtime Environment Temurin-17.0.20.1+1 (build 17.0.20.1+1)\nOpenJDK 64-Bit Server VM Temurin-17.0.20.1+1 (build 17.0.20.1+1, mixed mode, sharing)",
+  "memoryLimitMiB": 768,
+  "cpuCount": 2,
+  "connections": 1000,
+  "connectRate": 40,
+  "holdSeconds": 60,
+  "observeSeconds": 60,
+  "maxRamPercentage": 40.0,
+  "compression": "deflate",
+  "expectNoCompression": true,
+  "denySea": true,
+  "rounds": [
+    {
+      "round": 1,
+      "mode": "normal",
+      "client": {
+        "connected": 1000,
+        "earlyCloseCount": 0,
+        "closeCodes": {
+          "1000": 1000
+        },
+        "normalCloseHandshakes": 1000,
+        "connectSeconds": 25.68,
+        "closeSeconds": 0.453,
+        "mode": "normal",
+        "negotiatedExtensions": [
+          ""
+        ]
+      },
+      "compressionExpectationMet": true,
+      "clientPassed": true,
+      "serverPassed": true,
+      "observedSecondsAfterClose": 60.124,
+      "peakRssMiB": 605.23,
+      "peakCgroupMiB": 648.43,
+      "peakJvmThreads": 95.0,
+      "peakTomcatThreads": 32.0,
+      "peakServerSessions": 1000.0,
+      "serverDrainSeconds": 0.193,
+      "finalSessions": 0.0,
+      "finalStompSessions": 0.0
+    },
+    {
+      "round": 2,
+      "mode": "forced",
+      "client": {
+        "connected": 1000,
+        "earlyCloseCount": 0,
+        "closeCodes": {
+          "None": 1000
+        },
+        "normalCloseHandshakes": 0,
+        "connectSeconds": 24.987,
+        "closeSeconds": 0.003,
+        "mode": "forced",
+        "negotiatedExtensions": [
+          ""
+        ]
+      },
+      "compressionExpectationMet": true,
+      "clientPassed": true,
+      "serverPassed": true,
+      "observedSecondsAfterClose": 60.11,
+      "peakRssMiB": 656.73,
+      "peakCgroupMiB": 672.89,
+      "peakJvmThreads": 95.0,
+      "peakTomcatThreads": 32.0,
+      "peakServerSessions": 1000.0,
+      "serverDrainSeconds": 1.095,
+      "finalSessions": 0.0,
+      "finalStompSessions": 0.0
+    },
+    {
+      "round": 3,
+      "mode": "normal",
+      "client": {
+        "connected": 1000,
+        "earlyCloseCount": 0,
+        "closeCodes": {
+          "1000": 1000
+        },
+        "normalCloseHandshakes": 1000,
+        "connectSeconds": 24.99,
+        "closeSeconds": 0.555,
+        "mode": "normal",
+        "negotiatedExtensions": [
+          ""
+        ]
+      },
+      "compressionExpectationMet": true,
+      "clientPassed": true,
+      "serverPassed": true,
+      "observedSecondsAfterClose": 60.097,
+      "peakRssMiB": 657.96,
+      "peakCgroupMiB": 661.51,
+      "peakJvmThreads": 95.0,
+      "peakTomcatThreads": 32.0,
+      "peakServerSessions": 1000.0,
+      "serverDrainSeconds": 0.554,
+      "finalSessions": 0.0,
+      "finalStompSessions": 0.0
+    }
+  ],
+  "passed": true,
+  "failures": [],
+  "cleanupRemaining": [],
+  "glibcOnlineCpus": 8,
+  "source": "memory-final/summary.json",
+  "interpretation": "로컬 cgroup 메모리 회귀 검증. AWS 운영 최대 사용자 수/TPS 재측정이 아니다."
+}

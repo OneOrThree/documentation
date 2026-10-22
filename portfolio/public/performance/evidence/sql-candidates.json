@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "experiments": [
+    {
+      "scenario": "ranking",
+      "environment": "LOCAL_DOCKER_SHARED_VM",
+      "measurementUnit": "SQL Execution Time ms",
+      "comparisonScope": "same SQL and DB, 3 runs each; serial order/cache remain confounders",
+      "appliedPermanently": false,
+      "restored": {
+        "candidateIndexRemaining": 0
+      },
+      "stages": {
+        "baseline": {
+          "samplesMs": [
+            486.439,
+            189.733,
+            221.393
+          ],
+          "medianMs": 221.393,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/ranking-plan/baseline.json",
+          "startedAt": "2026-10-18T10:03:59.701532+00:00"
+        },
+        "candidate-rolled-back": {
+          "samplesMs": [
+            747.679,
+            357.052,
+            316.768
+          ],
+          "medianMs": 357.052,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/ranking-plan/candidate-rolled-back.json",
+          "startedAt": "2026-10-18T10:04:00.720323+00:00"
+        },
+        "baseline-after-rollback": {
+          "samplesMs": [
+            242.373,
+            158.178,
+            154.762
+          ],
+          "medianMs": 158.178,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/ranking-plan/baseline-after-rollback.json",
+          "startedAt": "2026-10-18T10:04:03.338088+00:00"
+        }
+      },
+      "candidateLatencyChangePct": 61.2751984028402,
+      "baselineToCandidateSpeedRatio": 0.6200581427915262,
+      "restoredToCandidateSpeedRatio": 0.44301110202435495,
+      "notAllowed": "Do not convert this SQL ratio to API throughput or production capacity improvement."
+    },
+    {
+      "scenario": "telescope",
+      "environment": "LOCAL_DOCKER_SHARED_VM",
+      "measurementUnit": "SQL Execution Time ms",
+      "comparisonScope": "same SQL and DB, 3 runs each; serial order/cache remain confounders",
+      "appliedPermanently": false,
+      "restored": {
+        "candidateIndexRemaining": 0
+      },
+      "stages": {
+        "baseline": {
+          "samplesMs": [
+            422.409,
+            354.328,
+            359.707
+          ],
+          "medianMs": 359.707,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/telescope-plan/baseline.json",
+          "startedAt": "2026-10-18T10:04:04.214279+00:00"
+        },
+        "candidate-rolled-back": {
+          "samplesMs": [
+            9.888,
+            7.512,
+            7.525
+          ],
+          "medianMs": 7.525,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/telescope-plan/candidate-rolled-back.json",
+          "startedAt": "2026-10-18T10:04:05.458244+00:00"
+        },
+        "baseline-after-rollback": {
+          "samplesMs": [
+            407.4,
+            338.494,
+            339.283
+          ],
+          "medianMs": 339.283,
+          "rawPath": "loadtest/reports/matrix-20261018/final-checks/telescope-plan/baseline-after-rollback.json",
+          "startedAt": "2026-10-18T10:04:05.615079+00:00"
+        }
+      },
+      "candidateLatencyChangePct": -97.90801958260474,
+      "baselineToCandidateSpeedRatio": 47.80159468438538,
+      "restoredToCandidateSpeedRatio": 45.08744186046512,
+      "notAllowed": "Do not convert this SQL ratio to API throughput or production capacity improvement."
+    }
+  ]
+}
