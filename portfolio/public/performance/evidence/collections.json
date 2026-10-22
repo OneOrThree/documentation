@@ -1,0 +1,411 @@
+{
+  "capturedAt": "2026-10-22T11:36:48.221488+00:00",
+  "fileCount": 7083,
+  "byteCount": 835069288,
+  "unstableFiles": [],
+  "groups": [
+    {
+      "name": "implementation-20261022/",
+      "files": 14,
+      "bytes": 3339153,
+      "extensions": {
+        ".json": 7,
+        ".log": 5,
+        ".jsonl": 1,
+        ".html": 1
+      }
+    },
+    {
+      "name": "memory-final/",
+      "files": 7,
+      "bytes": 3824577,
+      "extensions": {
+        ".log": 1,
+        ".json": 5,
+        ".jsonl": 1
+      }
+    },
+    {
+      "name": "memory-trials/",
+      "files": 13,
+      "bytes": 1547995,
+      "extensions": {
+        ".class": 1,
+        ".java": 1,
+        ".json": 4,
+        ".log": 3,
+        ".py": 3,
+        ".mf": 1
+      }
+    },
+    {
+      "name": "memory-trials/arena2-short-max32",
+      "files": 3,
+      "bytes": 332847,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/harness-smoke",
+      "files": 3,
+      "bytes": 90630,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/heap40-arena2-short-max32",
+      "files": 3,
+      "bytes": 469970,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/heap40-short-max32",
+      "files": 3,
+      "bytes": 547227,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/nmt-max32",
+      "files": 67,
+      "bytes": 1203178,
+      "extensions": {
+        ".log": 1,
+        ".txt": 64,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/no-compression-heap40-short-max32",
+      "files": 3,
+      "bytes": 1244860,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/no-compression-short-max32",
+      "files": 3,
+      "bytes": 1226436,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "memory-trials/repeated-1000-max32",
+      "files": 3,
+      "bytes": 1126893,
+      "extensions": {
+        ".log": 1,
+        ".json": 2
+      }
+    },
+    {
+      "name": "phone-reports/",
+      "files": 1,
+      "bytes": 8902919,
+      "extensions": {
+        ".gz": 1
+      }
+    },
+    {
+      "name": "phone-reports/20260710T150544Z-6be87eb3-smoke-scenarios_daily_mix.js",
+      "files": 3,
+      "bytes": 44,
+      "extensions": {
+        "(none)": 3
+      }
+    },
+    {
+      "name": "phone-reports/20260710T152329Z-8d25ece6-smoke-scenarios_daily_mix.js",
+      "files": 7,
+      "bytes": 6843,
+      "extensions": {
+        "(none)": 3,
+        ".json": 3,
+        ".csv": 1
+      }
+    },
+    {
+      "name": "phone-reports/aws-prod-20261022T075926Z",
+      "files": 818,
+      "bytes": 67172554,
+      "extensions": {
+        ".zip": 1,
+        ".sha256": 23,
+        ".gz": 23,
+        ".log": 30,
+        ".json": 413,
+        ".csv": 31,
+        ".jsonl": 4,
+        ".py": 20,
+        ".mjs": 6,
+        ".js": 6,
+        ".pyc": 1,
+        ".sh": 91,
+        ".txt": 154,
+        ".pem": 1,
+        "(none)": 2,
+        ".md": 3,
+        ".png": 6,
+        ".html": 3
+      }
+    },
+    {
+      "name": "phone-reports/fin07310814f1x-load-matrix__generic.js",
+      "files": 12,
+      "bytes": 46936,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310546a-smoke-matrix__generic.js",
+      "files": 12,
+      "bytes": 116192,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310546b-load-matrix__generic.js",
+      "files": 4,
+      "bytes": 67,
+      "extensions": {
+        "(none)": 4
+      }
+    },
+    {
+      "name": "phone-reports/local07310610a-smoke-matrix__generic.js",
+      "files": 12,
+      "bytes": 116502,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310632a-smoke-matrix__generic.js",
+      "files": 12,
+      "bytes": 117251,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310650a-smoke-matrix__generic.js",
+      "files": 12,
+      "bytes": 117692,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310650b-load-matrix__generic.js",
+      "files": 12,
+      "bytes": 124547,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310729e-load-scenarios__generic.js",
+      "files": 12,
+      "bytes": 25209,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310729f1-load-matrix__generic.js",
+      "files": 12,
+      "bytes": 48618,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/local07310729f2-load-matrix__generic.js",
+      "files": 12,
+      "bytes": 20755,
+      "extensions": {
+        "(none)": 4,
+        ".json": 5,
+        ".md": 1,
+        ".csv": 1,
+        ".out": 1
+      }
+    },
+    {
+      "name": "phone-reports/matrix-20261018",
+      "files": 2229,
+      "bytes": 63480169,
+      "extensions": {
+        ".jsonl": 1,
+        ".json": 1182,
+        ".log": 957,
+        ".csv": 82,
+        ".sql": 7
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020",
+      "files": 122,
+      "bytes": 4528344,
+      "extensions": {
+        ".md": 2,
+        ".json": 54,
+        ".py": 11,
+        ".sql": 1,
+        ".sh": 2,
+        ".mjs": 2,
+        ".yml": 1,
+        ".jsonl": 2,
+        ".log": 46,
+        ".csv": 1
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020-batch-overlap",
+      "files": 78,
+      "bytes": 2604761,
+      "extensions": {
+        ".json": 34,
+        ".js": 27,
+        ".py": 1,
+        ".csv": 3,
+        ".log": 11,
+        ".sql": 1,
+        ".jsonl": 1
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020-current-reads",
+      "files": 104,
+      "bytes": 1919161,
+      "extensions": {
+        ".json": 49,
+        ".js": 27,
+        ".py": 1,
+        ".log": 21,
+        ".csv": 6
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020-expanded",
+      "files": 3031,
+      "bytes": 646074824,
+      "extensions": {
+        ".md": 53,
+        ".json": 1658,
+        ".sql": 15,
+        ".txt": 7,
+        ".py": 97,
+        ".sh": 2,
+        ".mjs": 4,
+        ".yml": 2,
+        ".log": 1038,
+        ".jsonl": 13,
+        ".csv": 84,
+        ".png": 16,
+        ".pyc": 17,
+        ".cjs": 4,
+        ".js": 11,
+        ".css": 5,
+        ".html": 1,
+        ".lock": 3,
+        "(none)": 1
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020-joinable30",
+      "files": 237,
+      "bytes": 5157914,
+      "extensions": {
+        ".json": 215,
+        ".log": 17,
+        ".csv": 3,
+        ".jsonl": 2
+      }
+    },
+    {
+      "name": "phone-reports/retest-main-20261020-recovery",
+      "files": 39,
+      "bytes": 527318,
+      "extensions": {
+        ".json": 17,
+        ".sql": 4,
+        ".txt": 8,
+        ".jsonl": 2,
+        ".log": 7,
+        ".csv": 1
+      }
+    },
+    {
+      "name": "phone-reports/survey-20261018",
+      "files": 72,
+      "bytes": 1109803,
+      "extensions": {
+        ".json": 37,
+        ".log": 34,
+        ".csv": 1
+      }
+    },
+    {
+      "name": "survey-20261018/",
+      "files": 108,
+      "bytes": 17897099,
+      "extensions": {
+        ".md": 5,
+        ".csv": 11,
+        ".png": 3,
+        ".json": 66,
+        ".jsonl": 1,
+        ".log": 15,
+        ".sql": 7
+      }
+    }
+  ]
+}

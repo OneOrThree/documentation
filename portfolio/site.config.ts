@@ -88,6 +88,17 @@ export const sections: SectionConfig[] = [
     sort: "curated",
   },
   {
+    slug: "performance",
+    label: "성능·부하",
+    kicker: "LOAD TEST HISTORY",
+    title: "부하테스트와 개선 기록",
+    description:
+      "7월의 첫 부하 시험부터 AWS 운영 한계 측정과 후속 개선까지, 실행 조건·실패·재시험을 시간순으로 연결합니다. 같은 조건의 개선 수치와 아직 재측정하지 않은 목표를 구분합니다.",
+    kind: "docs",
+    search: true,
+    sort: "curated",
+  },
+  {
     slug: "research",
     label: "연구 노트",
     kicker: "RESEARCH NOTES",
